@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sahaiy — Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles/base.css" />
+    <link rel="stylesheet" href="./src/styles/app.css" />
+    <!-- Vite module entry — resolves all imports via src/ -->
+    <script type="module" src="./src/pages/app.js"></script>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════
+     APP SHELL
+═══════════════════════════════════════ -->
+    <div class="app-shell">
+
+        <!-- ════════  SIDEBAR  ════════ -->
+        <aside class="sidebar" id="sidebar">
+            <a href="index.html" class="sidebar-logo">
+                <div class="sidebar-logo-icon">🤖</div>
+                Sahaiy
+            </a>
+
+            <div class="sidebar-ws" onclick="void(0)">
+                <div class="sidebar-ws-avatar" id="ws-avatar">SS</div>
+                <span class="sidebar-ws-name" id="ws-name">Shreyash's Workspace</span>
+                <span class="sidebar-ws-chevron">⌄</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <!-- Home -->
+                <button class="sidebar-item active" onclick="navigate('home', this)" id="nav-home">
+                    <span class="nav-icon">🏠</span> Home
+                </button>
+
+                <!-- Configure -->
+                <div class="sidebar-section-label">Configure</div>
+                <button class="sidebar-item" onclick="navigate('agents', this)" id="nav-agents">
+                    <span class="nav-icon">🤖</span> Agents
+                </button>
+                <button class="sidebar-item" onclick="navigate('knowledge', this)" id="nav-knowledge">
+                    <span class="nav-icon">📚</span> Knowledge Base
+                </button>
+                <button class="sidebar-item" onclick="navigate('tools', this)" id="nav-tools">
+                    <span class="nav-icon">🔧</span> Tools
+                </button>
+                <button class="sidebar-item" onclick="navigate('integrations', this)" id="nav-integrations">
+                    <span class="nav-icon">🔗</span> Integrations
+                    <span class="nav-badge">Alpha</span>
+                </button>
+                <button class="sidebar-item" onclick="navigate('voices', this)" id="nav-voices">
+                    <span class="nav-icon">🎙️</span> Voices
+                </button>
+
+                <!-- Monitor -->
+                <div class="sidebar-section-label">Monitor</div>
+                <button class="sidebar-item" onclick="navigate('conversations', this)" id="nav-conversations">
+                    <span class="nav-icon">💬</span> Conversations
+                </button>
+                <button class="sidebar-item" onclick="navigate('analytics', this)" id="nav-analytics">
+                    <span class="nav-icon">📊</span> Analytics
+                </button>
+                <button class="sidebar-item" onclick="navigate('tests', this)" id="nav-tests">
+                    <span class="nav-icon">🧪</span> Tests
+                </button>
+
+                <!-- Deploy -->
+                <div class="sidebar-section-label">Deploy</div>
+                <button class="sidebar-item" onclick="navigate('phonenumbers', this)" id="nav-phonenumbers">
+                    <span class="nav-icon">📞</span> Phone Numbers
+                </button>
+                <button class="sidebar-item" onclick="navigate('whatsapp', this)" id="nav-whatsapp">
+                    <span class="nav-icon">💬</span> WhatsApp
+                    <span class="nav-badge">Alpha</span>
+                </button>
+                <button class="sidebar-item" onclick="navigate('outbound', this)" id="nav-outbound">
+                    <span class="nav-icon">📢</span> Outbound
+                </button>
+                <button class="sidebar-item" onclick="navigate('widget', this)" id="nav-widget">
+                    <span class="nav-icon">🌐</span> Web Widget
+                </button>
+            </nav>
+
+            <!-- Bottom actions -->
+            <div class="sidebar-bottom">
+                <div class="sidebar-upgrade">
+                    <span class="upgrade-icon">⚡</span>
+                    <div class="upgrade-text">
+                        <div class="upgrade-text-top">Upgrade to Pro</div>
+                        <div class="upgrade-text-sub">Unlock unlimited agents</div>
+                    </div>
+                </div>
+                <button class="sidebar-item" onclick="navigate('settings', this)" id="nav-settings" style="margin:0;">
+                    <span class="nav-icon">⚙️</span> Settings
+                </button>
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="user-avatar-el">SS</div>
+                    <div class="user-info">
+                        <div class="user-name" id="user-name-el">Shreyash Singh</div>
+                        <div class="user-email" id="user-email-el">shreyash@sahaiy.ai</div>
+                    </div>
+                    <button class="user-menu-btn" onclick="showUserMenu(event)" title="Options">⋯</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ════════  MAIN AREA  ════════ -->
+        <div class="main-area">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-title" id="topbar-title">Home</div>
+                <div class="topbar-search">
+                    <span style="color:var(--dash-text-3); font-size:12px;">🔍</span>
+                    <input type="text" placeholder="Search agents, conversations..." />
+                </div>
+                <div class="topbar-actions">
+                    <button class="topbar-icon-btn" title="Notifications">🔔</button>
+                    <button class="topbar-icon-btn" title="Help">❓</button>
+                    <div style="width:1px; height:20px; background:var(--dash-border);"></div>
+                    <button class="dash-btn dash-btn-primary" onclick="openCreateModal()" id="topbar-new-agent">
+                        + New Agent
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content">
+
+                <!-- ══════ PAGE: HOME ══════ -->
+                <div class="page active" id="page-home">
+                    <p class="home-greeting">Good morning, Shreyash ☀️</p>
+                    <p class="home-sub">Here's how your agents performed today</p>
+
+                    <!-- Stats -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-top">
+                                <span class="stat-label">Total Calls</span>
+                                <div class="stat-icon" style="background:rgba(124,92,252,0.1);">📞</div>
+                            </div>
+                            <div class="stat-value">2,847</div>
+                            <div class="stat-delta up">↑ 18% vs yesterday</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top">
+                                <span class="stat-label">Avg Duration</span>
+                                <div class="stat-icon" style="background:rgba(0,196,161,0.1);">⏱️</div>
+                            </div>
+                            <div class="stat-value">2:14</div>
+                            <div class="stat-delta down">↓ 4% vs yesterday</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top">
+                                <span class="stat-label">Success Rate</span>
+                                <div class="stat-icon" style="background:rgba(34,197,94,0.1);">✅</div>
+                            </div>
+                            <div class="stat-value">98.2%</div>
+                            <div class="stat-delta up">↑ 1.2pp vs last week</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top">
+                                <span class="stat-label">Total Cost</span>
+                                <div class="stat-icon" style="background:rgba(245,158,11,0.1);">💰</div>
+                            </div>
+                            <div class="stat-value">₹1,240</div>
+                            <div class="stat-delta neutral">≈ ₹0.44 per call</div>
+                        </div>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <span class="chart-card-title">Call Volume</span>
+                            <div class="chart-period-tabs">
+                                <button class="chart-period-tab" onclick="switchPeriod('day', this)">Day</button>
+                                <button class="chart-period-tab active"
+                                    onclick="switchPeriod('week', this)">Week</button>
+                                <button class="chart-period-tab" onclick="switchPeriod('month', this)">Month</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrap">
+                            <canvas id="callChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Recent Conversations -->
+                    <div class="recent-card">
+                        <div class="recent-card-header">
+                            <span class="recent-card-title">Recent Conversations</span>
+                            <button class="dash-btn dash-btn-outline" style="font-size:11px; padding:6px 14px;"
+                                onclick="navigate('conversations', document.getElementById('nav-conversations'))">
+                                View all →
+                            </button>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Caller</th>
+                                        <th>Agent</th>
+                                        <th>Duration</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-tbody">
+                                    <!-- Filled by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: AGENTS ══════ -->
+                <div class="page" id="page-agents">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Agents</h1>
+                            <p class="page-sub">Manage your AI call agents</p>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button class="dash-btn dash-btn-outline" onclick="openPlayground()">🎮 Playground</button>
+                            <button class="dash-btn dash-btn-primary" onclick="openCreateModal()">+ New agent</button>
+                        </div>
+                    </div>
+
+                    <div class="search-bar">
+                        <div class="search-input-wrap">
+                            <span style="font-size:13px; color:var(--dash-text-3);">🔍</span>
+                            <input type="text" placeholder="Search agents…" id="agent-search"
+                                oninput="filterAgents(this.value)" />
+                        </div>
+                        <button class="dash-btn dash-btn-outline" style="font-size:12px;">📦 Archived</button>
+                    </div>
+
+                    <div class="agent-table-wrap">
+                        <div class="agent-row header">
+                            <span>Name</span>
+                            <span>Voice</span>
+                            <span>Status</span>
+                            <span>Calls</span>
+                            <span>Created</span>
+                            <span></span>
+                        </div>
+                        <div id="agent-rows">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: AGENT CONFIGURE ══════ -->
+                <div class="page" id="page-agent-config">
+                    <div class="page-header" style="margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <button class="dash-btn dash-btn-outline" style="font-size:12px; padding:7px 12px;"
+                                onclick="navigate('agents', document.getElementById('nav-agents'))">
+                                ← Agents
+                            </button>
+                            <div>
+                                <h1 class="page-title" id="config-agent-name">Customer Support Agent</h1>
+                                <p class="page-sub" style="display:flex; align-items:center; gap:8px;">
+                                    <span
+                                        style="font-family:var(--font-mono); font-size:10px; color:var(--dash-text-3);"
+                                        id="config-agent-id">ID: ag_01jkxxx</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span class="badge badge-green" id="config-status-badge">● Published</span>
+                            <button class="dash-btn dash-btn-outline" style="font-size:12px;"
+                                onclick="openPlayground()">🎮 Preview</button>
+                            <button class="dash-btn dash-btn-primary">Publish ↗</button>
+                        </div>
+                    </div>
+
+                    <!-- Config Tabs -->
+                    <div class="config-tabs-bar">
+                        <button class="config-tab active" onclick="switchConfigTab('agent', this)">Agent</button>
+                        <button class="config-tab" onclick="switchConfigTab('workflow', this)">Workflow</button>
+                        <button class="config-tab" onclick="switchConfigTab('kb', this)">Knowledge Base</button>
+                        <button class="config-tab" onclick="switchConfigTab('tools', this)">Tools</button>
+                        <button class="config-tab" onclick="switchConfigTab('analysis', this)">Analysis</button>
+                        <button class="config-tab" onclick="switchConfigTab('tests', this)">Tests</button>
+                        <button class="config-tab" onclick="switchConfigTab('widget', this)">Widget</button>
+                        <button class="config-tab" onclick="switchConfigTab('security', this)">Security</button>
+                        <button class="config-tab" onclick="switchConfigTab('advanced', this)">Advanced</button>
+                    </div>
+
+                    <!-- Config Tab: Agent -->
+                    <div id="config-tab-agent" class="config-layout">
+                        <div>
+                            <div class="form-group">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-input" value="Customer Support Agent" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">System Prompt <span>— Instructions for the
+                                        agent</span></label>
+                                <textarea class="form-input form-textarea"
+                                    style="min-height:180px;">You are Priya, a friendly and helpful customer support AI agent for Shreyash's ecommerce store. You help customers with order status, returns, and product queries. Always be warm, professional, and concise. If you cannot resolve an issue, offer to escalate to a human agent.</textarea>
+                                <p class="form-hint">This is the main instruction that defines your agent's personality
+                                    and behavior.</p>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">First message <span>— What the agent says when the call
+                                        connects</span></label>
+                                <input type="text" class="form-input"
+                                    value="Namaste! I'm Priya from customer support. How can I help you today?" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Language</label>
+                                <select class="form-input">
+                                    <option>Hindi / English (Hinglish)</option>
+                                    <option>English (India)</option>
+                                    <option>Hindi</option>
+                                    <option>Tamil</option>
+                                    <option>Bengali</option>
+                                    <option>Telugu</option>
+                                    <option>Marathi</option>
+                                </select>
+                            </div>
+                            <div style="display:flex; justify-content:flex-end;">
+                                <button class="dash-btn dash-btn-primary">Save changes</button>
+                            </div>
+                        </div>
+
+                        <!-- Right sidebar: voice + LLM -->
+                        <div style="display:flex; flex-direction:column; gap:16px;">
+                            <div
+                                style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                                <div
+                                    style="font-size:12px; font-weight:700; color:var(--dash-text); margin-bottom:14px;">
+                                    🎙️ Voice</div>
+                                <div style="display:flex; align-items:center; gap:10px; padding:12px; background:var(--dash-surface-2); border:1px solid var(--dash-border); border-radius:var(--radius); margin-bottom:10px; cursor:pointer;"
+                                    onmouseover="this.style.borderColor='var(--dash-accent)'"
+                                    onmouseout="this.style.borderColor='var(--dash-border)'">
+                                    <div
+                                        style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#ff6b6b,#ffa06b); display:flex; align-items:center; justify-content:center; font-size:16px;">
+                                        👩</div>
+                                    <div>
+                                        <div style="font-size:13px; font-weight:600; color:var(--dash-text);">Priya
+                                        </div>
+                                        <div
+                                            style="font-size:10px; color:var(--dash-text-3); font-family:var(--font-mono);">
+                                            Hindi · Female · Natural</div>
+                                    </div>
+                                    <button
+                                        style="margin-left:auto; width:28px; height:28px; border-radius:50%; background:var(--dash-surface); border:1px solid var(--dash-border); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center;">▶</button>
+                                </div>
+                                <button class="dash-btn dash-btn-outline"
+                                    style="width:100%; font-size:12px; justify-content:center;">Browse Voice
+                                    Library</button>
+                            </div>
+
+                            <div
+                                style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                                <div
+                                    style="font-size:12px; font-weight:700; color:var(--dash-text); margin-bottom:14px;">
+                                    🧠 LLM Model</div>
+                                <select class="form-input" style="font-size:12px;">
+                                    <option>Gemini 2.5 Flash</option>
+                                    <option>Gemini 2.0 Pro</option>
+                                    <option>GPT-4o</option>
+                                    <option>Claude 3.5 Sonnet</option>
+                                </select>
+                            </div>
+
+                            <div
+                                style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                                <div
+                                    style="font-size:12px; font-weight:700; color:var(--dash-text); margin-bottom:14px;">
+                                    ⚙️ Call Settings</div>
+                                <div class="form-group" style="margin-bottom:12px;">
+                                    <label class="form-label" style="font-size:11px;">Max call duration</label>
+                                    <select class="form-input" style="font-size:12px;">
+                                        <option>5 minutes</option>
+                                        <option selected>10 minutes</option>
+                                        <option>20 minutes</option>
+                                        <option>No limit</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label class="form-label" style="font-size:11px;">End call on silence</label>
+                                    <select class="form-input" style="font-size:12px;">
+                                        <option>After 10 seconds</option>
+                                        <option selected>After 20 seconds</option>
+                                        <option>After 30 seconds</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Other config tabs (hidden) -->
+                    <div id="config-tab-workflow" style="display:none;">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔀</div>
+                            <div class="empty-title">Workflow Builder</div>
+                            <div class="empty-sub">Design multi-turn conversation flows with conditional branching and
+                                human escalation triggers.</div>
+                            <button class="dash-btn dash-btn-primary">Create workflow</button>
+                        </div>
+                    </div>
+                    <div id="config-tab-kb" style="display:none;">
+                        <div class="empty-state">
+                            <div class="empty-icon">📚</div>
+                            <div class="empty-title">No knowledge base attached</div>
+                            <div class="empty-sub">Attach a knowledge base so the agent can answer questions from your
+                                documents.</div>
+                            <button class="dash-btn dash-btn-primary"
+                                onclick="navigate('knowledge', document.getElementById('nav-knowledge'))">Manage
+                                knowledge base</button>
+                        </div>
+                    </div>
+                    <div id="config-tab-tools" style="display:none;">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔧</div>
+                            <div class="empty-title">No tools configured</div>
+                            <div class="empty-sub">Add tools so your agent can call external APIs and take actions
+                                during calls.</div>
+                            <button class="dash-btn dash-btn-primary">Add tool</button>
+                        </div>
+                    </div>
+                    <div id="config-tab-analysis" style="display:none;">
+                        <div class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <div class="empty-title">Call Analysis</div>
+                            <div class="empty-sub">View detailed per-call quality scores, sentiment trends, and outcome
+                                tracking.</div>
+                        </div>
+                    </div>
+                    <div id="config-tab-tests" style="display:none;">
+                        <div class="empty-state">
+                            <div class="empty-icon">🧪</div>
+                            <div class="empty-title">No tests created</div>
+                            <div class="empty-sub">Create automated test scenarios to validate agent behavior before
+                                going live.</div>
+                            <button class="dash-btn dash-btn-primary">+ New test</button>
+                        </div>
+                    </div>
+                    <div id="config-tab-widget" style="display:none;">
+                        <div style="max-width:600px;">
+                            <div class="form-group">
+                                <label class="form-label">Embed code</label>
+                                <div
+                                    style="background:var(--dash-surface-2); border:1px solid var(--dash-border); border-radius:var(--radius); padding:16px; font-family:var(--font-mono); font-size:12px; color:var(--dash-text-2); line-height:1.7;">
+                                    &lt;script src="https://cdn.sahaiy.ai/widget.js"&gt;&lt;/script&gt;<br />
+                                    &lt;sahaiy-widget agent-id="ag_01jkxxxxx"&gt;&lt;/sahaiy-widget&gt;
+                                </div>
+                                <p class="form-hint">Paste this into your website's HTML. The floating call button will
+                                    appear automatically.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="config-tab-security" style="display:none;">
+                        <div class="empty-state">
+                            <div class="empty-icon">🛡️</div>
+                            <div class="empty-title">Security Settings</div>
+                            <div class="empty-sub">Configure allowlisted phone numbers, abuse protection, and content
+                                safety filters.</div>
+                        </div>
+                    </div>
+                    <div id="config-tab-advanced" style="display:none;">
+                        <div class="empty-state">
+                            <div class="empty-icon">⚙️</div>
+                            <div class="empty-title">Advanced Settings</div>
+                            <div class="empty-sub">Configure STT model, temperature, response speed, interruption
+                                handling, and more.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: KNOWLEDGE BASE ══════ -->
+                <div class="page" id="page-knowledge">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Knowledge Base</h1>
+                            <p class="page-sub">Documents your agents use as their source of truth</p>
+                        </div>
+                        <button class="dash-btn dash-btn-primary">+ Add source</button>
+                    </div>
+                    <div class="upload-zone" onclick="void(0)">
+                        <div class="upload-zone-icon">📄</div>
+                        <div class="upload-zone-title">Drop files here or click to upload</div>
+                        <div class="upload-zone-sub">PDF, DOCX, TXT, CSV · Max 50 MB per file</div>
+                    </div>
+                    <div
+                        style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); overflow:hidden;">
+                        <div
+                            style="padding:14px 20px; border-bottom:1px solid var(--dash-border); background:var(--dash-surface-2); font-family:var(--font-mono); font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--dash-text-3);">
+                            3 documents · 2.4 MB total
+                        </div>
+                        <div class="kb-doc-row">
+                            <span class="kb-doc-icon">📋</span>
+                            <div>
+                                <div class="kb-doc-name">Customer FAQ — Returns & Refunds.pdf</div>
+                                <div class="kb-doc-meta">0.8 MB · Uploaded Feb 24, 2025 · ✓ Indexed</div>
+                            </div>
+                            <button class="agent-action-btn agent-action-edit" style="margin-left:auto;">⋯</button>
+                        </div>
+                        <div class="kb-doc-row">
+                            <span class="kb-doc-icon">📋</span>
+                            <div>
+                                <div class="kb-doc-name">Product Catalog Q1 2025.docx</div>
+                                <div class="kb-doc-meta">1.2 MB · Uploaded Feb 20, 2025 · ✓ Indexed</div>
+                            </div>
+                            <button class="agent-action-btn agent-action-edit" style="margin-left:auto;">⋯</button>
+                        </div>
+                        <div class="kb-doc-row">
+                            <span class="kb-doc-icon">🌐</span>
+                            <div>
+                                <div class="kb-doc-name">https://help.mystore.in/shipping-policy</div>
+                                <div class="kb-doc-meta">URL · Crawled Feb 26, 2025 · ✓ Indexed</div>
+                            </div>
+                            <button class="agent-action-btn agent-action-edit" style="margin-left:auto;">⋯</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: TOOLS ══════ -->
+                <div class="page" id="page-tools">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Tools</h1>
+                            <p class="page-sub">APIs your agents can call during conversations</p>
+                        </div>
+                        <button class="dash-btn dash-btn-primary" onclick="openCreateModal('tool')">+ Add tool</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px;">
+                        <div
+                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                                <div
+                                    style="width:40px; height:40px; background:rgba(124,92,252,0.1); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px;">
+                                    📦</div>
+                                <div>
+                                    <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Get Order
+                                        Status</div>
+                                    <div
+                                        style="font-family:var(--font-mono); font-size:10px; color:var(--dash-text-3);">
+                                        GET /orders/{orderId}</div>
+                                </div>
+                                <span class="badge badge-green" style="margin-left:auto;">Active</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--dash-text-3);">Fetches the current status and delivery
+                                info for a given order ID.</p>
+                        </div>
+                        <div
+                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                                <div
+                                    style="width:40px; height:40px; background:rgba(0,196,161,0.1); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px;">
+                                    ↩️</div>
+                                <div>
+                                    <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Initiate
+                                        Return</div>
+                                    <div
+                                        style="font-family:var(--font-mono); font-size:10px; color:var(--dash-text-3);">
+                                        POST /returns</div>
+                                </div>
+                                <span class="badge badge-green" style="margin-left:auto;">Active</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--dash-text-3);">Creates a return request for an
+                                eligible order on behalf of the customer.</p>
+                        </div>
+                        <div style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px; border-style:dashed; cursor:pointer; text-align:center;"
+                            onmouseover="this.style.borderColor='var(--dash-accent)'"
+                            onmouseout="this.style.borderColor='var(--dash-border)'" onclick="openCreateModal('tool')">
+                            <div style="font-size:28px; margin-bottom:8px;">+</div>
+                            <div style="font-size:13px; font-weight:600; color:var(--dash-text-3);">Add new tool</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: INTEGRATIONS ══════ -->
+                <div class="page" id="page-integrations">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Integrations <span class="badge badge-purple"
+                                    style="font-size:11px; margin-left:8px;">Alpha</span></h1>
+                            <p class="page-sub">Connect your existing tools and platforms</p>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
+                        <div
+                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
+                                    📞</div>
+                                <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Twilio</div>
+                                <span class="badge badge-green" style="margin-left:auto;">Connected</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--dash-text-3); line-height:1.5;">SIP trunking &amp;
+                                phone number provisioning</p>
+                        </div>
+                        <div
+                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
+                                    💬</div>
+                                <div style="font-size:13px; font-weight:700; color:var(--dash-text);">WhatsApp Business
+                                </div>
+                                <span class="badge badge-gray" style="margin-left:auto;">Available</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--dash-text-3); line-height:1.5;">Send &amp; receive
+                                WhatsApp voice/text messages</p>
+                        </div>
+                        <div
+                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
+                                    🎯</div>
+                                <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Salesforce CRM
+                                </div>
+                                <span class="badge badge-gray" style="margin-left:auto;">Available</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--dash-text-3); line-height:1.5;">Sync call outcomes to
+                                leads and contacts</p>
+                        </div>
+                        <div
+                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
+                                    📊</div>
+                                <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Google Sheets
+                                </div>
+                                <span class="badge badge-green" style="margin-left:auto;">Connected</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--dash-text-3); line-height:1.5;">Log call data to
+                                spreadsheets automatically</p>
+                        </div>
+                        <div
+                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
+                                    🔔</div>
+                                <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Slack</div>
+                                <span class="badge badge-gray" style="margin-left:auto;">Available</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--dash-text-3); line-height:1.5;">Get notified on failed
+                                calls and escalations</p>
+                        </div>
+                        <div
+                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
+                                    📧</div>
+                                <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Mailchimp</div>
+                                <span class="badge badge-gray" style="margin-left:auto;">Available</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--dash-text-3); line-height:1.5;">Trigger email
+                                sequences post call</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: VOICES ══════ -->
+                <div class="page" id="page-voices">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Voices</h1>
+                            <p class="page-sub">Browse and manage voices for your agents</p>
+                        </div>
+                        <button class="dash-btn dash-btn-primary">+ Clone voice</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;" id="voices-grid">
+                        <!-- filled by JS -->
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: CONVERSATIONS ══════ -->
+                <div class="page" id="page-conversations">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Conversations</h1>
+                            <p class="page-sub">Complete log of all calls</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="dash-btn dash-btn-outline" style="font-size:12px;">Filter ▾</button>
+                            <button class="dash-btn dash-btn-outline" style="font-size:12px;">Export</button>
+                        </div>
+                    </div>
+                    <div class="recent-card">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Caller</th>
+                                        <th>Agent</th>
+                                        <th>Duration</th>
+                                        <th>Status</th>
+                                        <th>CSAT</th>
+                                        <th>Date</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="conv-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: ANALYTICS ══════ -->
+                <div class="page" id="page-analytics">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Analytics</h1>
+                            <p class="page-sub">Performance insights across all agents</p>
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <select class="dash-btn dash-btn-outline" style="font-size:12px; cursor:pointer;">
+                                <option>Last 7 days</option>
+                                <option>Last 30 days</option>
+                                <option>Last 90 days</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-top"><span class="stat-label">Total Calls</span>
+                                <div class="stat-icon" style="background:rgba(124,92,252,.1);">📞</div>
+                            </div>
+                            <div class="stat-value">19,284</div>
+                            <div class="stat-delta up">↑ 22% vs prior period</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top"><span class="stat-label">Resolution Rate</span>
+                                <div class="stat-icon" style="background:rgba(34,197,94,.1);">✅</div>
+                            </div>
+                            <div class="stat-value">98.2%</div>
+                            <div class="stat-delta up">↑ 2.1pp</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top"><span class="stat-label">CSAT Score</span>
+                                <div class="stat-icon" style="background:rgba(245,158,11,.1);">⭐</div>
+                            </div>
+                            <div class="stat-value">4.8/5</div>
+                            <div class="stat-delta neutral">Stable</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top"><span class="stat-label">Escalations</span>
+                                <div class="stat-icon" style="background:rgba(239,68,68,.1);">📲</div>
+                            </div>
+                            <div class="stat-value">1.8%</div>
+                            <div class="stat-delta down">↓ 0.4pp</div>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <span class="chart-card-title">Call Volume — Last 30 Days</span>
+                        </div>
+                        <div class="chart-wrap">
+                            <canvas id="analyticsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: TESTS ══════ -->
+                <div class="page" id="page-tests">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Tests</h1>
+                            <p class="page-sub">Automated scenarios to validate agent behavior</p>
+                        </div>
+                        <button class="dash-btn dash-btn-primary">+ New test</button>
+                    </div>
+                    <div class="empty-state">
+                        <div class="empty-icon">🧪</div>
+                        <div class="empty-title">No tests yet</div>
+                        <div class="empty-sub">Create automated call simulations to catch regressions before new changes
+                            go live.</div>
+                        <button class="dash-btn dash-btn-primary" onclick="void(0)">Create your first test</button>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: PHONE NUMBERS ══════ -->
+                <div class="page" id="page-phonenumbers">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Phone Numbers</h1>
+                            <p class="page-sub">Numbers assigned to your agents</p>
+                        </div>
+                        <button class="dash-btn dash-btn-primary">+ Buy number</button>
+                    </div>
+                    <div class="phone-num-card">
+                        <div class="phone-num-icon" style="background:rgba(124,92,252,0.1);">📞</div>
+                        <div class="phone-num-info">
+                            <div class="phone-num-number">+91 80 4590 7823</div>
+                            <div class="phone-num-meta">India · Mumbai · Inbound + Outbound</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="phone-num-agent">Customer Support Agent</div>
+                            <div class="phone-num-meta">847 calls this month</div>
+                        </div>
+                        <span class="badge badge-green">Active</span>
+                        <button class="agent-action-btn agent-action-edit">⋯</button>
+                    </div>
+                    <div class="phone-num-card">
+                        <div class="phone-num-icon" style="background:rgba(0,196,161,0.1);">📱</div>
+                        <div class="phone-num-info">
+                            <div class="phone-num-number">+91 22 6189 4400</div>
+                            <div class="phone-num-meta">India · Delhi · Outbound Only</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="phone-num-agent">Sales Outreach Agent</div>
+                            <div class="phone-num-meta">2,000 calls this month</div>
+                        </div>
+                        <span class="badge badge-green">Active</span>
+                        <button class="agent-action-btn agent-action-edit">⋯</button>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: WHATSAPP ══════ -->
+                <div class="page" id="page-whatsapp">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">WhatsApp <span class="badge badge-purple"
+                                    style="font-size:11px; margin-left:8px;">Alpha</span></h1>
+                            <p class="page-sub">Deploy your agents on WhatsApp Business</p>
+                        </div>
+                    </div>
+                    <div class="empty-state">
+                        <div class="empty-icon">💬</div>
+                        <div class="empty-title">Connect your WhatsApp Business account</div>
+                        <div class="empty-sub">Link your Meta WhatsApp Business API account to deploy Sahaiy agents
+                            directly in WhatsApp chats and voice calls.</div>
+                        <button class="dash-btn dash-btn-primary">Connect WhatsApp</button>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: OUTBOUND ══════ -->
+                <div class="page" id="page-outbound">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Outbound Campaigns</h1>
+                            <p class="page-sub">Bulk AI-powered outbound call campaigns</p>
+                        </div>
+                        <button class="dash-btn dash-btn-primary">+ New campaign</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
+                        <div class="stat-card">
+                            <div class="stat-card-top"><span class="stat-label">Total Dialed</span>
+                                <div class="stat-icon" style="background:rgba(124,92,252,.1);">📢</div>
+                            </div>
+                            <div class="stat-value">5,210</div>
+                            <div class="stat-delta up">↑ This month</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top"><span class="stat-label">Connect Rate</span>
+                                <div class="stat-icon" style="background:rgba(34,197,94,.1);">✅</div>
+                            </div>
+                            <div class="stat-value">64.3%</div>
+                            <div class="stat-delta up">↑ 3pp vs last month</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-top"><span class="stat-label">Conversion Rate</span>
+                                <div class="stat-icon" style="background:rgba(245,158,11,.1);">🎯</div>
+                            </div>
+                            <div class="stat-value">12.8%</div>
+                            <div class="stat-delta up">↑ 1.4pp</div>
+                        </div>
+                    </div>
+                    <div class="recent-card">
+                        <div class="recent-card-header"><span class="recent-card-title">Campaigns</span></div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Campaign</th>
+                                        <th>Agent</th>
+                                        <th>Dialed</th>
+                                        <th>Connected</th>
+                                        <th>Converted</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span style="font-weight:600; color:var(--dash-text);">Feb
+                                                Reactivation</span></td>
+                                        <td>Sales Agent</td>
+                                        <td>1,200</td>
+                                        <td>772 (64%)</td>
+                                        <td>98 (8%)</td>
+                                        <td><span class="badge badge-green">Completed</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><span style="font-weight:600; color:var(--dash-text);">Overdue
+                                                Collections</span></td>
+                                        <td>Collections Agent</td>
+                                        <td>840</td>
+                                        <td>540 (64%)</td>
+                                        <td>211 (25%)</td>
+                                        <td><span class="badge badge-green">Completed</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><span style="font-weight:600; color:var(--dash-text);">March Survey
+                                                Blast</span></td>
+                                        <td>Survey Agent</td>
+                                        <td>3,170</td>
+                                        <td>2,034 (64%)</td>
+                                        <td>856 (27%)</td>
+                                        <td><span class="badge badge-orange">Running</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: WEB WIDGET ══════ -->
+                <div class="page" id="page-widget">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Web Widget</h1>
+                            <p class="page-sub">Embed a call button on your website</p>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+                        <div>
+                            <div class="form-group">
+                                <label class="form-label">Select agent</label>
+                                <select class="form-input">
+                                    <option>Customer Support Agent</option>
+                                    <option>Sales Agent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Button label</label>
+                                <input class="form-input" type="text" value="Talk to Priya" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Embed code</label>
+                                <div
+                                    style="background:var(--dash-surface-2); border:1px solid var(--dash-border); border-radius:var(--radius); padding:16px; font-family:var(--font-mono); font-size:11px; color:var(--dash-text-2); line-height:1.8; word-break:break-all;">
+                                    &lt;script src="https://cdn.sahaiy.ai/widget.js"&gt;&lt;/script&gt;<br />
+                                    &lt;sahaiy-widget agent-id="ag_01jkxxx" label="Talk to
+                                    Priya"&gt;&lt;/sahaiy-widget&gt;
+                                </div>
+                            </div>
+                            <button class="dash-btn dash-btn-primary">Copy embed code</button>
+                        </div>
+                        <div
+                            style="background:var(--dash-surface-2); border:1px dashed var(--dash-border); border-radius:var(--radius-lg); padding:32px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:300px; position:relative;">
+                            <div
+                                style="position:absolute; top:16px; left:16px; font-family:var(--font-mono); font-size:10px; color:var(--dash-text-3); text-transform:uppercase; letter-spacing:0.1em;">
+                                Preview</div>
+                            <div
+                                style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--dash-accent),#00C4A1); display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 8px 24px rgba(124,92,252,.35); cursor:pointer; animation:float 3s ease-in-out infinite;">
+                                📞</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════ PAGE: SETTINGS ══════ -->
+                <div class="page" id="page-settings">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Settings</h1>
+                            <p class="page-sub">Manage your workspace and account</p>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:180px 1fr; gap:24px;">
+                        <div style="display:flex; flex-direction:column; gap:4px;">
+                            <button class="sidebar-item active"
+                                style="font-size:12px; width:100%; text-align:left; border-radius:var(--radius);">Workspace</button>
+                            <button class="sidebar-item"
+                                style="font-size:12px; width:100%; text-align:left; border-radius:var(--radius);">Members</button>
+                            <button class="sidebar-item"
+                                style="font-size:12px; width:100%; text-align:left; border-radius:var(--radius);">Billing</button>
+                            <button class="sidebar-item"
+                                style="font-size:12px; width:100%; text-align:left; border-radius:var(--radius);">API
+                                Keys</button>
+                            <button class="sidebar-item"
+                                style="font-size:12px; width:100%; text-align:left; border-radius:var(--radius);">Notifications</button>
+                        </div>
+                        <div>
+                            <div
+                                style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:28px;">
+                                <h3
+                                    style="font-size:15px; font-weight:700; color:var(--dash-text); margin-bottom:24px;">
+                                    Workspace Settings</h3>
+                                <div class="form-group">
+                                    <label class="form-label">Workspace name</label>
+                                    <input class="form-input" type="text" value="Shreyash's Workspace" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Default language</label>
+                                    <select class="form-input">
+                                        <option>Hindi / English (Hinglish)</option>
+                                        <option>English</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Timezone</label>
+                                    <select class="form-input">
+                                        <option>Asia/Kolkata (IST, UTC+5:30)</option>
+                                        <option>UTC</option>
+                                    </select>
+                                </div>
+                                <button class="dash-btn dash-btn-primary">Save changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /page-content -->
+        </div><!-- /main-area -->
+    </div><!-- /app-shell -->
+
+    <!-- ════════ PLAYGROUND PANEL ════════ -->
+    <div class="playground-panel" id="playground-panel">
+        <div class="playground-header">
+            <span class="playground-title">🎮 Test Agent</span>
+            <button class="playground-close" onclick="closePlayground()">×</button>
+        </div>
+        <div class="playground-orb-area">
+            <div class="playground-orb" onclick="togglePlaygroundCall()" id="playground-orb-btn">🎙️</div>
+            <div class="playground-status" id="playground-call-status">Click orb to start a test call</div>
+        </div>
+        <div class="playground-chat" id="playground-chat">
+            <div class="chat-bubble agent">Namaste! I'm Priya from customer support. How can I help you today? 😊</div>
+        </div>
+        <div class="playground-input-wrap">
+            <input type="text" class="playground-input" placeholder="Type a message…" id="playground-msg-input"
+                onkeydown="if(event.key==='Enter') sendPlaygroundMsg()" />
+            <button class="playground-send" onclick="sendPlaygroundMsg()">↑</button>
+        </div>
+    </div>
+
+    <!-- ════════ CREATE AGENT MODAL ════════ -->
+    <div class="modal-overlay" id="create-modal" onclick="if(event.target===this) closeCreateModal()">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">Create New Agent</span>
+                <button class="modal-close" onclick="closeCreateModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom:20px;">
+                    <label class="form-label" style="margin-bottom:12px; display:block;">Start from a template</label>
+                    <div class="modal-templates" id="modal-templates">
+                        <div class="template-card selected" onclick="selectTemplate(this)">
+                            <div class="template-icon">🎧</div>
+                            <div class="template-name">Customer Support</div>
+                            <div class="template-desc">Handles inbound support calls, returns, and FAQs</div>
+                        </div>
+                        <div class="template-card" onclick="selectTemplate(this)">
+                            <div class="template-icon">📈</div>
+                            <div class="template-name">Sales Outreach</div>
+                            <div class="template-desc">Qualifies leads and books demos via outbound calls</div>
+                        </div>
+                        <div class="template-card" onclick="selectTemplate(this)">
+                            <div class="template-icon">💰</div>
+                            <div class="template-name">Collections</div>
+                            <div class="template-desc">Follows up on overdue payments professionally</div>
+                        </div>
+                        <div class="template-card" onclick="selectTemplate(this)">
+                            <div class="template-icon">📋</div>
+                            <div class="template-name">Survey / NPS</div>
+                            <div class="template-desc">Conducts customer satisfaction surveys at scale</div>
+                        </div>
+                        <div class="template-card" onclick="selectTemplate(this)">
+                            <div class="template-icon">📅</div>
+                            <div class="template-name">Appointment Booking</div>
+                            <div class="template-desc">Books, reschedules and confirms appointments</div>
+                        </div>
+                        <div class="template-card" onclick="selectTemplate(this)">
+                            <div class="template-icon">⚙️</div>
+                            <div class="template-name">Blank</div>
+                            <div class="template-desc">Start from scratch with a custom prompt</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Agent name</label>
+                        <input class="form-input" type="text" placeholder="e.g. Customer Support" id="new-agent-name" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Voice</label>
+                        <select class="form-input" id="new-agent-voice">
+                            <option>Priya (Female, Hindi)</option>
+                            <option>Rahul (Male, Hindi)</option>
+                            <option>Anita (Female, English-IN)</option>
+                            <option>Arjun (Male, English-IN)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="dash-btn dash-btn-outline" onclick="closeCreateModal()">Cancel</button>
+                <button class="dash-btn dash-btn-primary" id="create-agent-btn" onclick="createAgentSubmit()">Create
+                    Agent
+                    →</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

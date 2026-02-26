@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sahaiy — Sign In</title>
+    <meta name="description" content="Sign in or create your Sahaiy account to start deploying AI call agents." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="./src/styles/base.css" />
+    <!-- Vite module entry: all logic lives in src/pages/auth.js -->
+    <script type="module" src="./src/pages/auth.js"></script>
+    <style>
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .auth-bg {
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle at 1.5px 1.5px, rgba(0, 0, 0, 0.06) 1.5px, transparent 0);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .auth-glow-left {
+            position: fixed;
+            top: -100px;
+            left: -150px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(124, 92, 252, 0.12) 0%, transparent 65%);
+            pointer-events: none;
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .auth-glow-right {
+            position: fixed;
+            bottom: -100px;
+            right: -150px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 196, 161, 0.1) 0%, transparent 65%);
+            pointer-events: none;
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .auth-nav {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 48px;
+        }
+
+        .auth-nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+
+        .auth-nav-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent) 0%, #00C4A1 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .auth-nav-right {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .auth-nav-right a {
+            color: var(--accent);
+            font-weight: 600;
+            margin-left: 6px;
+            cursor: pointer;
+        }
+
+        .auth-nav-right a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            max-width: 980px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .auth-left {
+            animation: fadeUp 0.7s ease both;
+        }
+
+        .auth-left-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .auth-left-tag::before {
+            content: '/';
+            color: var(--accent);
+            font-size: 13px;
+        }
+
+        .auth-left h2 {
+            font-size: clamp(28px, 3.5vw, 44px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .auth-left h2 span {
+            background: linear-gradient(135deg, var(--accent), #00C4A1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-left p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 36px;
+            max-width: 360px;
+        }
+
+        .auth-features {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .auth-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .auth-feature-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .auth-feature-text {
+            flex: 1;
+        }
+
+        .auth-feature-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .auth-feature-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .auth-social-proof {
+            margin-top: 36px;
+            padding-top: 28px;
+            border-top: 1px dashed var(--border-dashed);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .proof-avatars {
+            display: flex;
+        }
+
+        .proof-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+            margin-left: -8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .proof-avatar:first-child {
+            margin-left: 0;
+        }
+
+        .proof-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .proof-text strong {
+            color: var(--text-primary);
+        }
+
+        .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            box-shadow: var(--shadow-lg);
+            animation: fadeUp 0.8s 0.1s ease both;
+        }
+
+        .auth-tabs {
+            display: flex;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 9px;
+            border-radius: var(--radius-full);
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .auth-tab.active {
+            background: var(--surface);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .auth-divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .auth-divider-text {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .auth-social-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 11px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: var(--font-sans);
+            text-decoration: none;
+        }
+
+        .social-btn:hover {
+            background: var(--surface-2);
+            border-color: var(--text-primary);
+        }
+
+        .social-btn-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.01em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-family: var(--font-sans);
+            color: var(--text-primary);
+            background: var(--surface);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-input.error {
+            border-color: #ef4444;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .forgot-link {
+            font-size: 11px;
+            color: var(--accent);
+            text-align: right;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            letter-spacing: 0.04em;
+            display: block;
+            margin-top: -8px;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .auth-submit {
+            width: 100%;
+            padding: 13px;
+            border-radius: var(--radius-full);
+            border: none;
+            background: var(--text-primary);
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .auth-submit:hover {
+            background: #333;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .auth-submit:active {
+            transform: translateY(0);
+        }
+
+        .auth-submit.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .auth-error {
+            display: none;
+            padding: 10px 14px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: var(--radius);
+            font-size: 12px;
+            color: #dc2626;
+            margin-bottom: 4px;
+        }
+
+        .auth-error.show {
+            display: block;
+        }
+
+        .auth-success {
+            display: none;
+            padding: 10px 14px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: var(--radius);
+            font-size: 12px;
+            color: #15803d;
+            margin-bottom: 4px;
+        }
+
+        .auth-success.show {
+            display: block;
+        }
+
+        .auth-terms {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        .auth-terms a {
+            color: var(--accent);
+        }
+
+        .password-strength {
+            display: none;
+            margin-top: 4px;
+        }
+
+        .strength-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .strength-segment {
+            flex: 1;
+            height: 3px;
+            border-radius: 2px;
+            background: var(--border);
+            transition: background 0.3s;
+        }
+
+        .strength-label {
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+        }
+
+        .auth-footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 20px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+        }
+
+        /* Google button specific */
+        .google-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        @media (max-width:768px) {
+            .auth-split {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .auth-left {
+                display: none;
+            }
+
+            .auth-nav {
+                padding: 16px 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-bg"></div>
+    <div class="auth-glow-left"></div>
+    <div class="auth-glow-right"></div>
+
+    <nav class="auth-nav">
+        <a href="index.html" class="auth-nav-logo">
+            <div class="auth-nav-logo-icon">🤖</div>
+            Sahaiy
+        </a>
+        <div class="auth-nav-right" id="nav-toggle-text">
+            Already have an account? <a onclick="switchTab('login')">Sign in</a>
+        </div>
+    </nav>
+
+    <div class="auth-main">
+        <div class="auth-split">
+            <!-- Left: Marketing -->
+            <div class="auth-left">
+                <div class="auth-left-tag">Get started today</div>
+                <h2>Your AI call agents<br />are <span>3 minutes away</span></h2>
+                <p>Join thousands of businesses automating customer calls with Sahaiy. Set up, configure, and deploy
+                    your first AI agent before your next meeting.</p>
+                <div class="auth-features">
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">🚀</div>
+                        <div class="auth-feature-text">
+                            <div class="auth-feature-title">Deploy in minutes, not months</div>
+                            <div class="auth-feature-desc">No engineering team needed. Use our no-code agent builder to
+                                go live fast.</div>
+                        </div>
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">📞</div>
+                        <div class="auth-feature-text">
+                            <div class="auth-feature-title">Handles 1,000s of calls simultaneously</div>
+                            <div class="auth-feature-desc">Infinitely scalable infrastructure — never miss a call, day
+                                or night.</div>
+                        </div>
+                    </div>
+                    <div class="auth-feature">
+                        <div class="auth-feature-icon">🔒</div>
+                        <div class="auth-feature-text">
+                            <div class="auth-feature-title">Enterprise-grade security</div>
+                            <div class="auth-feature-desc">SOC 2 Type II · DPDP Act compliant · Data hosted in India.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="auth-social-proof">
+                    <div class="proof-avatars">
+                        <div class="proof-avatar" style="background:#7C5CFC;">R</div>
+                        <div class="proof-avatar" style="background:#00C4A1;">A</div>
+                        <div class="proof-avatar" style="background:#f59e0b;">P</div>
+                        <div class="proof-avatar" style="background:#ef4444;">V</div>
+                        <div class="proof-avatar" style="background:#6366f1;">S</div>
+                    </div>
+                    <div class="proof-text"><strong>500+ businesses</strong> already using Sahaiy<br />to automate their
+                        customer calls.</div>
+                </div>
+            </div>
+
+            <!-- Right: Auth Card -->
+            <div class="auth-card">
+                <div class="auth-tabs">
+                    <button class="auth-tab" id="tab-login" onclick="switchTab('login')">Sign In</button>
+                    <button class="auth-tab active" id="tab-signup" onclick="switchTab('signup')">Create
+                        Account</button>
+                </div>
+
+                <!-- Social login -->
+                <div class="auth-social-btns">
+                    <button class="social-btn" id="google-btn" onclick="handleGoogle()">
+                        <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                fill="#4285F4" />
+                            <path
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                fill="#34A853" />
+                            <path
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                fill="#FBBC05" />
+                            <path
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                fill="#EA4335" />
+                        </svg>
+                        Continue with Google
+                    </button>
+                    <button class="social-btn" id="github-btn" onclick="handleGitHub()">
+                        <svg class="google-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+                        </svg>
+                        Continue with GitHub
+                    </button>
+                </div>
+
+                <div class="auth-divider">
+                    <div class="auth-divider-line"></div>
+                    <span class="auth-divider-text">or continue with email</span>
+                    <div class="auth-divider-line"></div>
+                </div>
+
+                <div class="auth-error" id="auth-error"></div>
+                <div class="auth-success" id="auth-success"></div>
+
+                <!-- Sign Up form -->
+                <form class="auth-form" id="form-signup" onsubmit="handleSignup(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">First name</label>
+                            <input class="form-input" type="text" id="signup-firstname" placeholder="Shreyash" required
+                                autocomplete="given-name" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last name</label>
+                            <input class="form-input" type="text" id="signup-lastname" placeholder="Singh" required
+                                autocomplete="family-name" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Work email</label>
+                        <input class="form-input" type="email" id="signup-email" placeholder="you@company.com" required
+                            autocomplete="email" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input class="form-input" type="password" id="signup-password" placeholder="Min. 8 characters"
+                            required autocomplete="new-password" oninput="onPasswordInput(this.value)" />
+                        <div class="password-strength" id="strength-indicator">
+                            <div class="strength-bar">
+                                <div class="strength-segment" id="s1"></div>
+                                <div class="strength-segment" id="s2"></div>
+                                <div class="strength-segment" id="s3"></div>
+                                <div class="strength-segment" id="s4"></div>
+                            </div>
+                            <div class="strength-label" id="strength-text">Weak</div>
+                        </div>
+                    </div>
+                    <button type="submit" class="auth-submit" id="signup-btn">
+                        Create free account →
+                    </button>
+                    <div class="auth-terms">
+                        By creating an account you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy
+                            Policy</a>.
+                    </div>
+                </form>
+
+                <!-- Login form -->
+                <form class="auth-form" id="form-login" style="display:none;" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Email address</label>
+                        <input class="form-input" type="email" id="login-email" placeholder="you@company.com" required
+                            autocomplete="email" />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input class="form-input" type="password" id="login-password" placeholder="Your password"
+                            required autocomplete="current-password" />
+                        <a class="forgot-link" href="#" onclick="handleForgotPassword(event)">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="auth-submit" id="login-btn">
+                        Sign in →
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-footer">© 2025 Sahaiy Technologies · Made in India 🇮🇳 · SOC 2 Compliant</div>
+
+</body>
+
+</html>

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sahaiy — AI Call Agent Platform</title>
+  <meta name="description"
+    content="Automate your customer calls with AI agents that sound human. Deploy voice agents in minutes — no code required." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./src/styles/base.css" />
+  <link rel="stylesheet" href="./src/styles/landing.css" />
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════ -->
+  <nav class="nav" id="navbar">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">🤖</div>
+      Sahaiy
+    </a>
+    <ul class="nav-links">
+      <li><a href="#product">Product</a></li>
+      <li><a href="#capabilities">Capabilities</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#">Docs</a></li>
+      <li><a href="#">Enterprise</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="auth.html?mode=login" class="nav-login">Log in</a>
+      <a href="auth.html" class="btn btn-accent nav-cta">Start for free →</a>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-glow-2"></div>
+
+    <div class="container">
+      <div class="hero-inner">
+        <!-- Left: Content -->
+        <div class="hero-content">
+          <div class="hero-badge">
+            <div class="hero-badge-dot">✦</div>
+            <span class="hero-badge-text">AI-powered call automation</span>
+          </div>
+
+          <h1 class="hero-h1">
+            End-to-end<br />
+            <span class="accent-word">voice call automation</span><br />
+            with AI agents.
+          </h1>
+
+          <p class="hero-sub">
+            Deploy intelligent AI call agents that handle inbound and outbound calls 24/7.
+            Natural conversations, instant deployment, full observability.
+          </p>
+
+          <div class="hero-actions">
+            <a href="auth.html" class="hero-btn-primary">
+              Start for free
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </a>
+            <button class="hero-btn-secondary"
+              onclick="document.getElementById('demo-section').scrollIntoView({behavior:'smooth'})">
+              Book a demo
+            </button>
+          </div>
+
+          <div class="hero-stats">
+            <div>
+              <div class="hero-stat-value">98%</div>
+              <div class="hero-stat-label">Call Resolution Rate</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">&lt;200ms</div>
+              <div class="hero-stat-label">Response Latency</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">50+</div>
+              <div class="hero-stat-label">Languages Supported</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Visual Mockup -->
+        <div class="hero-visual">
+          <!-- Floating stat card: top right -->
+          <div class="hero-float-card top-right">
+            <div class="float-card-label">Calls Today</div>
+            <div class="float-card-value">2,847</div>
+            <div class="float-card-sub" style="color: var(--dash-accent-green); font-size:11px; font-weight:600;">↑ 18%
+              vs yesterday</div>
+            <div class="float-card-sparkline">
+              <div class="sparkline-bar" style="height:40%"></div>
+              <div class="sparkline-bar" style="height:55%"></div>
+              <div class="sparkline-bar" style="height:35%"></div>
+              <div class="sparkline-bar" style="height:70%"></div>
+              <div class="sparkline-bar" style="height:60%"></div>
+              <div class="sparkline-bar" style="height:85%"></div>
+              <div class="sparkline-bar" style="height:100%"></div>
+            </div>
+          </div>
+
+          <!-- Phone Mockup -->
+          <div class="hero-phone-mockup">
+            <div class="phone-top-bar">
+              <h4>Sahaiy Call Agent</h4>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <div class="active-dot"></div>
+                <span style="font-size:11px; color:var(--dash-accent-green); font-family:var(--font-mono);">LIVE</span>
+              </div>
+            </div>
+            <div class="phone-orb-area">
+              <div class="orb-container">
+                <div class="orb-ring"></div>
+                <div class="orb-ring"></div>
+                <div class="orb-ring"></div>
+                <div class="orb-core">🎙️</div>
+              </div>
+              <div class="waveform">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+              </div>
+            </div>
+            <div class="phone-transcript">
+              <div class="transcript-bubble agent">
+                Hi! I'm Priya from Sahaiy support. How can I help you today? 😊
+              </div>
+              <div class="transcript-bubble user">
+                I need to check my order status for order #45821
+              </div>
+              <div class="transcript-bubble agent">
+                Sure! Let me pull that up for you. Your order #45821 is currently out for delivery and should arrive by
+                6 PM today.
+              </div>
+            </div>
+            <div class="phone-bottom">
+              <span>00:42 elapsed</span>
+              <span style="color: var(--dash-accent-green);">● resolved</span>
+            </div>
+          </div>
+
+          <!-- Floating success card: bottom left -->
+          <div class="hero-float-card bottom-left">
+            <div class="float-card-label">Success Rate</div>
+            <div class="float-card-value" style="color: var(--accent)">98.2%</div>
+            <div class="float-card-sub">Last 30 days · 124K calls</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+     LOGOS / TRUST STRIP
+════════════════════════════════════════ -->
+  <div class="logos-section">
+    <div class="container">
+      <p class="logos-label">Trusted by teams at leading companies</p>
+      <div class="logos-track">
+        <span class="logo-item">Flipkart</span>
+        <span class="logo-item">Razorpay</span>
+        <span class="logo-item">Zepto</span>
+        <span class="logo-item">PhonePe</span>
+        <span class="logo-item">Meesho</span>
+        <span class="logo-item">Swiggy</span>
+        <span class="logo-item">CRED</span>
+        <span class="logo-item">Groww</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+     PRODUCT SECTION
+════════════════════════════════════════ -->
+  <section class="section" id="product">
+    <div class="container">
+      <div class="product-header">
+        <div class="section-label">Product</div>
+        <h2 class="product-h2">So your team doesn't have to handle every call.</h2>
+        <p class="product-sub">
+          Sahaiy's AI agents manage high-volume inbound and outbound calls, so your human team can focus on what matters
+          most.
+        </p>
+      </div>
+
+      <!-- Feature Row 1: Natural Voice -->
+      <div class="feature-row">
+        <div class="feature-content">
+          <div class="section-label">Natural Voice</div>
+          <h3 class="feature-h3">Human-like conversations that actually resolve calls</h3>
+          <p class="feature-p">
+            Our AI agents understand intent, handle interruptions, and navigate complex multi-turn conversations — all
+            while sounding completely natural in 50+ languages including Hindi, Hinglish, and regional dialects.
+          </p>
+          <ul class="feature-list">
+            <li>Ultra-low latency (~180ms response time)</li>
+            <li>Understands accents, pauses & interruptions</li>
+            <li>Seamless handoff to human agents when needed</li>
+            <li>Supports Hindi, Hinglish, Tamil, Bengali & more</li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div
+            style="margin-bottom:12px; font-family:var(--font-mono); font-size:10px; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase;">
+            / LIVE CALL FLOW</div>
+          <div class="demo-call-flow">
+            <div class="call-step">
+              <div class="call-step-icon purple">📞</div>
+              <div>
+                <div class="call-step-label">Incoming Call Detected</div>
+                <div class="call-step-sub">+91 98765 43210 · Customer: Rahul S.</div>
+              </div>
+              <div class="call-step-arrow"></div>
+            </div>
+            <div class="call-step">
+              <div class="call-step-icon teal">🧠</div>
+              <div>
+                <div class="call-step-label">Intent Identified</div>
+                <div class="call-step-sub">Order inquiry → shipping status</div>
+              </div>
+              <div class="call-step-arrow"></div>
+            </div>
+            <div class="call-step">
+              <div class="call-step-icon orange">🔧</div>
+              <div>
+                <div class="call-step-label">Tool Executed</div>
+                <div class="call-step-sub">GET /orders/45821 → Out for delivery</div>
+              </div>
+              <div class="call-step-arrow"></div>
+            </div>
+            <div class="call-step">
+              <div class="call-step-icon green">✅</div>
+              <div>
+                <div class="call-step-label">Call Resolved</div>
+                <div class="call-step-sub">Duration: 0:42 · CSAT: Positive</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Row 2: Analytics -->
+      <div class="feature-row reverse">
+        <div class="feature-content">
+          <div class="section-label">Full Observability</div>
+          <h3 class="feature-h3">Real-time analytics across every conversation</h3>
+          <p class="feature-p">
+            Monitor call quality, resolution rates, and agent performance in real time. Catch issues before they become
+            problems with automated quality scoring and transcript analysis.
+          </p>
+          <ul class="feature-list">
+            <li>Live call dashboards & KPI tracking</li>
+            <li>Automated CSAT scoring per call</li>
+            <li>Full transcripts with sentiment analysis</li>
+            <li>Alerts for failed handoffs or escalations</li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div
+            style="margin-bottom:12px; font-family:var(--font-mono); font-size:10px; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase;">
+            / ANALYTICS PREVIEW</div>
+          <div class="demo-analytics">
+            <div class="analytics-top">
+              <div class="analytics-mini-card">
+                <div class="analytics-mini-value">2,847</div>
+                <div class="analytics-mini-label">Calls Today</div>
+              </div>
+              <div class="analytics-mini-card">
+                <div class="analytics-mini-value" style="color:var(--accent)">98.2%</div>
+                <div class="analytics-mini-label">Resolution Rate</div>
+              </div>
+              <div class="analytics-mini-card">
+                <div class="analytics-mini-value">0:42</div>
+                <div class="analytics-mini-label">Avg Duration</div>
+              </div>
+              <div class="analytics-mini-card">
+                <div class="analytics-mini-value" style="color: var(--dash-accent-green)">4.8★</div>
+                <div class="analytics-mini-label">CSAT Score</div>
+              </div>
+            </div>
+            <div class="mini-chart">
+              <div class="mini-bar" style="height:40%"></div>
+              <div class="mini-bar" style="height:55%"></div>
+              <div class="mini-bar" style="height:45%"></div>
+              <div class="mini-bar" style="height:70%"></div>
+              <div class="mini-bar" style="height:60%"></div>
+              <div class="mini-bar" style="height:80%"></div>
+              <div class="mini-bar" style="height:75%"></div>
+              <div class="mini-bar" style="height:90%"></div>
+              <div class="mini-bar" style="height:100%"></div>
+              <div class="mini-bar" style="height:85%"></div>
+              <div class="mini-bar" style="height:95%"></div>
+              <div class="mini-bar" style="height:88%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Row 3: Deployment -->
+      <div class="feature-row">
+        <div class="feature-content">
+          <div class="section-label">Deploy Anywhere</div>
+          <h3 class="feature-h3">One agent, every channel your customers use</h3>
+          <p class="feature-p">
+            Deploy your AI agent across phone, WhatsApp, web widget, and outbound campaigns — without writing a single
+            line of code. Buy phone numbers, configure IVR flows, and go live in minutes.
+          </p>
+          <ul class="feature-list">
+            <li>Instant phone number provisioning (India & global)</li>
+            <li>WhatsApp Business API integration</li>
+            <li>Embeddable web call widget</li>
+            <li>Outbound campaign dialer with CRM sync</li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div
+            style="margin-bottom:12px; font-family:var(--font-mono); font-size:10px; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase;">
+            / DEPLOYMENT CHANNELS</div>
+          <div class="demo-deploy">
+            <div class="deploy-channel">
+              <div class="deploy-channel-icon">📞</div>
+              <div class="deploy-channel-name">Phone / SIP</div>
+              <div class="deploy-channel-desc">Inbound & outbound calls</div>
+            </div>
+            <div class="deploy-channel">
+              <div class="deploy-channel-icon">💬</div>
+              <div class="deploy-channel-name">WhatsApp</div>
+              <div class="deploy-channel-desc">Voice & text messages</div>
+            </div>
+            <div class="deploy-channel">
+              <div class="deploy-channel-icon">🌐</div>
+              <div class="deploy-channel-name">Web Widget</div>
+              <div class="deploy-channel-desc">Embed on any site</div>
+            </div>
+            <div class="deploy-channel">
+              <div class="deploy-channel-icon">📢</div>
+              <div class="deploy-channel-name">Outbound</div>
+              <div class="deploy-channel-desc">Bulk campaign dialer</div>
+            </div>
+          </div>
+          <div
+            style="margin-top:16px; padding:12px 16px; background:var(--bg); border:1px dashed var(--border-dashed); border-radius:var(--radius); font-family:var(--font-mono); font-size:11px; color:var(--text-muted);">
+            <span style="color:var(--accent)">✓</span> Production-ready · <span style="color:var(--accent)">✓</span>
+            On-prem available · <span style="color:var(--accent)">✓</span> SOC 2 Type II
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+     CAPABILITIES GRID
+════════════════════════════════════════ -->
+  <section class="section section-alt" id="capabilities">
+    <div class="container">
+      <div class="section-label">Capabilities</div>
+      <h2 class="product-h2">Everything you need to automate calls at scale.</h2>
+      <p class="product-sub">Built for enterprise-grade reliability with developer-friendly APIs and a no-code
+        configuration UI.</p>
+
+      <div class="caps-grid">
+        <div class="cap-card">
+          <div class="cap-icon">🎙️</div>
+          <h4 class="cap-h4">Voice Synthesis</h4>
+          <p class="cap-p">Ultra-realistic voices in 50+ languages. Clone your brand voice or choose from our premium
+            voice library.</p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">🧠</div>
+          <h4 class="cap-h4">Intent Recognition</h4>
+          <p class="cap-p">State-of-the-art NLU models that understand customer intent even through noise, accents, and
+            mixed languages.</p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">🔧</div>
+          <h4 class="cap-h4">Tool Execution</h4>
+          <p class="cap-p">Connect your CRM, ticketing system, or any REST API. Agents take real actions during calls.
+          </p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">📚</div>
+          <h4 class="cap-h4">Knowledge Base</h4>
+          <p class="cap-p">Upload FAQs, SOPs, product docs — agents answer from your knowledge base with 99%+ accuracy.
+          </p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">🔀</div>
+          <h4 class="cap-h4">Workflow Builder</h4>
+          <p class="cap-p">Design multi-turn conversation flows visually. Set conditions, branches, and human escalation
+            triggers.</p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">🛡️</div>
+          <h4 class="cap-h4">Guardrails & Safety</h4>
+          <p class="cap-p">Built-in content safety, hallucination prevention, and compliance controls for regulated
+            industries.</p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">📊</div>
+          <h4 class="cap-h4">Quality Evaluation</h4>
+          <p class="cap-p">Automated scoring of every call against custom rubrics. Catch quality issues before they
+            scale.</p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">⚡</div>
+          <h4 class="cap-h4">Low Latency Streaming</h4>
+          <p class="cap-p">Sub-200ms response times with streaming audio. Conversations feel natural, never robotic.</p>
+        </div>
+        <div class="cap-card">
+          <div class="cap-icon">🔒</div>
+          <h4 class="cap-h4">Enterprise Security</h4>
+          <p class="cap-p">SOC 2 Type II, GDPR, DPDP compliant. On-premise deployment available for sensitive workloads.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+     DEMO SECTION
+════════════════════════════════════════ -->
+  <section class="section" id="demo-section">
+    <div class="container">
+      <div style="text-align:center; max-width: 600px; margin: 0 auto 56px;">
+        <div class="section-label" style="justify-content:center;">Live Demo</div>
+        <h2 class="product-h2" style="text-align:center; max-width:100%;">Hear Sahaiy in action</h2>
+        <p class="product-sub" style="text-align:center; max-width:100%; margin:0 auto;">
+          Click the button below to start a live conversation with one of our demo agents. No signup required.
+        </p>
+      </div>
+      <div style="display:flex; justify-content:center;">
+        <div
+          style="background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:48px; max-width:480px; width:100%; text-align:center; box-shadow:var(--shadow-lg);">
+          <div style="position:relative; display:inline-block; margin-bottom:32px;" id="demo-orb-wrap">
+            <div class="orb-container" style="width:140px; height:140px; margin:0 auto; cursor:pointer;"
+              onclick="startDemo()" id="demo-orb">
+              <div class="orb-ring"></div>
+              <div class="orb-ring"></div>
+              <div class="orb-ring"></div>
+              <div class="orb-core" style="width:96px; height:96px; font-size:36px;">🎙️</div>
+            </div>
+          </div>
+          <h3 style="font-size:20px; font-weight:700; margin-bottom:8px; color:var(--text-primary);">Customer Support
+            Agent</h3>
+          <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px; font-family:var(--font-mono);">VOICE:
+            Priya · LANG: Hindi/English</p>
+          <div style="display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:24px;">
+            <div style="width:8px; height:8px; background:var(--dash-accent-green); border-radius:50%;"></div>
+            <span style="font-family:var(--font-mono); font-size:11px; color:var(--dash-accent-green);">AGENT
+              ONLINE</span>
+          </div>
+          <button id="demo-btn" class="hero-btn-primary" onclick="startDemo()"
+            style="width:100%; justify-content:center; font-size:13px; padding:16px;">
+            Start Call ↗
+          </button>
+          <p style="font-size:11px; color:var(--text-muted); margin-top:16px; font-family:var(--font-mono);">
+            This is a simulated demo. No actual call charges apply.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+     PRICING
+════════════════════════════════════════ -->
+  <section class="section section-alt" id="pricing">
+    <div class="container">
+      <div style="text-align:center; max-width:520px; margin:0 auto 16px;">
+        <div class="section-label" style="justify-content:center;">Pricing</div>
+        <h2 class="product-h2" style="text-align:center; max-width:100%;">Simple, usage-based pricing.</h2>
+        <p class="product-sub" style="text-align:center; max-width:100%;">Pay only for what you use. No per-seat fees,
+          no hidden costs.</p>
+      </div>
+      <div class="pricing-grid">
+        <!-- Starter -->
+        <div class="pricing-card">
+          <div class="pricing-plan">/ Starter</div>
+          <div class="pricing-price">Free</div>
+          <div class="pricing-period">Up to 100 calls/month</div>
+          <div class="pricing-desc">Perfect for testing and small prototypes. Get started with all core features at no
+            cost.</div>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> 100 calls / month</li>
+            <li><span class="check">✓</span> 2 AI agents</li>
+            <li><span class="check">✓</span> 10 MB knowledge base</li>
+            <li><span class="check">✓</span> Webhook tool integrations</li>
+            <li><span class="check">✓</span> Basic analytics</li>
+            <li><span class="check">✓</span> Community support</li>
+          </ul>
+          <button class="pricing-btn pricing-btn-default" onclick="window.location.href='auth.html'">Get started
+            free</button>
+        </div>
+        <!-- Pro -->
+        <div class="pricing-card featured">
+          <div class="pricing-featured-tag">Most Popular</div>
+          <div class="pricing-plan">/ Pro</div>
+          <div class="pricing-price">₹4,999<span>/mo</span></div>
+          <div class="pricing-period">Includes 5,000 call minutes</div>
+          <div class="pricing-desc">For growing businesses automating customer support, collections, or onboarding
+            calls.</div>
+          <ul class="pricing-features">
+            <li><span class="check" style="background:var(--accent-light);color:var(--accent)">✓</span> 5,000 min/month
+              included</li>
+            <li><span class="check" style="background:var(--accent-light);color:var(--accent)">✓</span> Unlimited AI
+              agents</li>
+            <li><span class="check" style="background:var(--accent-light);color:var(--accent)">✓</span> 1 GB knowledge
+              base</li>
+            <li><span class="check" style="background:var(--accent-light);color:var(--accent)">✓</span> Phone number
+              provisioning</li>
+            <li><span class="check" style="background:var(--accent-light);color:var(--accent)">✓</span> WhatsApp
+              integration</li>
+            <li><span class="check" style="background:var(--accent-light);color:var(--accent)">✓</span> Advanced
+              analytics & CSAT</li>
+            <li><span class="check" style="background:var(--accent-light);color:var(--accent)">✓</span> Priority support
+            </li>
+          </ul>
+          <button class="pricing-btn pricing-btn-accent" onclick="window.location.href='auth.html'">Start free
+            trial</button>
+        </div>
+        <!-- Enterprise -->
+        <div class="pricing-card">
+          <div class="pricing-plan">/ Enterprise</div>
+          <div class="pricing-price" style="font-size:32px; margin-top:4px;">Custom</div>
+          <div class="pricing-period">Tailored to your volume</div>
+          <div class="pricing-desc">For large teams with high call volume, compliance requirements, or on-premise needs.
+          </div>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> Unlimited call volume</li>
+            <li><span class="check">✓</span> Dedicated infrastructure</li>
+            <li><span class="check">✓</span> On-premise deployment</li>
+            <li><span class="check">✓</span> SOC 2 / DPDP compliance</li>
+            <li><span class="check">✓</span> Custom SLA & uptime</li>
+            <li><span class="check">✓</span> Dedicated success manager</li>
+          </ul>
+          <button class="pricing-btn pricing-btn-default">Contact sales →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+     DARK CTA
+════════════════════════════════════════ -->
+  <section class="cta-dark">
+    <div class="cta-dark-grid"></div>
+    <div class="cta-dark-glow"></div>
+    <div class="container">
+      <div class="cta-dark-inner">
+        <h2 class="cta-dark-h2">Stop missing calls.<br />Let Sahaiy handle them.</h2>
+        <p class="cta-dark-p">Deploy your first AI call agent in under 10 minutes. No engineers required.</p>
+        <div class="cta-dark-actions">
+          <a href="auth.html" class="btn btn-accent"
+            style="font-family:var(--font-mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; padding:15px 32px; box-shadow: 0 8px 32px rgba(124,92,252,0.4);">
+            Start building free →
+          </a>
+          <button class="btn-outline-white">Book a demo</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <h3>🤖 Sahaiy</h3>
+          <p>AI call automation that sounds human. Deploy voice agents for inbound support, outbound campaigns, and
+            everything in between.</p>
+          <div style="margin-top:20px; display:flex; gap:12px;">
+            <a href="#"
+              style="width:34px; height:34px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5); font-size:15px; transition:all 0.15s;"
+              onmouseover="this.style.color='white'; this.style.borderColor='rgba(255,255,255,0.3)'"
+              onmouseout="this.style.color='rgba(255,255,255,0.5)'; this.style.borderColor='rgba(255,255,255,0.1)'">𝕏</a>
+            <a href="#"
+              style="width:34px; height:34px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5); font-size:15px; transition:all 0.15s;"
+              onmouseover="this.style.color='white'; this.style.borderColor='rgba(255,255,255,0.3)'"
+              onmouseout="this.style.color='rgba(255,255,255,0.5)'; this.style.borderColor='rgba(255,255,255,0.1)'">in</a>
+            <a href="#"
+              style="width:34px; height:34px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.5); font-size:15px; transition:all 0.15s;"
+              onmouseover="this.style.color='white'; this.style.borderColor='rgba(255,255,255,0.3)'"
+              onmouseout="this.style.color='rgba(255,255,255,0.5)'; this.style.borderColor='rgba(255,255,255,0.1)'">▸</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#">AI Agents</a></li>
+            <li><a href="#">Voice Library</a></li>
+            <li><a href="#">Knowledge Base</a></li>
+            <li><a href="#">Integrations</a></li>
+            <li><a href="#">Analytics</a></li>
+            <li><a href="#">Pricing</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Developers</h4>
+          <ul>
+            <li><a href="#">Documentation</a></li>
+            <li><a href="#">API Reference</a></li>
+            <li><a href="#">SDKs</a></li>
+            <li><a href="#">Webhooks</a></li>
+            <li><a href="#">Status</a></li>
+            <li><a href="#">Changelog</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 Sahaiy Technologies Pvt. Ltd. · Made in India 🇮🇳</span>
+        <span class="footer-badge">SOC 2 TYPE II COMPLIANT</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Vite module entry: all logic lives in src/pages/landing.js -->
+  <script type="module" src="./src/pages/landing.js"></script>
+</body>
+
+</html>
