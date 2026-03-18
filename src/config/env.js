@@ -12,11 +12,14 @@
  * • service_role key        → NEVER place here or in any client-side file
  */
 
-const required = (key) => {
-    const value = import.meta.env[key];
-    if (!value || value.includes('YOUR_')) {
+const requiredAny = (keys) => {
+    const value = keys
+        .map((key) => import.meta.env[key])
+        .find((candidate) => Boolean(candidate && !candidate.includes('YOUR_')));
+
+    if (!value) {
         console.error(
-            `[Sahaiy] Missing env var: ${key}\n` +
+            `[Sahaiy] Missing env var. Expected one of: ${keys.join(', ')}\n` +
             `Copy .env.example → .env and fill in the value.\n` +
             `See README.md → "Environment Setup" for details.`
         );
@@ -26,10 +29,13 @@ const required = (key) => {
 
 const env = {
     /** Supabase project URL — e.g. https://xyzabc.supabase.co */
-    supabaseUrl: required('VITE_SUPABASE_URL'),
+    supabaseUrl: requiredAny(['VITE_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL']),
 
     /** Supabase anon/public key — safe client-side, RLS enforces access */
-    supabaseAnonKey: required('VITE_SUPABASE_ANON_KEY'),
+    supabaseAnonKey: requiredAny([
+        'VITE_SUPABASE_ANON_KEY',
+        'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY',
+    ]),
 
     /** Full app base URL — used for OAuth callback redirects */
     appUrl: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',

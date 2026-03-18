@@ -10,12 +10,12 @@
     "lint": "eslint src --ext .js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.1"
+    "@supabase/supabase-js": "^2.99.2"
   },
   "devDependencies": {
     "vite": "^5.4.14"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

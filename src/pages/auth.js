@@ -5,27 +5,28 @@
  * Orchestrates auth flows — no business logic, only UI + service calls.
  *
  * All Supabase calls are delegated to authService.
- * All DOM manipulation is local to this file; no globals on window.
+ * All DOM manipulation is local to this file.
  */
 
 import { getSession, signInWithGoogle, signInWithGitHub, signInWithEmail, signUpWithEmail, resetPassword } from '@/services/authService.js';
-import { showToast } from '@/utils/toast.js';
 import { $ } from '@/utils/dom.js';
 
-// ── On load: redirect to dashboard if already authenticated ─────
-(async () => {
+async function initAuthPage() {
     const session = await getSession();
-    if (session) window.location.replace('/app.html');
-})();
+    if (session) {
+        window.location.replace('/app.html');
+        return;
+    }
 
-// ── URL param: ?mode=login → auto-switch to login tab ───────────
-if (new URLSearchParams(window.location.search).get('mode') === 'login') {
-    switchTab('login');
+    if (new URLSearchParams(window.location.search).get('mode') === 'login') {
+        switchTab('login');
+    }
 }
 
-// ═══════════════════════════════════════════════════
-//  Exported handlers — attached via onclick in HTML
-// ═══════════════════════════════════════════════════
+initAuthPage().catch((error) => {
+    console.error('[Sahaiy Auth] Initialization failed:', error);
+});
+
 
 /** Switches between Sign In and Create Account tabs. */
 export function switchTab(tab) {
