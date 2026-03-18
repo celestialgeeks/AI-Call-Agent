@@ -5,6 +5,7 @@
  */
 
 import { supabase } from '@/services/supabaseClient.js';
+import env from '@/config/env.js';
 
 /**
  * Fetches recent conversations for a user.
@@ -39,19 +40,101 @@ export async function addConversation(payload) {
 }
 
 /**
+ * Fetches message history for a conversation.
+ * @param {string} conversationId
+ * @param {number} [limit=200]
+ * @returns {Promise<ConversationMessage[]>}
+ */
+export async function getConversationMessages(conversationId, limit = 200) {
+    const { data, error } = await supabase
+        .from('conversation_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+        .limit(limit);
+
+    if (error) { console.error('[conversationService.getConversationMessages]', error); return []; }
+    return data ?? [];
+}
+
+/**
+ * Inserts a conversation message row.
+ * @param {Partial<ConversationMessage>} payload
+ * @returns {Promise<{data: ConversationMessage|null, error: Error|null}>}
+ */
+export async function addConversationMessage(payload) {
+    const { data, error } = await supabase
+        .from('conversation_messages')
+        .insert(payload)
+        .select()
+        .single();
+    return { data, error };
+}
+
+/**
  * Fetches phone numbers with their assigned agent name.
  * @param {string} userId
  * @returns {Promise<PhoneNumber[]>}
  */
 export async function getPhoneNumbers(userId) {
-    const { data, error } = await supabase
-        .from('phone_numbers')
-        .select('*, agents(name)')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+    try {
+        const response = await fetch(
+            `${env.backendUrl}/phone-numbers?user_id=${encodeURIComponent(userId)}`
+        );
 
-    if (error) { console.error('[conversationService.getPhoneNumbers]', error); return []; }
-    return data ?? [];
+        if (!response.ok) {
+            throw new Error(`Backend request failed (${response.status})`);
+        }
+
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+    } catch (apiError) {
+        console.warn('[conversationService.getPhoneNumbers] Falling back to Supabase:', apiError);
+        const { data, error } = await supabase
+            .from('phone_numbers')
+            .select('*, agents(name)')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) { console.error('[conversationService.getPhoneNumbers]', error); return []; }
+        return data ?? [];
+    }
+}
+
+/**
+ * Deletes a phone number by id.
+ * @param {string} phoneNumberId
+ * @param {string} userId
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function deletePhoneNumber(phoneNumberId, userId) {
+    try {
+        const response = await fetch(
+            `${env.backendUrl}/phone-numbers/${encodeURIComponent(phoneNumberId)}?user_id=${encodeURIComponent(userId)}`,
+            { method: 'DELETE' }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Backend delete failed (${response.status})`);
+        }
+
+        const data = await response.json();
+        return { data, error: null };
+    } catch (apiError) {
+        console.warn('[conversationService.deletePhoneNumber] Falling back to Supabase:', apiError);
+        const { error } = await supabase
+            .from('phone_numbers')
+            .delete()
+            .eq('id', phoneNumberId)
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error('[conversationService.deletePhoneNumber]', error);
+            return { data: null, error };
+        }
+
+        return { data: { ok: true, id: phoneNumberId }, error: null };
+    }
 }
 
 /**

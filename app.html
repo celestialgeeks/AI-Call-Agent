@@ -276,7 +276,7 @@
                         <div style="display:flex; gap:8px; align-items:center;">
                             <span class="badge badge-green" id="config-status-badge">● Published</span>
                             <button class="dash-btn dash-btn-outline" style="font-size:12px;"
-                                onclick="openPlayground()">🎮 Preview</button>
+                                onclick="openPlayground(window.__CURRENT_AGENT_ID__, window.__CURRENT_AGENT_NAME__)">🎮 Preview</button>
                             <button class="dash-btn dash-btn-primary">Publish ↗</button>
                         </div>
                     </div>
@@ -794,34 +794,9 @@
                             <h1 class="page-title">Phone Numbers</h1>
                             <p class="page-sub">Numbers assigned to your agents</p>
                         </div>
-                        <button class="dash-btn dash-btn-primary">+ Buy number</button>
+                        <button class="dash-btn dash-btn-primary">+ Add no</button>
                     </div>
-                    <div class="phone-num-card">
-                        <div class="phone-num-icon" style="background:rgba(124,92,252,0.1);">📞</div>
-                        <div class="phone-num-info">
-                            <div class="phone-num-number">+91 80 4590 7823</div>
-                            <div class="phone-num-meta">India · Mumbai · Inbound + Outbound</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div class="phone-num-agent">Customer Support Agent</div>
-                            <div class="phone-num-meta">847 calls this month</div>
-                        </div>
-                        <span class="badge badge-green">Active</span>
-                        <button class="agent-action-btn agent-action-edit">⋯</button>
-                    </div>
-                    <div class="phone-num-card">
-                        <div class="phone-num-icon" style="background:rgba(0,196,161,0.1);">📱</div>
-                        <div class="phone-num-info">
-                            <div class="phone-num-number">+91 22 6189 4400</div>
-                            <div class="phone-num-meta">India · Delhi · Outbound Only</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div class="phone-num-agent">Sales Outreach Agent</div>
-                            <div class="phone-num-meta">2,000 calls this month</div>
-                        </div>
-                        <span class="badge badge-green">Active</span>
-                        <button class="agent-action-btn agent-action-edit">⋯</button>
-                    </div>
+                    <div id="phone-num-list"></div>
                 </div>
 
                 <!-- ══════ PAGE: WHATSAPP ══════ -->
@@ -1025,15 +1000,15 @@
     <!-- ════════ PLAYGROUND PANEL ════════ -->
     <div class="playground-panel" id="playground-panel">
         <div class="playground-header">
-            <span class="playground-title">🎮 Test Agent</span>
-            <button class="playground-close" onclick="closePlayground()">×</button>
+            <span class="playground-title" id="playground-title">🎮 Test Agent</span>
+            <button class="playground-close" onclick="closePlayground()" title="Close">×</button>
         </div>
         <div class="playground-orb-area">
             <div class="playground-orb" onclick="togglePlaygroundCall()" id="playground-orb-btn">🎙️</div>
-            <div class="playground-status" id="playground-call-status">Click orb to start a test call</div>
+            <div class="playground-status" id="playground-call-status">CLICK ORB TO START A TEST CALL</div>
         </div>
         <div class="playground-chat" id="playground-chat">
-            <div class="chat-bubble agent">Namaste! I'm Priya from customer support. How can I help you today? 😊</div>
+            <!-- Cleared and populated dynamically on openPlayground() -->
         </div>
         <div class="playground-input-wrap">
             <input type="text" class="playground-input" placeholder="Type a message…" id="playground-msg-input"
@@ -1046,66 +1021,88 @@
     <div class="modal-overlay" id="create-modal" onclick="if(event.target===this) closeCreateModal()">
         <div class="modal">
             <div class="modal-header">
-                <span class="modal-title">Create New Agent</span>
-                <button class="modal-close" onclick="closeCreateModal()">×</button>
+                <span class="modal-title">✨ Create New Agent</span>
+                <button class="modal-close" onclick="closeCreateModal()" title="Close">×</button>
             </div>
             <div class="modal-body">
+                <!-- Template Picker -->
                 <div style="margin-bottom:20px;">
-                    <label class="form-label" style="margin-bottom:12px; display:block;">Start from a template</label>
+                    <label class="form-label" style="margin-bottom:12px;display:block;">Start from a template</label>
                     <div class="modal-templates" id="modal-templates">
-                        <div class="template-card selected" onclick="selectTemplate(this)">
+                        <div class="template-card selected" data-template="customer_support" onclick="selectTemplate(this)">
                             <div class="template-icon">🎧</div>
                             <div class="template-name">Customer Support</div>
                             <div class="template-desc">Handles inbound support calls, returns, and FAQs</div>
                         </div>
-                        <div class="template-card" onclick="selectTemplate(this)">
+                        <div class="template-card" data-template="sales" onclick="selectTemplate(this)">
                             <div class="template-icon">📈</div>
                             <div class="template-name">Sales Outreach</div>
                             <div class="template-desc">Qualifies leads and books demos via outbound calls</div>
                         </div>
-                        <div class="template-card" onclick="selectTemplate(this)">
+                        <div class="template-card" data-template="collections" onclick="selectTemplate(this)">
                             <div class="template-icon">💰</div>
                             <div class="template-name">Collections</div>
                             <div class="template-desc">Follows up on overdue payments professionally</div>
                         </div>
-                        <div class="template-card" onclick="selectTemplate(this)">
+                        <div class="template-card" data-template="survey" onclick="selectTemplate(this)">
                             <div class="template-icon">📋</div>
                             <div class="template-name">Survey / NPS</div>
                             <div class="template-desc">Conducts customer satisfaction surveys at scale</div>
                         </div>
-                        <div class="template-card" onclick="selectTemplate(this)">
+                        <div class="template-card" data-template="appointments" onclick="selectTemplate(this)">
                             <div class="template-icon">📅</div>
                             <div class="template-name">Appointment Booking</div>
                             <div class="template-desc">Books, reschedules and confirms appointments</div>
                         </div>
-                        <div class="template-card" onclick="selectTemplate(this)">
+                        <div class="template-card" data-template="blank" onclick="selectTemplate(this)">
                             <div class="template-icon">⚙️</div>
                             <div class="template-name">Blank</div>
                             <div class="template-desc">Start from scratch with a custom prompt</div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Name + Voice -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Agent name</label>
-                        <input class="form-input" type="text" placeholder="e.g. Customer Support" id="new-agent-name" />
+                        <label class="form-label" for="new-agent-name">Agent name <span style="color:var(--dash-accent-red)">*</span></label>
+                        <input class="form-input" type="text" placeholder="e.g. Customer Support" id="new-agent-name"
+                            required maxlength="60"
+                            onkeydown="if(event.key==='Enter') createAgentSubmit()" />
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Voice</label>
+                        <label class="form-label" for="new-agent-voice">Voice</label>
                         <select class="form-input" id="new-agent-voice">
-                            <option>Priya (Female, Hindi)</option>
-                            <option>Rahul (Male, Hindi)</option>
-                            <option>Anita (Female, English-IN)</option>
-                            <option>Arjun (Male, English-IN)</option>
+                            <option value="anushka">Anushka (Female, Hindi/EN)</option>
+                            <option value="abhilash">Abhilash (Male, Hindi/EN)</option>
+                            <option value="manisha">Manisha (Female, Hindi)</option>
+                            <option value="arjun">Arjun (Male, Hindi)</option>
+                            <option value="maya">Maya (Female, English-IN)</option>
+                            <option value="neel">Neel (Male, English-IN)</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- Language -->
+                <div class="form-group">
+                    <label class="form-label" for="new-agent-lang">Language</label>
+                    <select class="form-input" id="new-agent-lang">
+                        <option value="en-IN">English (India)</option>
+                        <option value="hi-IN">Hindi</option>
+                        <option value="hi-IN">Hinglish (Hindi + English)</option>
+                        <option value="ta-IN">Tamil</option>
+                        <option value="te-IN">Telugu</option>
+                        <option value="mr-IN">Marathi</option>
+                        <option value="bn-IN">Bengali</option>
+                        <option value="kn-IN">Kannada</option>
+                    </select>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="dash-btn dash-btn-outline" onclick="closeCreateModal()">Cancel</button>
-                <button class="dash-btn dash-btn-primary" id="create-agent-btn" onclick="createAgentSubmit()">Create
-                    Agent
-                    →</button>
+                <button class="dash-btn dash-btn-primary" id="create-agent-btn" onclick="createAgentSubmit()">
+                    Create Agent →
+                </button>
             </div>
         </div>
     </div>

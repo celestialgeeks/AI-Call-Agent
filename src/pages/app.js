@@ -10,7 +10,7 @@
 import { getSession } from '@/services/authService.js';
 import * as authService from '@/services/authService.js';
 import { getAgents, createAgent, deleteAgent } from '@/services/agentService.js';
-import { getConversations, addConversation, addKnowledgeDoc, getPhoneNumbers, getKnowledgeDocs, getTools } from '@/services/conversationService.js';
+import { getConversations, addConversation, addKnowledgeDoc, getPhoneNumbers, deletePhoneNumber, getKnowledgeDocs, getTools } from '@/services/conversationService.js';
 import { getDailyStats, seedUserData, getProfile } from '@/services/analyticsService.js';
 import { subscribeToConversations, subscribeToAgents, unsubscribeAll } from '@/services/realtimeService.js';
 
@@ -46,6 +46,8 @@ async function boot() {
   const session = await getSession();
   if (!session) { window.location.replace('/auth.html?mode=login'); return; }
   _user = session.user;
+  window.__USER_ID__ = _user.id;
+
 
   // 2. Profile
   _profile = await getProfile(_user.id);
@@ -68,6 +70,7 @@ async function boot() {
   _initHomePage();
   _renderAgents();
   _renderVoices();
+  _renderPhoneNumbers();
 
   // 6. Realtime subscriptions
   _setupRealtime();
@@ -264,6 +267,54 @@ function _renderConversations() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  Phone Numbers
+// ═══════════════════════════════════════════════════════════════
+function _formatPhoneCapabilities(capabilities = []) {
+  const caps = new Set((capabilities ?? []).map((c) => String(c).toLowerCase()));
+  if (caps.has('inbound') && caps.has('outbound')) return 'Inbound + Outbound';
+  if (caps.has('inbound')) return 'Inbound Only';
+  if (caps.has('outbound')) return 'Outbound Only';
+  return 'Inbound + Outbound';
+}
+
+function _renderPhoneNumbers() {
+  const list = $('#phone-num-list');
+  if (!list) return;
+
+  if (!_phones.length) {
+    list.innerHTML = '<p style="color:var(--dash-text-3);font-size:13px;">No phone numbers found.</p>';
+    return;
+  }
+
+  list.innerHTML = _phones.map((phone) => {
+    const capabilities = Array.isArray(phone.capabilities) ? phone.capabilities : [];
+    const isOutboundOnly = capabilities.length === 1 && String(capabilities[0]).toLowerCase() === 'outbound';
+    const icon = isOutboundOnly ? '📱' : '📞';
+    const iconBg = isOutboundOnly ? 'rgba(0,196,161,0.1)' : 'rgba(124,92,252,0.1)';
+    const agentName = phone.agent_name ?? phone.agents?.name ?? 'Unassigned';
+    const status = String(phone.status ?? 'inactive').toLowerCase();
+    const statusLabel = status === 'active' ? 'Active' : 'Inactive';
+    const badgeClass = status === 'active' ? 'badge-green' : 'badge-gray';
+
+    return `
+      <div class="phone-num-card">
+        <div class="phone-num-icon" style="background:${iconBg};">${icon}</div>
+        <div class="phone-num-info">
+          <div class="phone-num-number">${escHtml(phone.number ?? '—')}</div>
+          <div class="phone-num-meta">${escHtml(phone.country ?? 'India')} · ${escHtml(phone.city ?? '—')} · ${escHtml(_formatPhoneCapabilities(capabilities))}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="phone-num-agent">${escHtml(agentName)}</div>
+          <div class="phone-num-meta">${Number(phone.call_count ?? 0).toLocaleString()} calls this month</div>
+        </div>
+        <span class="badge ${badgeClass}">${statusLabel}</span>
+        <button class="agent-action-btn phone-delete-btn" onclick="removePhoneNumber('${phone.id}')">Delete</button>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  Knowledge Base
 // ═══════════════════════════════════════════════════════════════
 function _renderKnowledgeDocs() {
@@ -437,7 +488,10 @@ Object.assign(window, {
     navigate('agent-config', null);
     setText($('#config-agent-name'), name);
     setText($('#config-agent-id'), `ID: ag_${id.slice(0, 8)}`);
+    window.__CURRENT_AGENT_ID__ = id;
+    window.__CURRENT_AGENT_NAME__ = name;
     const agent = _agents.find((a) => a.id === id);
+
     if (agent) {
       const promptEl = $('#agent-system-prompt');
       const firstMsgEl = $('#agent-first-message');
@@ -450,32 +504,56 @@ Object.assign(window, {
   // Agent CRUD
   createAgentSubmit: async () => {
     const btn = $('#create-agent-btn');
+    const nameInput = $('#new-agent-name');
     const form = readCreateAgentForm();
+
+    // Validate name
+    if (!form.name || form.name === 'New Agent' && !nameInput?.value?.trim()) {
+      nameInput?.focus();
+      showToast('⚠️ Please enter a name for your agent', 'error');
+      return;
+    }
+
     const PROMPTS = {
-      customer_support: 'You are a helpful AI customer support agent.',
-      sales: 'You are an AI sales agent focused on qualifying leads.',
-      collections: 'You are a collections agent reminding customers of payments.',
-      blank: 'You are a helpful AI call agent.',
+      customer_support: 'You are a helpful AI customer support agent for our company. Be empathetic, concise, and solution-focused. Resolve queries efficiently and escalate complex issues professionally.',
+      sales: 'You are an AI sales agent. Your goal is to qualify leads, identify pain points, and book demos. Be confident, consultative, and focus on value rather than features.',
+      collections: 'You are a professional collections agent. Be firm but respectful. Remind customers of overdue payments, offer payment plans, and document all commitments.',
+      survey: 'You are an AI survey agent conducting customer satisfaction surveys. Ask clear, concise questions, record responses accurately, and thank customers for their time.',
+      appointments: 'You are an AI appointment booking agent. Help customers book, reschedule, or cancel appointments. Be efficient, confirm all details, and send confirmation.',
+      blank: 'You are a helpful AI call agent. Be concise, friendly, and professional.',
     };
+
+    const FIRST_MESSAGES = {
+      customer_support: 'Hello! I\'m here to help with any questions or issues you have. How can I assist you today?',
+      sales: 'Hi there! I\'m calling to learn about your business needs. Do you have a couple of minutes to chat?',
+      collections: 'Hello, I\'m calling regarding an outstanding balance on your account. Is this a good time to discuss?',
+      survey: 'Hi! I\'m conducting a quick customer satisfaction survey. It\'ll take less than 2 minutes. May I proceed?',
+      appointments: 'Hello! I can help you with booking or managing your appointments. What can I do for you today?',
+      blank: 'Hello! How can I help you today?',
+    };
+
     if (btn) { btn.textContent = 'Creating…'; btn.disabled = true; }
 
     const { data, error } = await createAgent({
       user_id: _user.id,
       name: form.name,
       voice_name: form.voiceName,
+      voice_lang: form.voiceLang,
+      lang: form.lang,
       icon: form.icon,
       template: form.template,
       system_prompt: PROMPTS[form.template] ?? PROMPTS.blank,
-      first_message: 'Hello! How can I help you today?',
+      first_message: FIRST_MESSAGES[form.template] ?? FIRST_MESSAGES.blank,
       status: 'draft',
     });
 
-    if (btn) { btn.textContent = 'Create Agent'; btn.disabled = false; }
+    if (btn) { btn.textContent = 'Create Agent →'; btn.disabled = false; }
     if (error) { showToast('❌ ' + error.message, 'error'); return; }
 
     _agents.unshift(data);
     closeCreateModal();
     navigate('agents', $('#nav-agents'));
+    _renderAgents();
     showToast(`✅ Agent "${form.name}" created!`, 'success');
   },
 
@@ -489,25 +567,42 @@ Object.assign(window, {
   },
   filterAgents: (val) => _renderAgents(val),
 
+  // Phone numbers
+  removePhoneNumber: async (id) => {
+    if (!confirm('Delete this phone number? This cannot be undone.')) return;
+    const { error } = await deletePhoneNumber(id, _user.id);
+    if (error) { showToast('❌ ' + error.message, 'error'); return; }
+    _phones = _phones.filter((p) => p.id !== id);
+    _renderPhoneNumbers();
+    showToast('🗑️ Phone number deleted', 'success');
+  },
+
   // Playground
-  openPlayground,
+  openPlayground: (agentId, agentName) => openPlayground(
+    agentId || window.__CURRENT_AGENT_ID__,
+    agentName || window.__CURRENT_AGENT_NAME__
+  ),
   closePlayground,
   togglePlaygroundCall,
   sendPlaygroundMessage,
+  sendPlaygroundMsg: sendPlaygroundMessage, // alias for HTML onclick
 
   // Auth
   showUserMenu: _showUserMenu,
 
   // Knowledge
   uploadDoc: async () => {
-    const name = prompt('Enter document name or URL:');
-    if (!name) return;
-    const isUrl = name.startsWith('http');
+    const input = prompt('Enter document name or URL:');
+    if (!input) return;
+    const value = input.trim();
+    if (!value) return;
+    const isUrl = /^https?:\/\//i.test(value);
     const { data } = await addKnowledgeDoc({
       user_id: _user.id,
-      name,
+      name: value,
       type: isUrl ? 'url' : 'file',
       size_bytes: isUrl ? null : Math.floor(200_000 + Math.random() * 2_000_000),
+      url: isUrl ? value : null,
       status: 'indexed',
     });
     if (data) { _docs.unshift(data); _renderKnowledgeDocs(); showToast('✅ Document added & indexed', 'success'); }
@@ -521,6 +616,7 @@ window.navigate = (pageId, navEl) => {
   if (pageId === 'conversations') _renderConversations();
   if (pageId === 'analytics') _initAnalyticsChart();
   if (pageId === 'knowledge') _renderKnowledgeDocs();
+  if (pageId === 'phonenumbers') _renderPhoneNumbers();
   if (pageId === 'home') _initHomePage();
 };
 

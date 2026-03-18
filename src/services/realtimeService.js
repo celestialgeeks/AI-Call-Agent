@@ -62,6 +62,31 @@ export function subscribeToAgents(userId, onChange) {
 }
 
 /**
+ * Subscribes to message INSERT events for one conversation.
+ * @param {string}   conversationId
+ * @param {function} onInsert  — called with the new ConversationMessage row
+ * @returns {import('@supabase/supabase-js').RealtimeChannel}
+ */
+export function subscribeToConversationMessages(conversationId, onInsert) {
+    const channel = supabase
+        .channel(`conversation_messages:${conversationId}`)
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'conversation_messages',
+                filter: `conversation_id=eq.${conversationId}`,
+            },
+            (payload) => onInsert(payload.new)
+        )
+        .subscribe();
+
+    _channels.push(channel);
+    return channel;
+}
+
+/**
  * Unsubscribes all active channels registered by this service.
  * Call on page unload / sign-out.
  */

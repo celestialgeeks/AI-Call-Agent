@@ -62,3 +62,46 @@ export async function deleteAgent(id) {
     const { error } = await supabase.from('agents').delete().eq('id', id);
     return { error };
 }
+
+/**
+ * Fetches knowledge docs linked to an agent.
+ * @param {string} userId
+ * @param {string} agentId
+ * @returns {Promise<KnowledgeDoc[]>}
+ */
+export async function getAgentKnowledgeDocs(userId, agentId) {
+    const { data, error } = await supabase
+        .from('agent_knowledge_docs')
+        .select('knowledge_docs(*)')
+        .eq('user_id', userId)
+        .eq('agent_id', agentId)
+        .order('created_at', { ascending: false });
+
+    if (error) { console.error('[agentService.getAgentKnowledgeDocs]', error); return []; }
+    return (data ?? []).map((row) => row.knowledge_docs).filter(Boolean);
+}
+
+/**
+ * Replaces agent-document links for an agent.
+ * @param {string} userId
+ * @param {string} agentId
+ * @param {string[]} docIds
+ * @returns {Promise<{error: Error|null}>}
+ */
+export async function setAgentKnowledgeDocs(userId, agentId, docIds = []) {
+    const { error: deleteError } = await supabase
+        .from('agent_knowledge_docs')
+        .delete()
+        .eq('user_id', userId)
+        .eq('agent_id', agentId);
+
+    if (deleteError) return { error: deleteError };
+    if (!docIds.length) return { error: null };
+
+    const rows = docIds.map((docId) => ({ user_id: userId, agent_id: agentId, doc_id: docId }));
+    const { error: insertError } = await supabase
+        .from('agent_knowledge_docs')
+        .insert(rows);
+
+    return { error: insertError ?? null };
+}

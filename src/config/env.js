@@ -27,6 +27,33 @@ const requiredAny = (keys) => {
     return value ?? '';
 };
 
+const isLoopbackUrl = (value) => /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test((value ?? '').trim());
+
+const resolveAppUrl = () => {
+    const configuredUrl = (import.meta.env.VITE_APP_URL ?? '').trim();
+    const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
+    if (!configuredUrl) {
+        return runtimeOrigin || 'http://localhost:5173';
+    }
+
+    if (import.meta.env.PROD && isLoopbackUrl(configuredUrl) && runtimeOrigin && !isLoopbackUrl(runtimeOrigin)) {
+        console.warn(
+            `[Sahaiy] VITE_APP_URL is set to a localhost URL in production (${configuredUrl}). ` +
+            `Using current origin instead: ${runtimeOrigin}`
+        );
+        return runtimeOrigin;
+    }
+
+    return configuredUrl;
+};
+
+const resolveBackendUrl = () => {
+    const configuredUrl = (import.meta.env.VITE_BACKEND_URL ?? '').trim();
+    if (!configuredUrl) return 'http://localhost:8000';
+    return configuredUrl.replace(/\/$/, '');
+};
+
 const env = {
     /** Supabase project URL — e.g. https://xyzabc.supabase.co */
     supabaseUrl: requiredAny(['VITE_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL']),
@@ -38,7 +65,10 @@ const env = {
     ]),
 
     /** Full app base URL — used for OAuth callback redirects */
-    appUrl: import.meta.env.VITE_APP_URL ?? 'http://localhost:5173',
+    appUrl: resolveAppUrl(),
+
+    /** Backend API base URL */
+    backendUrl: resolveBackendUrl(),
 
     /** Application display name */
     appName: import.meta.env.VITE_APP_NAME ?? 'Sahaiy',
