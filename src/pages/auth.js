@@ -9,6 +9,7 @@
  */
 
 import { getSession, signInWithGoogle, signInWithGitHub, signInWithEmail, signUpWithEmail, resetPassword } from '@/services/authService.js';
+import { isConfigured } from '@/services/supabaseClient.js';
 import { showToast } from '@/utils/toast.js';
 import { $ } from '@/utils/dom.js';
 
@@ -17,6 +18,16 @@ import { $ } from '@/utils/dom.js';
     const session = await getSession();
     if (session) window.location.replace('/app.html');
 })();
+
+// ── Show setup warning when Supabase credentials are not configured ──
+if (!isConfigured) {
+    document.addEventListener('DOMContentLoaded', () => {
+        _showError(
+            '⚙️ Supabase is not configured. ' +
+            'Copy .env.example → .env and fill in your project URL and anon key.'
+        );
+    });
+}
 
 // ── URL param: ?mode=login → auto-switch to login tab ───────────
 if (new URLSearchParams(window.location.search).get('mode') === 'login') {
@@ -43,6 +54,7 @@ export function switchTab(tab) {
 
 /** Initiates Google OAuth flow. */
 export async function handleGoogle() {
+    if (!_requireConfigured()) return;
     const btn = $('#google-btn');
     _setButtonLoading(btn, 'Connecting to Google…');
     const { error } = await signInWithGoogle();
@@ -51,6 +63,7 @@ export async function handleGoogle() {
 
 /** Initiates GitHub OAuth flow. */
 export async function handleGitHub() {
+    if (!_requireConfigured()) return;
     const btn = $('#github-btn');
     _setButtonLoading(btn, 'Connecting to GitHub…');
     const { error } = await signInWithGitHub();
@@ -60,6 +73,7 @@ export async function handleGitHub() {
 /** Handles the email/password sign-up form submission. */
 export async function handleSignup(e) {
     e.preventDefault();
+    if (!_requireConfigured()) return;
     const btn = $('#signup-btn');
     const email = $('#signup-email')?.value.trim() ?? '';
     const first = $('#signup-firstname')?.value.trim() ?? '';
@@ -92,6 +106,7 @@ export async function handleSignup(e) {
 /** Handles the email/password sign-in form submission. */
 export async function handleLogin(e) {
     e.preventDefault();
+    if (!_requireConfigured()) return;
     const btn = $('#login-btn');
     const email = $('#login-email')?.value.trim() ?? '';
     const pass = $('#login-password')?.value ?? '';
@@ -157,6 +172,20 @@ Object.assign(window, {
 // ═══════════════════════════════════════════════════
 //  Private helpers
 // ═══════════════════════════════════════════════════
+
+/**
+ * Shows a setup error and returns false when Supabase is not configured.
+ * Use as an early-return guard in every auth action handler.
+ * @returns {boolean} true if configured, false otherwise
+ */
+function _requireConfigured() {
+    if (isConfigured) return true;
+    _showError(
+        '⚙️ Supabase is not configured. ' +
+        'Copy .env.example → .env and fill in your project URL and anon key.'
+    );
+    return false;
+}
 
 function _showError(msg) {
     const el = $('#auth-error');
