@@ -7,18 +7,32 @@
 
 import { $ } from '@/utils/dom.js';
 import { showToast } from '@/utils/toast.js';
+import env from '@/config/env.js';
 
 let _isConnected  = false;
 let _ws           = null;
 let _mediaRecorder = null;
 let _audioStream  = null;
+let _audioContext = null;
+let _audioSourceNode = null;
+let _audioProcessorNode = null;
 let _audioQueue   = [];      // Sequential audio playback queue
 let _isPlaying    = false;   // Is audio currently playing?
 let _agentName    = 'Agent'; // Display name shown in header
 
-const WS_BASE = window.location.hostname === 'localhost'
-    ? 'ws://localhost:8000'
-    : `wss://${window.location.host}`;
+const resolveWsBase = () => {
+    try {
+        const backendUrl = new URL(env.backendUrl);
+        backendUrl.protocol = backendUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+        return backendUrl.origin;
+    } catch {
+        return window.location.protocol === 'https:'
+            ? `wss://${window.location.host}`
+            : 'ws://localhost:8000';
+    }
+};
+
+const WS_BASE = resolveWsBase();
 
 // ─────────────────────────────────────────────────────────────────────
 // Public API
@@ -118,14 +132,10 @@ async function _startCall() {
         _isConnected = true;
         _setOrbState('connected');
 
-        // Start streaming mic audio in 50ms chunks
-        _mediaRecorder = new MediaRecorder(_audioStream, { mimeType: 'audio/webm;codecs=opus' });
-        _mediaRecorder.ondataavailable = (e) => {
-            if (_ws?.readyState === WebSocket.OPEN && e.data.size > 0) {
-                _ws.send(e.data);
-            }
-        };
-        _mediaRecorder.start(50);
+        _sendAgentMeta();
+
+        // Start streaming raw PCM16 chunks for whisper.cpp compatibility
+        _startPcmStreaming();
     };
 
     _ws.onmessage = async (event) => {
@@ -172,6 +182,7 @@ function _stopCall(showEndBubble = true) {
     const wasConnected = _isConnected;
     _isConnected = false;
 
+    _stopPcmStreaming();
     _mediaRecorder?.state !== 'inactive' && _mediaRecorder?.stop();
     _mediaRecorder = null;
     _audioStream?.getTracks().forEach((t) => t.stop());
@@ -285,4 +296,81 @@ function _removeTypingIndicator() {
 
 function _jsonSafe(str) {
     try { return JSON.parse(str); } catch { return {}; }
+}
+
+function _sendAgentMeta() {
+    if (_ws?.readyState !== WebSocket.OPEN) return;
+
+    const profile = window.__CURRENT_AGENT_PROFILE__ || {};
+    const agentMeta = {
+        id: window.__CURRENT_AGENT_ID__ || profile.id || '',
+        name: window.__CURRENT_AGENT_NAME__ || profile.name || '',
+        system_prompt: profile.system_prompt || '',
+        first_message: profile.first_message || '',
+        voice_name: profile.voice_name || '',
+        language: profile.language || profile.lang || '',
+        voice_lang: profile.voice_lang || '',
+    };
+
+    _ws.send(JSON.stringify({ type: 'agent_meta', agent: agentMeta }));
+}
+
+function _startPcmStreaming() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) {
+        _appendChatBubble('AudioContext is not available in this browser.', 'agent');
+        return;
+    }
+
+    _audioContext = new AudioCtx();
+    _audioSourceNode = _audioContext.createMediaStreamSource(_audioStream);
+
+    const bufferSize = 4096;
+    _audioProcessorNode = _audioContext.createScriptProcessor(bufferSize, 1, 1);
+
+    if (_ws?.readyState === WebSocket.OPEN) {
+        _ws.send(JSON.stringify({
+            type: 'audio_meta',
+            format: 'pcm16',
+            sample_rate: _audioContext.sampleRate,
+            channels: 1,
+        }));
+    }
+
+    _audioProcessorNode.onaudioprocess = (event) => {
+        if (_ws?.readyState !== WebSocket.OPEN) return;
+        const input = event.inputBuffer.getChannelData(0);
+        const pcmBytes = _floatTo16BitPcm(input);
+        if (pcmBytes.byteLength > 0) {
+            _ws.send(pcmBytes);
+        }
+    };
+
+    _audioSourceNode.connect(_audioProcessorNode);
+    _audioProcessorNode.connect(_audioContext.destination);
+}
+
+function _stopPcmStreaming() {
+    if (_audioProcessorNode) {
+        _audioProcessorNode.disconnect();
+        _audioProcessorNode.onaudioprocess = null;
+        _audioProcessorNode = null;
+    }
+    if (_audioSourceNode) {
+        _audioSourceNode.disconnect();
+        _audioSourceNode = null;
+    }
+    if (_audioContext) {
+        _audioContext.close().catch(() => {});
+        _audioContext = null;
+    }
+}
+
+function _floatTo16BitPcm(float32Array) {
+    const pcm = new Int16Array(float32Array.length);
+    for (let index = 0; index < float32Array.length; index += 1) {
+        const sample = Math.max(-1, Math.min(1, float32Array[index]));
+        pcm[index] = sample < 0 ? sample * 0x8000 : sample * 0x7fff;
+    }
+    return pcm.buffer;
 }

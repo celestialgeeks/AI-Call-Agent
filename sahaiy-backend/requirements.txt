@@ -26,9 +26,11 @@ sentence-transformers==3.4.1
 numpy==2.2.4
 
 # ── LiveKit WebRTC (optional — Phase 10) ──────────────────────
-# Uncomment when LiveKit credentials are available:
-livekit==0.17.0
-livekit-agents==0.8.11
+# Server-side token route depends on livekit-api (imports as: from livekit import api)
+livekit-api==0.8.2
+# livekit-agents currently depends on watchfiles builds that fail on Python 3.14.
+# Install automatically on supported versions only.
+livekit-agents==0.8.11; python_version < "3.14"
 
 # ── Utilities ──────────────────────────────────────────────────
 anyio==4.9.0

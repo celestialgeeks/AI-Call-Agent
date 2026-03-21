@@ -50,7 +50,31 @@ const resolveAppUrl = () => {
 
 const resolveBackendUrl = () => {
     const configuredUrl = (import.meta.env.VITE_BACKEND_URL ?? '').trim();
-    if (!configuredUrl) return 'http://localhost:8000';
+
+    if (!configuredUrl) {
+        const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+        if (import.meta.env.PROD && runtimeOrigin) {
+            console.warn(
+                '[Sahaiy] VITE_BACKEND_URL is not set in production. ' +
+                `Using current origin: ${runtimeOrigin}. ` +
+                'Set VITE_BACKEND_URL in Vercel env vars if backend is hosted separately.'
+            );
+            return runtimeOrigin;
+        }
+        return 'http://localhost:8000';
+    }
+
+    if (import.meta.env.PROD && isLoopbackUrl(configuredUrl)) {
+        const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+        if (runtimeOrigin && !isLoopbackUrl(runtimeOrigin)) {
+            console.warn(
+                `[Sahaiy] VITE_BACKEND_URL is set to localhost in production (${configuredUrl}). ` +
+                `Using current origin instead: ${runtimeOrigin}`
+            );
+            return runtimeOrigin;
+        }
+    }
+
     return configuredUrl.replace(/\/$/, '');
 };
 

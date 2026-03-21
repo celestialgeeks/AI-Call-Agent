@@ -23,6 +23,7 @@ import asyncio
 import io
 import json
 import logging
+import re
 import time
 import wave
 from typing import Optional
@@ -39,17 +40,114 @@ from app.services.vad import is_speech
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Audio WebSocket"])
 
+_EMPTY_TRANSCRIPT_PATTERNS = [
+    re.compile(r"^\s*$", re.IGNORECASE),
+    re.compile(r"^[\[(]?blank[_\s-]?audio[\])]?$", re.IGNORECASE),
+    re.compile(r"^[\[(]?silence[\])]?$", re.IGNORECASE),
+    re.compile(r"^[\[(]?noise[\])]?$", re.IGNORECASE),
+    re.compile(r"^[\[(]?inaudible[\])]?$", re.IGNORECASE),
+    re.compile(r"^[\[(]?music[\])]?$", re.IGNORECASE),
+]
 
-async def _transcribe(audio_bytes: bytes, http_client: httpx.AsyncClient) -> str:
+_DEVANAGARI_RE = re.compile(r"[\u0900-\u097F]")
+
+
+def _lang_hint_from_label(label: str) -> Optional[str]:
+    """Map human language labels to short Whisper language hints."""
+    value = (label or "").lower()
+    if not value:
+        return None
+    if "hindi" in value or "hinglish" in value:
+        return "hi"
+    if "english" in value:
+        return "en"
+    if "tamil" in value:
+        return "ta"
+    if "telugu" in value:
+        return "te"
+    if "marathi" in value:
+        return "mr"
+    if "bengali" in value:
+        return "bn"
+    if "kannada" in value:
+        return "kn"
+    return None
+
+
+def _tts_lang_from_agent(agent: dict, user_text: str = "") -> Optional[str]:
+    """Resolve Sarvam TTS language code from agent config and current user text."""
+    label = str(agent.get("language") or agent.get("voice_lang") or "")
+    combined = f"{label} {user_text}".lower()
+
+    if _DEVANAGARI_RE.search(user_text) or "hindi" in combined or "hinglish" in combined:
+        return "hi-IN"
+    if "tamil" in combined:
+        return "ta-IN"
+    if "telugu" in combined:
+        return "te-IN"
+    if "marathi" in combined:
+        return "mr-IN"
+    if "bengali" in combined:
+        return "bn-IN"
+    if "kannada" in combined:
+        return "kn-IN"
+    if "english" in combined:
+        return "en-IN"
+    return None
+
+
+def _merge_agent_meta(base_agent: dict, incoming: dict) -> dict:
+    """Merge client-provided agent metadata into current agent config."""
+    if not isinstance(incoming, dict):
+        return base_agent
+    merged = dict(base_agent or {})
+    for key in ["id", "name", "system_prompt", "first_message", "voice_name", "language", "voice_lang"]:
+        value = incoming.get(key)
+        if value is not None and str(value).strip() != "":
+            merged[key] = value
+    return merged
+
+
+def _normalize_transcript(text: str) -> str:
+    """Normalize STT output and drop placeholder/no-audio transcripts."""
+    normalized = (text or "").strip()
+    if not normalized:
+        return ""
+    for pattern in _EMPTY_TRANSCRIPT_PATTERNS:
+        if pattern.fullmatch(normalized):
+            return ""
+    return normalized
+
+
+def _pcm16_to_wav(pcm_bytes: bytes, sample_rate: int, channels: int) -> bytes:
+    """Wrap raw PCM16 bytes in a WAV container."""
+    with io.BytesIO() as wav_buffer:
+        with wave.open(wav_buffer, "wb") as wav_file:
+            wav_file.setnchannels(max(1, int(channels or 1)))
+            wav_file.setsampwidth(2)  # PCM16
+            wav_file.setframerate(max(8_000, int(sample_rate or 16_000)))
+            wav_file.writeframes(pcm_bytes)
+        return wav_buffer.getvalue()
+
+
+async def _transcribe(
+    audio_bytes: bytes,
+    http_client: httpx.AsyncClient,
+    file_name: str = "chunk.wav",
+    content_type: str = "audio/wav",
+    language_hint: Optional[str] = None,
+) -> str:
     """Send audio bytes to whisper.cpp and return transcribed text."""
     try:
         resp = await http_client.post(
             STT_URL,
-            files={"file": ("chunk.wav", audio_bytes, "audio/wav")},
+            files={"file": (file_name, audio_bytes, content_type)},
+            data={"language": language_hint} if language_hint else None,
             timeout=float(STT_TIMEOUT_SEC),
         )
         resp.raise_for_status()
-        return resp.json().get("text", "").strip()
+        raw_text = resp.json().get("text", "")
+        return _normalize_transcript(raw_text)
     except Exception as exc:
         logger.error("[WS/STT] %s", exc)
         return ""
@@ -83,7 +181,12 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     # Fetch agent config
     agent = await agent_service.get_agent(agent_id) if agent_id else {}
     if not agent:
-        agent = {"system_prompt": "You are a helpful AI call agent.", "voice_name": None}
+        agent = {
+            "name": "Sahaiy Assistant",
+            "system_prompt": "You are a helpful AI call agent.",
+            "voice_name": None,
+            "language": "Hindi / English (Hinglish)",
+        }
         logger.warning("[WS] Agent not found — using defaults")
 
     # Increment call count
@@ -98,21 +201,36 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     is_playing = False          # True while AI audio is being sent
     interrupt_event = asyncio.Event()
     current_llm_task: Optional[asyncio.Task] = None
+    audio_format = "wav"
+    audio_mime_type = "audio/wav"
+    audio_sample_rate = 16_000
+    audio_channels = 1
+    speech_chunks_in_buffer = 0
+    stt_language_hint = _lang_hint_from_label(str(agent.get("language") or agent.get("voice_lang") or ""))
+    greeting_sent = False
 
-    # Optional: Send initial greeting if configured
-    first_msg = agent.get("first_message")
-    if first_msg:
+    async def _send_greeting_once() -> None:
+        """Send optional first_message once per connection."""
+        nonlocal greeting_sent
+        if greeting_sent:
+            return
+        first_msg = str(agent.get("first_message") or "").strip()
+        if not first_msg:
+            greeting_sent = True
+            return
         try:
             logger.info("[WS] Sending first_message: '%s'", first_msg)
             await _send_json(ws, {"type": "fragment", "text": first_msg})
             wav_bytes = await speak_to_bytes(
                 first_msg,
                 voice_name=agent.get("voice_name"),
+                lang=_tts_lang_from_agent(agent, ""),
                 client=http_client,
             )
             await _send_audio(ws, wav_bytes)
-        except Exception as e:
-            logger.error("[WS/Greeting] %s", e)
+            greeting_sent = True
+        except Exception as exc:
+            logger.error("[WS/Greeting] %s", exc)
 
     async def _run_pipeline(user_text: str) -> None:
         """Run STT -> RAG -> LLM streaming -> TTS for one utterance."""
@@ -124,6 +242,7 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
 
         # Build prompt
         prompt = build_prompt(agent, user_text, context)
+        tts_lang = _tts_lang_from_agent(agent, user_text)
 
         is_playing = True
         try:
@@ -136,6 +255,7 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
                     wav_bytes = await speak_to_bytes(
                         fragment,
                         voice_name=agent.get("voice_name"),
+                        lang=tts_lang,
                         client=http_client,
                     )
                     if interrupt_event.is_set():
@@ -154,6 +274,9 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
             # Receive next WebSocket message (binary audio or JSON control)
             message = await ws.receive()
 
+            if message.get("type") == "websocket.disconnect":
+                break
+
             # --- Control frame ---
             if message.get("text"):
                 try:
@@ -166,6 +289,52 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
                         current_llm_task.cancel()
                     await _send_json(ws, {"type": "interrupted"})
                     audio_buffer.clear()
+                elif ctrl.get("type") == "text_input":
+                    greeting_sent = True
+                    user_text = str(ctrl.get("message") or "").strip()
+                    if not user_text:
+                        continue
+
+                    await _send_json(ws, {"type": "transcript", "text": user_text})
+
+                    if current_llm_task and not current_llm_task.done():
+                        current_llm_task.cancel()
+
+                    current_llm_task = asyncio.create_task(_run_pipeline(user_text))
+                elif ctrl.get("type") == "agent_meta":
+                    incoming_agent = ctrl.get("agent") if isinstance(ctrl.get("agent"), dict) else ctrl
+                    agent = _merge_agent_meta(agent, incoming_agent)
+                    stt_language_hint = _lang_hint_from_label(str(agent.get("language") or agent.get("voice_lang") or ""))
+                elif ctrl.get("type") == "audio_meta":
+                    incoming_format = str(ctrl.get("format") or "").strip().lower()
+                    incoming_mime = str(ctrl.get("mime_type") or "").strip().lower()
+
+                    if incoming_format:
+                        audio_format = incoming_format
+                    if incoming_mime:
+                        audio_mime_type = incoming_mime
+                    elif audio_format == "pcm16":
+                        audio_mime_type = "audio/pcm"
+
+                    try:
+                        audio_sample_rate = int(ctrl.get("sample_rate") or audio_sample_rate)
+                    except Exception:
+                        pass
+                    try:
+                        audio_channels = int(ctrl.get("channels") or audio_channels)
+                    except Exception:
+                        pass
+
+                    logger.info(
+                        "[WS] audio_meta format=%s mime=%s sample_rate=%s channels=%s",
+                        audio_format,
+                        audio_mime_type,
+                        audio_sample_rate,
+                        audio_channels,
+                    )
+
+                if ctrl.get("type") in {"audio_meta", "agent_meta"}:
+                    await _send_greeting_once()
                 continue
 
             # --- Audio chunk ---
@@ -173,27 +342,68 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
             if not chunk:
                 continue
 
+            if not greeting_sent:
+                await _send_greeting_once()
+
+            chunk_has_speech = audio_format == "pcm16" and is_speech(chunk)
+
             # VAD: if AI is playing and user starts speaking -> interrupt
-            if is_playing and is_speech(chunk):
-                interrupt_event.set()
-                if current_llm_task and not current_llm_task.done():
-                    current_llm_task.cancel()
-                await _send_json(ws, {"type": "interrupted"})
-                audio_buffer.clear()
+            if is_playing:
+                if chunk_has_speech:
+                    interrupt_event.set()
+                    if current_llm_task and not current_llm_task.done():
+                        current_llm_task.cancel()
+                    await _send_json(ws, {"type": "interrupted"})
+                    audio_buffer.clear()
+                    speech_chunks_in_buffer = 0
                 continue
 
             audio_buffer.extend(chunk)
+            if chunk_has_speech:
+                speech_chunks_in_buffer += 1
 
-            # Accumulate enough audio before sending to STT (~1 second @ 16kHz 16-bit mono = 32000 bytes)
-            if len(audio_buffer) < 32_000:
+            # Accumulate enough audio before sending to STT.
+            if audio_format == "pcm16":
+                stt_threshold_bytes = max(int(audio_sample_rate * max(audio_channels, 1) * 2 * 0.8), 12_800)
+            else:
+                stt_threshold_bytes = 64_000
+
+            if len(audio_buffer) < stt_threshold_bytes:
+                continue
+
+            if audio_format == "pcm16" and speech_chunks_in_buffer == 0:
+                audio_buffer.clear()
                 continue
 
             # Capture and reset buffer
-            pcm_data = bytes(audio_buffer)
+            raw_chunk = bytes(audio_buffer)
             audio_buffer.clear()
+            speech_chunks_in_buffer = 0
+
+            if audio_format == "pcm16":
+                audio_payload = _pcm16_to_wav(raw_chunk, audio_sample_rate, audio_channels)
+                payload_file_name = "chunk.wav"
+                payload_content_type = "audio/wav"
+            else:
+                audio_payload = raw_chunk
+                if "webm" in audio_mime_type or audio_format == "webm":
+                    payload_file_name = "chunk.webm"
+                    payload_content_type = "audio/webm"
+                elif "ogg" in audio_mime_type or audio_format == "ogg":
+                    payload_file_name = "chunk.ogg"
+                    payload_content_type = "audio/ogg"
+                else:
+                    payload_file_name = "chunk.wav"
+                    payload_content_type = "audio/wav"
 
             t0 = time.monotonic()
-            user_text = await _transcribe(pcm_data, http_client)
+            user_text = await _transcribe(
+                audio_payload,
+                http_client,
+                file_name=payload_file_name,
+                content_type=payload_content_type,
+                language_hint=stt_language_hint,
+            )
             stt_ms = int((time.monotonic() - t0) * 1000)
 
             if not user_text:

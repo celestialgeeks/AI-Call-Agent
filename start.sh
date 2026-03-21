@@ -12,11 +12,34 @@
 BACKEND_DIR="$(cd "$(dirname "$0")/sahaiy-backend" && pwd)"
 VENV_PYTHON="$BACKEND_DIR/.venv/bin/python3"
 
-WHISPER_BIN="/Users/shreyashsingh/whisper.cpp/build/bin/whisper-server"
-WHISPER_MODEL="/Users/shreyashsingh/whisper.cpp/models/ggml-base.en.bin"
+WHISPER_ROOT="${WHISPER_CPP_DIR:-$HOME/whisper.cpp}"
+WHISPER_BIN="${WHISPER_BIN:-$WHISPER_ROOT/build/bin/whisper-server}"
 
-LLAMA_BIN="/Users/shreyashsingh/llama.cpp/build/bin/llama-server"
-LLAMA_MODEL="/Users/shreyashsingh/llama.cpp/models/phi3.gguf"
+if [[ -n "${WHISPER_MODEL:-}" ]]; then
+  WHISPER_MODEL="$WHISPER_MODEL"
+elif [[ -f "$WHISPER_ROOT/models/ggml-base.bin" ]]; then
+  WHISPER_MODEL="$WHISPER_ROOT/models/ggml-base.bin"
+elif [[ -f "$WHISPER_ROOT/models/ggml-small.bin" ]]; then
+  WHISPER_MODEL="$WHISPER_ROOT/models/ggml-small.bin"
+elif [[ -f "$WHISPER_ROOT/models/ggml-medium.bin" ]]; then
+  WHISPER_MODEL="$WHISPER_ROOT/models/ggml-medium.bin"
+else
+  WHISPER_MODEL="$(find "$WHISPER_ROOT/models" -maxdepth 1 -type f -name 'ggml-*.bin' ! -name 'for-tests-*' ! -name '*.en.bin' 2>/dev/null | head -n 1)"
+  if [[ -z "$WHISPER_MODEL" && -f "$WHISPER_ROOT/models/ggml-base.en.bin" ]]; then
+    WHISPER_MODEL="$WHISPER_ROOT/models/ggml-base.en.bin"
+  fi
+fi
+
+LLAMA_ROOT="${LLAMA_CPP_DIR:-$HOME/llama.cpp}"
+LLAMA_BIN="${LLAMA_BIN:-$LLAMA_ROOT/build/bin/llama-server}"
+
+if [[ -n "${LLAMA_MODEL:-}" ]]; then
+  LLAMA_MODEL="$LLAMA_MODEL"
+elif [[ -f "$LLAMA_ROOT/models/phi3.gguf" ]]; then
+  LLAMA_MODEL="$LLAMA_ROOT/models/phi3.gguf"
+else
+  LLAMA_MODEL="$(find "$LLAMA_ROOT/models" -maxdepth 1 -type f -name '*.gguf' 2>/dev/null | head -n 1)"
+fi
 
 LOG_DIR="$BACKEND_DIR/logs"
 
@@ -53,10 +76,14 @@ fi
 
 # ── Pre-flight checks ─────────────────────────────────────────────────
 [[ ! -f "$WHISPER_BIN"  ]] && err "whisper-server not found: $WHISPER_BIN\n  Build: cd ~/whisper.cpp && cmake -B build && cmake --build build -j"
-[[ ! -f "$WHISPER_MODEL"]] && err "Whisper model not found: $WHISPER_MODEL"
+[[ -z "$WHISPER_MODEL" || ! -f "$WHISPER_MODEL" ]] && err "Whisper model not found.\n  Expected under: $WHISPER_ROOT/models\n  Download (multilingual): cd $WHISPER_ROOT/models && ./download-ggml-model.sh base\n  Or set WHISPER_MODEL=/absolute/path/to/model.bin"
 [[ ! -f "$LLAMA_BIN"    ]] && err "llama-server not found: $LLAMA_BIN\n  Build: cd ~/llama.cpp && cmake -B build -DLLAMA_METAL=ON && cmake --build build -j llama-server"
-[[ ! -f "$LLAMA_MODEL"  ]] && err "LLM model not found: $LLAMA_MODEL"
+[[ -z "$LLAMA_MODEL" || ! -f "$LLAMA_MODEL" ]] && err "LLM model not found.\n  Expected under: $LLAMA_ROOT/models\n  Or set LLAMA_MODEL=/absolute/path/to/model.gguf"
 [[ ! -f "$VENV_PYTHON"  ]] && err "Python venv missing.\n  Run: cd $BACKEND_DIR && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt"
+
+if [[ "$WHISPER_MODEL" == *.en.bin ]]; then
+  warn "Using English-only Whisper model ($WHISPER_MODEL). Hindi transcription will be poor.\n      For multilingual STT: cd $WHISPER_ROOT/models && ./download-ggml-model.sh base"
+fi
 
 mkdir -p "$LOG_DIR"
 
@@ -110,6 +137,7 @@ if port_in_use 8000; then
 fi
 
 nohup "$VENV_PYTHON" -m uvicorn server:app \
+  --app-dir "$BACKEND_DIR" \
   --host 0.0.0.0 \
   --port 8000 \
   > "$LOG_DIR/backend.log" 2>&1 &

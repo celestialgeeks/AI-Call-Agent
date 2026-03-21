@@ -29,9 +29,15 @@ _AST_OPEN  = chr(60) + chr(124) + "assistant" + chr(124) + chr(62)
 def build_prompt(agent: dict, user_text: str, context: str = "") -> str:
     """Build a Phi-3 ChatML prompt from agent config + user text + optional RAG context."""
     system_prompt = agent.get("system_prompt") or "You are a helpful AI call agent."
+    preferred_language = (agent.get("language") or agent.get("voice_lang") or "").strip()
+    language_policy = "Mirror the user's language. If the user speaks Hindi or Hinglish, reply in Hindi/Hinglish."
+    if preferred_language:
+        language_policy += f" Preferred response language: {preferred_language}."
+
+    identity_policy = "Introduce yourself consistently based on your configured persona and avoid generic disclaimers."
     ctx = ("\n\nRelevant context:\n" + context) if context else ""
     return (
-        _SYS_OPEN + "\n" + system_prompt + ctx + "\n" + _SYS_CLOSE + "\n"
+        _SYS_OPEN + "\n" + system_prompt + "\n\n" + language_policy + "\n" + identity_policy + ctx + "\n" + _SYS_CLOSE + "\n"
         + _USR_OPEN + "\n" + user_text + "\n" + _USR_CLOSE + "\n"
         + _AST_OPEN + "\n"
     )

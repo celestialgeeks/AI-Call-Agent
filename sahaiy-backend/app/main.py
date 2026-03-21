@@ -18,7 +18,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import FRONTEND_ORIGIN, LOG_LEVEL
+from app.config import FRONTEND_ORIGINS, ALLOW_VERCEL_PREVIEW_ORIGINS, LOG_LEVEL
 from app.routers import stt, audio_ws, calls, knowledge, health, phone_numbers, livekit
 
 logging.basicConfig(
@@ -49,10 +49,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_allowed_origins = list(dict.fromkeys(FRONTEND_ORIGINS))
+_vercel_origin_regex = r"https://.*\.vercel\.app" if ALLOW_VERCEL_PREVIEW_ORIGINS else None
+
 # ── CORS ──────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN, "http://localhost:5173", "http://localhost:3000"],
+    allow_origins=_allowed_origins,
+    allow_origin_regex=_vercel_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

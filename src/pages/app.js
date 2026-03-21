@@ -491,6 +491,7 @@ Object.assign(window, {
     window.__CURRENT_AGENT_ID__ = id;
     window.__CURRENT_AGENT_NAME__ = name;
     const agent = _agents.find((a) => a.id === id);
+    window.__CURRENT_AGENT_PROFILE__ = agent || null;
 
     if (agent) {
       const promptEl = $('#agent-system-prompt');
@@ -539,7 +540,7 @@ Object.assign(window, {
       name: form.name,
       voice_name: form.voiceName,
       voice_lang: form.voiceLang,
-      lang: form.lang,
+      language: form.lang,
       icon: form.icon,
       template: form.template,
       system_prompt: PROMPTS[form.template] ?? PROMPTS.blank,
@@ -578,10 +579,22 @@ Object.assign(window, {
   },
 
   // Playground
-  openPlayground: (agentId, agentName) => openPlayground(
-    agentId || window.__CURRENT_AGENT_ID__,
-    agentName || window.__CURRENT_AGENT_NAME__
-  ),
+  openPlayground: (agentId, agentName) => {
+    const fallbackAgent = _agents.find((a) => a.status === 'published') || _agents[0] || null;
+    const resolvedId = agentId || window.__CURRENT_AGENT_ID__ || fallbackAgent?.id || '';
+    const resolvedAgent = _agents.find((a) => a.id === resolvedId) || window.__CURRENT_AGENT_PROFILE__ || fallbackAgent;
+
+    if (resolvedAgent) {
+      window.__CURRENT_AGENT_ID__ = resolvedAgent.id;
+      window.__CURRENT_AGENT_NAME__ = resolvedAgent.name;
+      window.__CURRENT_AGENT_PROFILE__ = resolvedAgent;
+    }
+
+    openPlayground(
+      resolvedId,
+      agentName || resolvedAgent?.name || window.__CURRENT_AGENT_NAME__
+    );
+  },
   closePlayground,
   togglePlaygroundCall,
   sendPlaygroundMessage,

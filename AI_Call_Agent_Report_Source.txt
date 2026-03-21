@@ -1,0 +1,299 @@
+SAHAIY AI CALL AGENT — CODEBASE-DRIVEN PROJECT REPORT
+(Prepared from repository inspection on 19 March 2026)
+
+LIST OF FIGURES
+Figure 1: End-to-end voice pipeline (Mic/Call -> STT -> LLM -> TTS -> Audio Return)
+Figure 2: Dashboard module map (Home, Agents, Knowledge, Tools, Integrations, Conversations, Analytics)
+Figure 3: WebSocket protocol frame types for real-time call testing
+Figure 4: Data model overview for agents, conversations, and knowledge base
+Figure 5: Deployment/startup topology for STT, LLM, and FastAPI backend
+
+LIST OF TABLES
+Table 1: Frontend stack and runtime dependencies
+Table 2: Backend stack and AI service dependencies
+Table 3: Core database entities and purpose
+Table 4: Implemented API routes and their role
+Table 5: Features implemented vs current limitations
+
+LIST OF ABBREVIATION
+AI  : Artificial Intelligence
+API : Application Programming Interface
+ASR : Automatic Speech Recognition
+CSAT: Customer Satisfaction
+DB  : Database
+FAISS: Facebook AI Similarity Search
+HTTP: Hypertext Transfer Protocol
+JS  : JavaScript
+JSON: JavaScript Object Notation
+LLM : Large Language Model
+RAG : Retrieval-Augmented Generation
+RLS : Row Level Security
+SPA : Single Page Application
+STT : Speech-to-Text
+TTS : Text-to-Speech
+UI  : User Interface
+UUID: Universally Unique Identifier
+VAD : Voice Activity Detection
+WS  : WebSocket
+
+ABSTRACT
+Sahaiy is an enterprise-oriented AI call agent platform that combines a multi-page web dashboard (Vite + Vanilla JavaScript) with a FastAPI backend for real-time voice interactions. The product supports agent creation, authentication, conversation logging, analytics, phone number management, knowledge document management, and a playground for testing live AI voice calls. The backend pipeline integrates STT, LLM, and TTS services and exposes both REST endpoints and WebSocket streaming. Supabase is used as the primary data and auth platform, with RLS policies for tenant-safe client access, while server-side service-role operations support backend workflows. The codebase indicates a practical MVP-to-production architecture with strong modular separation (services, components, routers) and support for future expansion such as LiveKit WebRTC and richer RAG ingestion.
+
+
+CHAPTER 1: INTRODUCTION
+
+1.1 Background of the Study
+Modern customer operations require high-volume, low-latency, multilingual call handling. Human-only call centers face cost, scalability, availability, and consistency constraints, especially for repetitive tasks (order status, FAQs, lead qualification, appointment workflows). Sahaiy addresses this by combining real-time speech transcription, language model reasoning, and speech synthesis in an integrated call-agent platform. The system targets Hindi/English and Indian-market usage patterns and provides business observability through conversation and daily statistics tracking.
+
+1.2 Objectives
+The implemented codebase reflects the following product objectives:
+1) Provide no-code/low-code AI agent setup (name, template, prompt, first message, voice, language).
+2) Support secure user onboarding via Supabase Auth (email/password and OAuth providers).
+3) Store and manage call conversations, messages, phone numbers, tools, and knowledge assets per user.
+4) Offer real-time call test capability through a WebSocket-based playground.
+5) Enable retrieval-assisted responses through optional FAISS + sentence-transformers RAG.
+6) Present analytics and operational dashboards for calls, status distribution, and trends.
+7) Maintain modular architecture where UI, data services, and backend AI pipeline are separated.
+
+1.3 Scope and Limitations
+Scope:
+- Frontend includes landing page, auth page, and dashboard modules for agents, knowledge, tools, integrations, voices, conversations, analytics, phone numbers, tests, and settings.
+- Backend includes health, STT forwarding, call lifecycle APIs, knowledge ingestion APIs, phone number APIs, LiveKit token API, and main WebSocket voice pipeline.
+- Database schema covers profiles, agents, conversations, conversation messages, phone numbers, knowledge docs, tools, and daily stats.
+
+Limitations observed in current implementation:
+- RAG retrieval currently indexes provided text in memory; persistent vector storage lifecycle is limited.
+- Some dashboard sections are UI-ready but rely on future deeper backend integrations (for example advanced outbound/WhatsApp workflows).
+- Voice pipeline quality and latency depend on external STT/LLM/TTS service availability and model hosting.
+- Hardware requirements are environment-dependent and not formally benchmarked in code-level documentation.
+
+
+CHAPTER 2: PROBLEM IDENTIFICATION
+
+2.1 Problem Statement
+Organizations handling customer communication need a scalable way to automate voice calls without sacrificing conversational quality and context-awareness. Existing manual processes create delays, high operational costs, inconsistent service quality, and limited after-hours support.
+
+2.1.1 Background
+The repository shows clear intent to solve common support and sales use-cases:
+- Customer support query resolution
+- Sales qualification and demo booking
+- Collections and reminder workflows
+- Survey/feedback interactions
+- Appointment scheduling
+
+The schema and seed functions reinforce these workflows by pre-populating support and sales agent types, conversations, phone numbers, and analytics data for quick onboarding.
+
+2.1.2 Problem Description
+Key technical/business gaps addressed by the product:
+1) Need for near-real-time speech interaction loop (audio -> text -> reasoning -> speech).
+2) Need for per-user secure multi-tenant data isolation.
+3) Need for agent personalization (prompt, voice, language, first message).
+4) Need for call traceability (transcripts, status, duration, CSAT).
+5) Need for operational dashboards with trend metrics and recent activity.
+6) Need for knowledge-grounded answering through ingestible documents/URLs.
+
+
+CHAPTER 3: DATA ENGINEERING APPROACH
+
+3.1 Software Model used
+The implemented architecture follows a layered service-oriented model with event-driven real-time paths:
+- Presentation Layer: HTML + Vanilla JS pages and reusable UI components.
+- Frontend Data Service Layer: Dedicated service modules for auth, agents, conversations, analytics, and realtime subscriptions.
+- API Layer: FastAPI routers segmented by domain (STT, calls, audio websocket, knowledge, phone numbers, health, livekit).
+- AI Processing Layer: STT forwarding, LLM prompt streaming, TTS conversion, VAD interruption logic.
+- Data Layer: Supabase PostgreSQL + Auth + Realtime, with RLS and indexed tables.
+
+Data flow model:
+User Audio -> WebSocket (/ws/audio) -> STT -> Prompt Builder (+ optional RAG context) -> LLM stream -> TTS -> Audio frames back to client
+
+3.4 Platform Specification
+
+3.4.1 Hardware Specification
+Observed/implicit hardware profile from startup scripts and dependencies:
+- Development workstation: macOS environment (as per current runtime context).
+- CPU-based AI execution is supported; STT startup script uses --no-gpu in whisper server command.
+- Optional GPU/Metal acceleration path implied in llama.cpp build comments (for improved LLM performance).
+- Sufficient RAM required to keep model artifacts loaded (whisper model + Phi model + backend).
+- Standard microphone/speaker hardware required for playground voice test.
+
+Suggested minimum practical baseline (inferred for smooth local dev):
+- Quad-core CPU, 16 GB RAM, SSD storage.
+- Stable internet for Supabase and Sarvam API access.
+
+3.4.2 Software Specifications
+Frontend:
+- Node.js >= 20
+- Vite 5 multi-page build
+- Vanilla JavaScript ES modules
+- Supabase JS SDK
+
+Backend:
+- Python 3 virtual environment
+- FastAPI + Uvicorn
+- httpx for async network calls
+- Supabase Python client
+- Optional RAG dependencies: faiss-cpu, sentence-transformers, numpy
+- Optional LiveKit SDK
+
+AI/External Services:
+- whisper.cpp HTTP server (STT)
+- llama.cpp server (LLM completion endpoint)
+- Sarvam AI TTS endpoint (bulbul model)
+- Supabase (Postgres/Auth/Realtime)
+
+
+CHAPTER 4: DESIGNS
+
+4.1 Use Case Diagram
+Primary actors:
+- Admin/User (platform operator)
+- End Caller (voice interaction participant)
+- AI Agent (automated conversational responder)
+- External AI services (STT/LLM/TTS)
+- Supabase platform
+
+Main use cases (derived from code routes/UI modules):
+1) Register/Login user account.
+2) Create/Edit/Delete AI agent.
+3) Configure prompts and voice settings.
+4) Start and test voice call via playground.
+5) Store and view conversations/transcripts.
+6) Add and map knowledge documents.
+7) Manage phone numbers and tools.
+8) View analytics and recent call activity.
+
+4.2 Sequence Diagram
+Representative sequence for playground live call:
+1) User opens playground and selects agent.
+2) Browser requests microphone and opens WS connection (/ws/audio?agent_id&user_id).
+3) Backend optionally sends first_message as text fragment + synthesized audio.
+4) Browser streams audio chunks.
+5) Backend batches audio and calls STT service.
+6) Transcript is sent back to client as JSON control frame.
+7) Backend builds prompt (+ optional retrieved context) and streams LLM fragments.
+8) For each fragment, backend calls TTS and sends WAV bytes to client.
+9) Client plays audio incrementally and displays transcript fragments.
+10) If interruption detected (client signal or VAD), backend cancels in-flight generation/audio.
+
+4.3 Activity Diagram
+Operational activity flow:
+- Authenticate user -> Load profile -> Seed default data (if new user) -> Fetch agents/conversations/docs/tools/stats -> Render dashboard.
+- On navigation, render module-specific UI (agents/conversations/analytics/knowledge/phones).
+- In background, subscribe to realtime inserts/updates for conversations and agents.
+- Periodic ticker simulates call events for dashboard liveliness.
+- User actions (create agent, delete phone number, upload doc) trigger service-layer calls and UI refresh.
+
+
+CHAPTER 5: IMPLEMENTATION PHASE
+
+5.1 Technology Used & its Characteristics
+A) Frontend
+- Vite MPA: Fast dev server, optimized production bundle, separate entry points for landing/auth/dashboard.
+- Vanilla JS module architecture: Lightweight, explicit import boundaries, easier direct control.
+- Service-layer pattern: Keeps Supabase/API logic out of components for maintainability.
+- Realtime subscriptions: Supabase postgres_changes channels for live dashboard updates.
+
+B) Backend
+- FastAPI asynchronous stack: Suitable for concurrent IO-heavy speech/LLM/TTS orchestration.
+- Router modularity: Each domain endpoint isolated for cleaner scaling and testing.
+- Shared httpx client lifecycle: Connection pooling and reduced overhead.
+- WebSocket full-duplex pipeline: Real-time bi-directional audio/text communication.
+
+C) Data & Security
+- Supabase Auth + profiles auto-provisioning via trigger.
+- RLS policies for user-scoped CRUD on all key tables.
+- Indexed query patterns for agents, conversations, docs, and messages.
+- Service-role backend client kept server-side only.
+
+D) AI stack
+- STT via whisper server endpoint.
+- LLM via llama server streaming completion endpoint.
+- TTS via Sarvam API with speaker mapping.
+- VAD via RMS-energy threshold for interruption control.
+
+5.2 GUI (Snapshots) with description of each GUI
+1) Landing Page (index.html)
+- Product positioning, hero metrics, capabilities, pricing and CTA flows.
+- Demonstrates business value and onboarding path.
+
+2) Auth Page (auth.html)
+- Login/signup with email-password and OAuth options.
+- Password strength meter and feedback messaging.
+
+3) Dashboard Home (app.html -> page-home)
+- High-level KPIs (calls, avg duration, success rate, cost), recent conversations table, and trend chart.
+
+4) Agents Page (page-agents)
+- Agent listing, status badges, call counts, search/filter, create/edit/delete actions.
+
+5) Agent Configuration (page-agent-config)
+- Prompt, first message, and advanced config tab flow.
+
+6) Knowledge Base (page-knowledge)
+- Add/list documents and URLs for retrieval context.
+
+7) Tools Page (page-tools)
+- Tool definitions attached to agent workflows (API method/endpoint abstractions in schema).
+
+8) Voices Page (page-voices)
+- Voice profile cards for language/gender/style previews.
+
+9) Conversations Page (page-conversations)
+- Historical call logs with caller identity, duration, status, and CSAT indicators.
+
+10) Analytics Page (page-analytics)
+- Daily stats trend visualizations for operational monitoring.
+
+11) Phone Numbers Page (page-phonenumbers)
+- Number inventory, capability display (inbound/outbound), assignment and deletion actions.
+
+12) Playground Panel
+- Real-time test console for microphone streaming, message exchange, AI audio playback, and interruption behavior.
+
+
+CHAPTER 6: RESULTS AND DISCUSSION
+
+6.1 Results
+From code-level evidence, the implemented solution achieves:
+1) End-to-end voice test loop (audio input to AI response audio output) through WebSocket pipeline.
+2) Multi-module dashboard with user authentication and per-user data segregation.
+3) Working CRUD foundation for agents, conversations, phone numbers, and knowledge docs.
+4) Realtime updates for key entities (agents/conversations).
+5) Seeded onboarding for new users (demo agents, conv logs, docs, stats) enabling immediate product walkthrough.
+6) Extensible architecture for future telephony and WebRTC integration.
+
+6.2 Discussion
+Strengths:
+- Clean separation of concerns across frontend services/components and backend routers/services.
+- Practical database modeling with RLS and indexes.
+- Strong base for low-latency conversational experience using streaming fragments and incremental TTS.
+
+Trade-offs / Current gaps:
+- Production-grade telephony lifecycle is still evolving beyond playground and base APIs.
+- RAG currently relies on in-memory indexing, which can constrain persistence and scale.
+- Some UI sections indicate roadmap-level capability beyond current fully wired backend behavior.
+- Real-world latency/SLA depends heavily on external model servers and network conditions.
+
+
+CHAPTER 7: CONCLUSIONS & FUTURE WORK
+
+Conclusion
+The Sahaiy codebase demonstrates a robust AI call-agent platform foundation with operational dashboarding, secure multi-tenant data access, and a functioning real-time voice interaction core. The current implementation is suitable for MVP-to-early production experimentation and provides strong structural patterns for incremental hardening.
+
+Future Work
+1) Persistent/vector-database-backed RAG with document chunk metadata and lifecycle management.
+2) Full production telephony connectors (SIP/PSTN) and expanded call-state orchestration.
+3) Enhanced agent tool-execution loop with structured function-calling and audit logs.
+4) Advanced analytics dashboards with cohort, agent-level conversion, and SLA metrics.
+5) Automated testing suite for WebSocket audio protocol and regression coverage.
+6) Role-based workspace controls and enterprise administration modules.
+7) Performance benchmarking and autoscaling strategy for STT/LLM/TTS services.
+
+
+REFERENCES
+1) Project README and architecture notes in repository root.
+2) Frontend modules under src/pages, src/services, src/components, and src/config.
+3) Backend modules under sahaiy-backend/app/main.py, routers, and services.
+4) Database schema in schema.sql (Supabase tables, triggers, policies, indexes, seed function).
+5) Deployment/start script in start.sh and dependency manifests (package.json, requirements.txt).
+6) Service endpoint conventions from whisper.cpp, llama.cpp, and Sarvam text-to-speech APIs.
