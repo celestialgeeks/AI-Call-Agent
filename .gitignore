@@ -1,13 +1,40 @@
-# Python
-__pycache__/
-*.pyc
-.venv/
+# ─────────────────────────────────────────────────────────
+#  Secrets and local config — NEVER commit these
+# ─────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
 
-# QA suite
-qa/e2e/node_modules/
+# Build output
+dist/
+dist-ssr/
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+npm-debug.log*
+
+# Vite
+vite.config.js.timestamp-*
+
+# ─────────────────────────────────────────────────────────
+#  QA suite artifacts (Playwright E2E)
+# ─────────────────────────────────────────────────────────
 qa/e2e/test-results/
 qa/e2e/playwright-report/
 qa/e2e/e2e-html/
-
-# Env
-.env

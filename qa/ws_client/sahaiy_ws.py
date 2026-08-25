@@ -18,12 +18,23 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 from dataclasses import dataclass, field
 from typing import Optional
 
 import websockets
+
+
+def _resolve_connect():
+    """Newer websockets (>=14) renamed the legacy client API; prefer the modern one."""
+    try:
+        from websockets.asyncio.client import connect as modern_connect
+
+        return modern_connect
+    except ImportError:
+        return websockets.connect
 
 
 @dataclass
@@ -46,16 +57,7 @@ class SahaiyWSClient:
         self.url = f"{base_url.rstrip('/')}/ws/audio?agent_id={agent_id}&user_id={user_id}"
         self.open_timeout = open_timeout
         self._ws: Optional[websockets.WebSocketClientProtocol] = None
-        # Newer websockets (>=14) renamed the legacy client API; support both.
-        if not hasattr(websockets, "connect") or hasattr(websockets, "exceptions"):
-            try:
-                from websockets.asyncio.client import connect as _modern_connect
-
-                self._connect = _modern_connect
-            except ImportError:
-                self._connect = websockets.connect
-        else:
-            self._connect = websockets.connect
+        self._connect = _resolve_connect()
 
     async def __aenter__(self):
         self._ws = await asyncio_wait_for(self._connect(self.url), self.open_timeout)
@@ -127,13 +129,7 @@ class SahaiyWSClient:
 
     async def start_timer(self) -> None:
         """Mark the moment a turn is triggered (for ≤60s gate measurement)."""
-        import asyncio
-
         self._turn_started_at = time.monotonic()
-
-
-# tiny helper so we don't need `import asyncio` at module top in dataclass flow
-import asyncio
 
 
 def asyncio_wait_for(coro, timeout):
