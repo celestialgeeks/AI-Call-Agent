@@ -90,9 +90,12 @@ jobs:
       - name: Run Playwright suite
         working-directory: qa/e2e
         env:
-          # PRs → Vercel preview deployment; main → production URL.
-          # Override with repo secret E2E_BASE_URL if a staging URL is adopted.
-          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL || format('https://ai-call-agent-git-{0}-celestialgeeks-projects.vercel.app', github.head_ref || 'main') }}
+          # Production URL by default (matches qa/e2e config default).
+          # Set repo secret E2E_BASE_URL to target staging / per-PR previews.
+          # NOTE: constructing Vercel git-branch preview URLs from the branch
+          # name is unreliable (slug mangling); use the deployment-status API
+          # later if per-PR preview targeting is wanted.
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL || 'https://sahaiy.vercel.app' }}
         run: npx playwright test
 
       - name: Upload Playwright HTML report on failure
