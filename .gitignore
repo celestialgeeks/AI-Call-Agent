@@ -1,13 +1,43 @@
-# Python
+# ─────────────────────────────────────────────────────────
+#  Secrets and local config — NEVER commit these
+# ─────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+dist-ssr/
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+npm-debug.log*
+
+# Vite
+vite.config.js.timestamp-*
+
+# ─────────────────────────────────────────────────────────
+#  QA suite / Python (issue #10 CI additions)
+# ─────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 .venv/
-
-# QA suite
-qa/e2e/node_modules/
 qa/e2e/test-results/
 qa/e2e/playwright-report/
 qa/e2e/e2e-html/
-
-# Env
-.env
