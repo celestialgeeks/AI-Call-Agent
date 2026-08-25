@@ -574,8 +574,7 @@
             <div class="auth-left">
                 <div class="auth-left-tag">Get started today</div>
                 <h2>Your AI call agents<br />are <span>3 minutes away</span></h2>
-                <p>Join thousands of businesses automating customer calls with Sahaiy. Set up, configure, and deploy
-                    your first AI agent before your next meeting.</p>
+                <p>Set up, configure, and deploy your first AI call agent with Sahaiy — before your next meeting.</p>
                 <div class="auth-features">
                     <div class="auth-feature">
                         <div class="auth-feature-icon">🚀</div>
@@ -588,17 +587,17 @@
                     <div class="auth-feature">
                         <div class="auth-feature-icon">📞</div>
                         <div class="auth-feature-text">
-                            <div class="auth-feature-title">Handles 1,000s of calls simultaneously</div>
-                            <div class="auth-feature-desc">Infinitely scalable infrastructure — never miss a call, day
-                                or night.</div>
+                            <div class="auth-feature-title">Scales with your call volume</div>
+                            <div class="auth-feature-desc">Cloud infrastructure that grows with you — never miss a
+                                call, day or night.</div>
                         </div>
                     </div>
                     <div class="auth-feature">
                         <div class="auth-feature-icon">🔒</div>
                         <div class="auth-feature-text">
                             <div class="auth-feature-title">Enterprise-grade security</div>
-                            <div class="auth-feature-desc">SOC 2 Type II · DPDP Act compliant · Data hosted in India.
-                            </div>
+                            <div class="auth-feature-desc">Privacy-first · Data hosted in India · You can request
+                                deletion anytime.</div>
                         </div>
                     </div>
                 </div>
@@ -610,8 +609,8 @@
                         <div class="proof-avatar" style="background:#ef4444;">V</div>
                         <div class="proof-avatar" style="background:#6366f1;">S</div>
                     </div>
-                    <div class="proof-text"><strong>500+ businesses</strong> already using Sahaiy<br />to automate their
-                        customer calls.</div>
+                    <div class="proof-text"><strong>Start automating calls today</strong><br />set up your first AI
+                        agent in minutes.</div>
                 </div>
             </div>
 
@@ -697,7 +696,8 @@
                         Create free account →
                     </button>
                     <div class="auth-terms">
-                        By creating an account you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy
+                        By creating an account you agree to our <a href="/terms.html">Terms of Service</a> and <a
+                            href="/privacy.html">Privacy
                             Policy</a>.
                     </div>
                 </form>
@@ -713,7 +713,8 @@
                         <label class="form-label">Password</label>
                         <input class="form-input" type="password" id="login-password" placeholder="Your password"
                             required autocomplete="current-password" />
-                        <a class="forgot-link" href="#" onclick="handleForgotPassword(event)">Forgot password?</a>
+                        <a class="forgot-link" href="#" onclick="return handleForgotPassword(event)"
+                            onkeydown="if(event.key==='Enter'){handleForgotPassword(event)}">Forgot password?</a>
                     </div>
                     <button type="submit" class="auth-submit" id="login-btn">
                         Sign in →
@@ -723,7 +724,9 @@
         </div>
     </div>
 
-    <div class="auth-footer">© 2025 Sahaiy Technologies · Made in India 🇮🇳 · SOC 2 Compliant</div>
+    <div class="auth-footer">© 2025 Sahaiy Technologies Pvt. Ltd. · Made in India 🇮🇳 · <a
+            href="/privacy.html" style="color:inherit;">Privacy</a> · <a href="/terms.html"
+            style="color:inherit;">Terms</a> · Privacy-first, data hosted in India</div>
 
 </body>
 

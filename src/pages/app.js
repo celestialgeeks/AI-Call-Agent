@@ -134,12 +134,13 @@ function _updateHomeStats() {
   const avgSec = todayConvs.length
     ? Math.round(todayConvs.reduce((s, c) => s + (c.duration_sec ?? 0), 0) / todayConvs.length)
     : 0;
-  const successRate = todayConvs.length ? ((resolvedToday / todayConvs.length) * 100).toFixed(1) : 98.2;
-  const costInr = (_convs.length * 0.44).toFixed(0);
+  const successRate = todayConvs.length ? ((resolvedToday / todayConvs.length) * 100).toFixed(1) : null;
+  const costInr = (todayConvs.length * 0.44).toFixed(0);
 
-  _setStatCard(0, _convs.length.toLocaleString(), '↑ 18% vs yesterday', true);
-  _setStatCard(1, formatDuration(avgSec), '↓ 4% vs yesterday', false);
-  _setStatCard(2, `${successRate}%`, '↑ 1.2pp vs last week', true);
+  // Honest empty states per ADR-0001: never show fabricated numbers or fake deltas.
+  _setStatCard(0, _convs.length.toLocaleString(), todayConvs.length ? `${todayConvs.length} today` : 'No calls yet', null);
+  _setStatCard(1, avgSec ? formatDuration(avgSec) : '—', 'Avg across calls', null);
+  _setStatCard(2, successRate ? `${successRate}%` : '—', successRate ? 'Resolved share' : 'No calls yet', null);
   _setStatCard(3, `₹${Number(costInr).toLocaleString()}`, '≈ ₹0.44 per call', null);
 }
 
@@ -180,7 +181,7 @@ function _renderRecentTable() {
 
 // ── Charts ────────────────────────────────────────────────────
 function _buildChartData(period) {
-  if (!_stats.length) return [240, 310, 285, 420, 380, 490, 518];
+  if (!_stats.length) return [0, 0, 0, 0, 0, 0, 0];
   const sorted = [..._stats].sort((a, b) => a.date.localeCompare(b.date));
   if (period === 'week') return sorted.slice(-7).map((d) => d.total_calls);
   if (period === 'month') return sorted.slice(-30).map((d) => d.total_calls);
