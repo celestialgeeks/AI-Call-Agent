@@ -34,6 +34,12 @@ LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.6"))
 STT_URL: str = os.getenv("STT_URL", "http://localhost:8081/inference")
 STT_TIMEOUT_SEC: int = int(os.getenv("STT_TIMEOUT_SEC", "5"))
 
+# ── STT — Sarvam saaras:v3 (primary when SARVAM_API_KEY is set) ───────────
+SARVAM_STT_URL: str = os.getenv("SARVAM_STT_URL", "https://api.sarvam.ai/speech-to-text")
+SARVAM_STT_MODEL: str = os.getenv("SARVAM_STT_MODEL", "saaras:v3")
+SARVAM_STT_LANG: str = os.getenv("SARVAM_STT_LANG", "en-IN")
+SARVAM_STT_TIMEOUT_SEC: int = int(os.getenv("SARVAM_STT_TIMEOUT_SEC", "10"))
+
 # ── TTS (Sarvam AI) ────────────────────────────────────────────────────────
 SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "")
 SARVAM_TTS_URL: str = "https://api.sarvam.ai/text-to-speech"
@@ -49,6 +55,34 @@ SUPABASE_SERVICE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
 LIVEKIT_URL: str = os.getenv("LIVEKIT_URL", "")
 LIVEKIT_API_KEY: str = os.getenv("LIVEKIT_API_KEY", "")
 LIVEKIT_API_SECRET: str = os.getenv("LIVEKIT_API_SECRET", "")
+
+# HS256 secret used to verify Supabase-issued JWTs (Ruling B1).
+# Found in: Supabase Dashboard → Settings → API → JWT Secret
+SUPABASE_JWT_SECRET: str = os.getenv("SUPABASE_JWT_SECRET", "")
+
+# ── Auth / Security ───────────────────────────────────────────────────────
+# Feature flag: when False (default), endpoints keep the legacy client-declared
+# user_id behaviour. When True, every protected endpoint requires a valid
+# `Authorization: Bearer <jwt>` and user identity is derived from the token ONLY.
+AUTH_ENFORCED: bool = _parse_bool_env("AUTH_ENFORCED", False)
+
+# Rate limits (issue #4 item 4): requests/minute on expensive endpoints.
+# 0 disables the limiter.
+RATE_LIMIT_STT_RPM: int = int(os.getenv("RATE_LIMIT_STT_RPM", "20"))
+RATE_LIMIT_WS_PER_MIN: int = int(os.getenv("RATE_LIMIT_WS_PER_MIN", "10"))
+
+# ── WhatsApp Cloud API (Meta official) ────────────────────────────────────
+# No real values exist yet — placeholders stay COMMENTED in .env.example.
+# The routers/services treat empty values as honest dormancy (501-with-reason).
+WHATSAPP_ACCESS_TOKEN: str = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
+WHATSAPP_PHONE_NUMBER_ID: str = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
+WHATSAPP_VERIFY_TOKEN: str = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
+WHATSAPP_APP_SECRET: str = os.getenv("WHATSAPP_APP_SECRET", "")
+WHATSAPP_API_VERSION: str = os.getenv("WHATSAPP_API_VERSION", "v21.0")
+
+# Public HTTPS base URL of this backend — required only for hosting TTS audio
+# files Meta can fetch for voice-note replies (audio messages need a public URL).
+PUBLIC_BASE_URL: str = os.getenv("PUBLIC_BASE_URL", "")
 
 # ── App ────────────────────────────────────────────────────────────────────
 FRONTEND_ORIGIN: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")

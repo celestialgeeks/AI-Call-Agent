@@ -805,15 +805,36 @@
                         <div>
                             <h1 class="page-title">WhatsApp <span class="badge badge-purple"
                                     style="font-size:11px; margin-left:8px;">Alpha</span></h1>
-                            <p class="page-sub">Deploy your agents on WhatsApp Business</p>
+                            <p class="page-sub">Deploy your agents on WhatsApp Business (Cloud API)</p>
                         </div>
                     </div>
-                    <div class="empty-state">
-                        <div class="empty-icon">💬</div>
-                        <div class="empty-title">Connect your WhatsApp Business account</div>
-                        <div class="empty-sub">Link your Meta WhatsApp Business API account to deploy Sahaiy agents
-                            directly in WhatsApp chats and voice calls.</div>
-                        <button class="dash-btn dash-btn-primary">Connect WhatsApp</button>
+
+                    <!-- Linked numbers -->
+                    <div class="page-header" style="margin-bottom:12px;">
+                        <h2 style="font-size:16px; font-weight:600;">Linked numbers</h2>
+                    </div>
+                    <div id="wa-num-list"></div>
+
+                    <!-- Meta console webhook configuration -->
+                    <div class="page-header" style="margin:24px 0 12px;">
+                        <h2 style="font-size:16px; font-weight:600;">Webhook configuration</h2>
+                    </div>
+                    <div class="stat-card" style="max-width:720px; padding:20px;">
+                        <p style="margin:0 0 10px; color:var(--text-2, #666); font-size:13px;">
+                            In the Meta App Dashboard → WhatsApp → Configuration, set the callback URL and verify token.
+                            Sahaiy's webhook endpoint answers Meta's subscription handshake automatically once
+                            <code>WHATSAPP_VERIFY_TOKEN</code> is configured server-side.</p>
+                        <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+                            <div><strong>Callback URL</strong></div>
+                            <code id="wa-webhook-url" style="background:var(--bg-3, #f4f4f5); padding:8px 10px; border-radius:8px; word-break:break-all;"></code>
+                            <button class="dash-btn" style="align-self:flex-start; margin-top:4px;"
+                                    onclick="window.__copyWaWebhook && window.__copyWaWebhook()">Copy URL</button>
+                            <div style="margin-top:8px;"><strong>Verify token</strong></div>
+                            <span style="color:var(--text-2, #666);">The exact value of <code>WHATSAPP_VERIFY_TOKEN</code> from
+                                <code>sahaiy-backend/.env</code> (never displayed here — stays server-side).</span>
+                            <div style="margin-top:8px;"><strong>Status</strong></div>
+                            <span id="wa-config-status" style="color:var(--text-2, #666);">Checking…</span>
+                        </div>
                     </div>
                 </div>
 

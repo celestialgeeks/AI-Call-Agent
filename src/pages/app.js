@@ -630,8 +630,63 @@ window.navigate = (pageId, navEl) => {
   if (pageId === 'analytics') _initAnalyticsChart();
   if (pageId === 'knowledge') _renderKnowledgeDocs();
   if (pageId === 'phonenumbers') _renderPhoneNumbers();
+  if (pageId === 'whatsapp') _renderWhatsapp();
   if (pageId === 'home') _initHomePage();
 };
+
+// ═══════════════════════════════════════════════════════════════
+//  WhatsApp page
+// ═══════════════════════════════════════════════════════════════
+const WA_BACKEND_BASE = import.meta.env?.VITE_BACKEND_URL ?? '';
+
+function _renderWhatsapp() {
+  // Linked numbers — reuse the workspace phone list; WhatsApp-capable numbers
+  // are the ones Meta linked via Cloud API. Honest: we only show what exists.
+  const list = $('#wa-num-list');
+  if (!list) return;
+  const waNumbers = (_phones ?? []).filter((p) =>
+    String(p.channel ?? '').toLowerCase() === 'whatsapp'
+    || String(p.number ?? '').startsWith('wa:'));
+
+  list.innerHTML = waNumbers.length
+    ? waNumbers.map((phone) => {
+        const agentName = phone.agent_name ?? phone.agents?.name ?? 'Unassigned';
+        return `
+          <div class="phone-num-card">
+            <div class="phone-num-icon" style="background:rgba(37,211,102,0.1);">💬</div>
+            <div class="phone-num-info">
+              <div class="phone-num-number">${escHtml(phone.number.replace(/^wa:/, '') ?? '—')}</div>
+              <div class="phone-num-meta">WhatsApp Business · Cloud API</div>
+            </div>
+            <div style="text-align:right;">
+              <div class="phone-num-agent">${escHtml(agentName)}</div>
+            </div>
+            <span class="badge badge-green">Linked</span>
+          </div>`;
+      }).join('')
+    : '<p style="color:var(--dash-text-3);font-size:13px;">No WhatsApp numbers linked yet. Link a number in the Meta App Dashboard and register it under Phone Numbers.</p>';
+
+  // Webhook callback URL for the Meta console
+  const urlEl = $('#wa-webhook-url');
+  if (urlEl) urlEl.textContent = `${WA_BACKEND_BASE}/whatsapp/webhook`;
+
+  window.__copyWaWebhook = () => {
+    navigator.clipboard?.writeText(`${WA_BACKEND_BASE}/whatsapp/webhook`)
+      .then(() => showToast('📋 Webhook URL copied', 'success'))
+      .catch(() => showToast('Copy failed — select it manually', 'error'));
+  };
+
+  // Honest config status: probe the backend webhook endpoint.
+  const statusEl = $('#wa-config-status');
+  if (!statusEl) return;
+  fetch(`${WA_BACKEND_BASE}/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=probe&hub.challenge=x`)
+    .then((r) => {
+      if (r.status === 501) { statusEl.textContent = '⚠️ Not configured — set WHATSAPP_* variables in sahaiy-backend/.env'; }
+      else if (r.status === 403) { statusEl.textContent = '✅ Endpoint live (verify token configured server-side).'; }
+      else { statusEl.textContent = `Endpoint responded ${r.status}.`; }
+    })
+    .catch(() => { statusEl.textContent = '⚠️ Backend unreachable — is :8000 running?'; });
+}
 
 // ── Resize → re-draw charts ───────────────────────────────────
 window.addEventListener('resize', () => {

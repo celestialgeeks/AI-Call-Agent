@@ -19,7 +19,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import FRONTEND_ORIGINS, ALLOW_VERCEL_PREVIEW_ORIGINS, LOG_LEVEL
-from app.routers import stt, audio_ws, calls, knowledge, health, phone_numbers, livekit
+from app.routers import stt, audio_ws, calls, knowledge, health, phone_numbers, livekit, whatsapp
 
 logging.basicConfig(
     level=LOG_LEVEL.upper(),
@@ -70,6 +70,7 @@ app.include_router(calls.router)
 app.include_router(knowledge.router)
 app.include_router(phone_numbers.router)
 app.include_router(livekit.router)
+app.include_router(whatsapp.router)
 
 
 @app.get("/")
