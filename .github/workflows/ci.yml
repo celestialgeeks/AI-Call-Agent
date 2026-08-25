@@ -38,7 +38,7 @@ jobs:
 
       - name: Lint (eslint src)
         run: |
-          npx --yes eslint@8.57.1 src --ext .js
+          npx --yes eslint@8.57.1 src --ext .js --max-warnings 0
 
       - name: Build (vite build)
         run: npm run build
