@@ -1,0 +1,103 @@
+name: CI
+
+# Sahaiy (AI-Call-Agent) — lint/unit → contract-conformance pytest → Playwright E2E
+# Issue: #10. Conventions: fail fast, cheap first; secrets via Actions secrets
+# only, never echoed; E2E runs against the Vercel preview/prod URL.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow_ref }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  lint-unit:
+    name: lint & unit build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Lint (eslint src)
+        run: npm run lint
+
+      - name: Build (vite build)
+        run: npm run build
+
+  contract-conformance:
+    name: contract conformance (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install backend + QA deps
+        run: |
+          pip install -r sahaiy-backend/requirements.txt
+          pip install -r qa/requirements-qa.txt
+          pip install -r qa/requirements-qa-extras.txt
+
+      - name: Run contract / security / WS tests (ephemeral in-process backend)
+        working-directory: ${{ github.workspace }}
+        env:
+          SAHAIY_JWT_ENFORCED: ''   # flips to '1' once @backend-eng's JWT dep lands
+        run: python -m pytest qa/contract_tests qa/security_tests qa/ws_client -v --maxfail=1
+
+  playwright-e2e:
+    name: Playwright E2E (G1-G10)
+    runs-on: ubuntu-latest
+    needs: [lint-unit, contract-conformance]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: qa/e2e/package-lock.json
+
+      - name: Install e2e deps
+        working-directory: qa/e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright suite
+        working-directory: qa/e2e
+        env:
+          # PRs → Vercel preview deployment; main → production URL.
+          # Override with repo secret E2E_BASE_URL if a staging URL is adopted.
+          E2E_BASE_URL: ${{ secrets.E2E_BASE_URL || format('https://ai-call-agent-git-{0}-celestialgeeks-projects.vercel.app', github.head_ref || 'main') }}
+        run: npx playwright test
+
+      - name: Upload Playwright HTML report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: qa/evidence/e2e-html/
+          retention-days: 7
