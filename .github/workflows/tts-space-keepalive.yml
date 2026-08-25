@@ -1,0 +1,75 @@
+name: TTS Space Keep-Alive
+
+# ADR-0002 Track A — the public TTS demo Space sleeps after 48h idle.
+# This cron pings its /health endpoint daily so it never hits that window
+# during a recruiter visit. The Space URL lives in an Actions secret,
+# never in this file.
+
+on:
+  schedule:
+    # 04:07 UTC daily — off-peak, odd minute to avoid top-of-hour load spikes.
+    - cron: "7 4 * * *"
+  workflow_dispatch: {} # manual trigger for testing
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tts-space-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping TTS Space /health
+        env:
+          SPACE_URL: ${{ secrets.TTS_SPACE_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SPACE_URL:-}" ]; then
+            echo "::error::TTS_SPACE_URL secret is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          # Normalize: strip trailing slash, append health path
+          URL="${SPACE_URL%/}/health"
+          echo "Pinging $URL"
+
+          # The Space may be cold (30–90 s wake) if this is its first hit in
+          # days — retry with backoff so a cold start doesn't fail the run.
+          ok=0
+          for attempt in 1 2 3 4 5; do
+            code=$(curl -sS --max-time 120 -o /tmp/health.json -w '%{http_code}' "$URL" || echo "000")
+            if [ "$code" = "200" ]; then
+              ok=1
+              echo "Attempt $attempt: HTTP $code ✓"
+              cat /tmp/health.json
+              break
+            fi
+            echo "Attempt $attempt: HTTP $code — retrying in 30 s (cold start can take up to ~90 s)..."
+            sleep 30
+          done
+
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::TTS Space /health did not return 200 after 5 attempts. Check the Space runtime at https://huggingface.co/spaces (may be paused/build-failed)."
+            exit 1
+          fi
+
+      - name: Summary
+        if: always()
+        env:
+          SPACE_URL: ${{ secrets.TTS_SPACE_URL }}
+        shell: bash
+        run: |
+          {
+            echo "## TTS Space keep-alive"
+            echo ""
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "- ✅ Space responded with HTTP 200 on \`/health\` — idle timer reset."
+            else
+              echo "- ❌ Keep-alive failed — inspect the ping step logs and the Space's runtime page."
+            fi
+            echo "- Run: \`${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
