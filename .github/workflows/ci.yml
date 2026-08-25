@@ -37,7 +37,8 @@ jobs:
         run: npm ci
 
       - name: Lint (eslint src)
-        run: npm run lint
+        run: |
+          npx --yes eslint@8.57.1 src --ext .js
 
       - name: Build (vite build)
         run: npm run build
