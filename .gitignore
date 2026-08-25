@@ -39,7 +39,9 @@ qa/e2e/test-results/
 qa/e2e/playwright-report/
 qa/e2e/e2e-html/
 
-# Python (QA suite)
+# Python (QA suite + backend)
 __pycache__/
 *.pyc
+*.py[cod]
+.pytest_cache/
 .venv/

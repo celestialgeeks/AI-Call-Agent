@@ -10,9 +10,10 @@ DELETE /phone-numbers/{id}         → delete one number (scoped to user_id)
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
+from app.errors import ApiError
 from app.services.supabase_client import get_supabase
 
 logger = logging.getLogger(__name__)
@@ -68,9 +69,11 @@ async def list_phone_numbers(user_id: str = Query(..., min_length=1)):
             )
             for row in rows
         ]
+    except ApiError:
+        raise
     except Exception as exc:
         logger.error("[PhoneNumbers] list error: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise ApiError(500, "internal_error", "Failed to list phone numbers.") from exc
 
 
 @router.delete("/{phone_number_id}", response_model=DeletePhoneNumberResponse)
@@ -88,7 +91,7 @@ async def delete_phone_number(phone_number_id: str, user_id: str = Query(..., mi
         )
 
         if not existing.data:
-            raise HTTPException(status_code=404, detail="Phone number not found")
+            raise ApiError(404, "phone_number_not_found", "Phone number not found.")
 
         (
             supabase.table("phone_numbers")
@@ -100,8 +103,8 @@ async def delete_phone_number(phone_number_id: str, user_id: str = Query(..., mi
 
         logger.info("[PhoneNumbers] Deleted %s for user %s", phone_number_id, user_id)
         return DeletePhoneNumberResponse(id=phone_number_id)
-    except HTTPException:
+    except ApiError:
         raise
     except Exception as exc:
         logger.error("[PhoneNumbers] delete error: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise ApiError(500, "internal_error", "Failed to delete phone number.") from exc

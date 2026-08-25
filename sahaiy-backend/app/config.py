@@ -44,6 +44,20 @@ SARVAM_TTS_SPEAKER: str = os.getenv("SARVAM_TTS_SPEAKER", "anushka")
 # ── Supabase (server-side service role) ────────────────────────────────────
 SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
+# HS256 secret used to verify Supabase-issued JWTs (Ruling B1).
+# Found in: Supabase Dashboard → Settings → API → JWT Secret
+SUPABASE_JWT_SECRET: str = os.getenv("SUPABASE_JWT_SECRET", "")
+
+# ── Auth / Security ───────────────────────────────────────────────────────
+# Feature flag: when False (default), endpoints keep the legacy client-declared
+# user_id behaviour. When True, every protected endpoint requires a valid
+# `Authorization: Bearer <jwt>` and user identity is derived from the token ONLY.
+AUTH_ENFORCED: bool = _parse_bool_env("AUTH_ENFORCED", False)
+
+# Rate limits (issue #4 item 4): requests/minute on expensive endpoints.
+# 0 disables the limiter.
+RATE_LIMIT_STT_RPM: int = int(os.getenv("RATE_LIMIT_STT_RPM", "20"))
+RATE_LIMIT_WS_PER_MIN: int = int(os.getenv("RATE_LIMIT_WS_PER_MIN", "10"))
 
 # ── LiveKit ────────────────────────────────────────────────────────────────
 LIVEKIT_URL: str = os.getenv("LIVEKIT_URL", "")
