@@ -21,6 +21,15 @@ export async function getSession() {
 }
 
 /**
+ * Subscribes to Supabase auth state changes (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED…).
+ * @param {(event: string, session: import('@supabase/supabase-js').Session|null) => void} callback
+ * @returns {{ data: { subscription: { unsubscribe: () => void } } }}
+ */
+export function onAuthStateChange(callback) {
+    return supabase.auth.onAuthStateChange((event, session) => callback(event, session));
+}
+
+/**
  * Returns the currently authenticated user or null.
  * @returns {Promise<import('@supabase/supabase-js').User|null>}
  */
