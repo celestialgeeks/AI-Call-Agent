@@ -822,77 +822,93 @@
                     <div class="page-header">
                         <div>
                             <h1 class="page-title">Outbound Campaigns</h1>
-                            <p class="page-sub">Bulk AI-powered outbound call campaigns</p>
+                            <p class="page-sub">Bulk AI-powered outreach — create, add contacts, simulate calls</p>
                         </div>
-                        <button class="dash-btn dash-btn-primary">+ New campaign</button>
+                        <button class="dash-btn dash-btn-primary" onclick="openCreateCampaign()">+ New campaign</button>
                     </div>
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Total Dialed</span>
-                                <div class="stat-icon" style="background:rgba(124,92,252,.1);">📢</div>
+
+                    <!-- Campaign list -->
+                    <div id="campaign-list-wrap">
+                        <div class="recent-card">
+                            <div class="recent-card-header"><span class="recent-card-title">Campaigns</span></div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Campaign</th>
+                                            <th>Agent</th>
+                                            <th>Status</th>
+                                            <th colspan="3"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="campaign-tbody"></tbody>
+                                </table>
                             </div>
-                            <div class="stat-value">5,210</div>
-                            <div class="stat-delta up">↑ This month</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Connect Rate</span>
-                                <div class="stat-icon" style="background:rgba(34,197,94,.1);">✅</div>
-                            </div>
-                            <div class="stat-value">64.3%</div>
-                            <div class="stat-delta up">↑ 3pp vs last month</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Conversion Rate</span>
-                                <div class="stat-icon" style="background:rgba(245,158,11,.1);">🎯</div>
-                            </div>
-                            <div class="stat-value">12.8%</div>
-                            <div class="stat-delta up">↑ 1.4pp</div>
                         </div>
                     </div>
-                    <div class="recent-card">
-                        <div class="recent-card-header"><span class="recent-card-title">Campaigns</span></div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Campaign</th>
-                                        <th>Agent</th>
-                                        <th>Dialed</th>
-                                        <th>Connected</th>
-                                        <th>Converted</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span style="font-weight:600; color:var(--dash-text);">Feb
-                                                Reactivation</span></td>
-                                        <td>Sales Agent</td>
-                                        <td>1,200</td>
-                                        <td>772 (64%)</td>
-                                        <td>98 (8%)</td>
-                                        <td><span class="badge badge-green">Completed</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span style="font-weight:600; color:var(--dash-text);">Overdue
-                                                Collections</span></td>
-                                        <td>Collections Agent</td>
-                                        <td>840</td>
-                                        <td>540 (64%)</td>
-                                        <td>211 (25%)</td>
-                                        <td><span class="badge badge-green">Completed</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span style="font-weight:600; color:var(--dash-text);">March Survey
-                                                Blast</span></td>
-                                        <td>Survey Agent</td>
-                                        <td>3,170</td>
-                                        <td>2,034 (64%)</td>
-                                        <td>856 (27%)</td>
-                                        <td><span class="badge badge-orange">Running</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+
+                    <!-- Campaign detail (hidden until a campaign is opened) -->
+                    <div id="campaign-detail" style="display:none;">
+                        <button class="dash-btn dash-btn-outline"
+                            onclick="closeCampaign()" style="margin-bottom:16px;">← All campaigns</button>
+
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+                            <div>
+                                <h2 id="camp-name" style="margin:0 0 4px;font-size:20px;color:var(--dash-text);"></h2>
+                                <p id="camp-objective" style="margin:0;font-size:13px;color:var(--dash-text-2);"></p>
+                                <p style="margin:6px 0 0;font-size:12px;color:var(--dash-text-3);">
+                                    Agent: <span id="camp-agent" style="color:var(--dash-text-2);">—</span>
+                                    · <span class="badge badge-gray" id="camp-status">draft</span>
+                                </p>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="dash-btn dash-btn-primary" id="camp-start-btn" onclick="startCampaign()">▶ Start campaign</button>
+                                <button class="dash-btn dash-btn-outline" id="camp-stop-btn" onclick="stopCampaign()" style="display:none;">⏸ Stop</button>
+                                <button class="dash-btn dash-btn-accent" id="camp-simulate-btn" onclick="simulateCampaign()">▶ Simulate calls</button>
+                            </div>
+                        </div>
+
+                        <!-- Live counters -->
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:24px;" role="status" aria-live="polite">
+                            <div class="stat-card"><div class="stat-card-top"><span class="stat-label">Contacts</span></div><div class="stat-value" id="cnt-total">0</div></div>
+                            <div class="stat-card"><div class="stat-card-top"><span class="stat-label">Pending</span></div><div class="stat-value" id="cnt-pending">0</div></div>
+                            <div class="stat-card"><div class="stat-card-top"><span class="stat-label">Finished</span></div><div class="stat-value" id="cnt-finished">0</div></div>
+                            <div class="stat-card"><div class="stat-card-top"><span class="stat-label">Connect rate</span></div><div class="stat-value" id="cnt-connected">0%</div></div>
+                        </div>
+
+                        <!-- Outcomes — LOCKED vocabulary (connected | no_answer | busy | voicemail | callback_requested | not_interested | dnd | failed) -->
+                        <div class="recent-card" style="margin-bottom:24px;">
+                            <div class="recent-card-header"><span class="recent-card-title">Outcomes</span></div>
+                            <div id="outcome-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:16px;"></div>
+                        </div>
+
+                        <!-- Contacts + CSV upload -->
+                        <div class="recent-card">
+                            <div class="recent-card-header"><span class="recent-card-title">Contacts</span></div>
+                            <div style="padding:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--dash-border);">
+                                <label class="form-label" for="csv-file-input" style="margin:0;">Upload CSV</label>
+                                <input type="file" accept=".csv,text/csv" id="csv-file-input"
+                                    aria-describedby="csv-hint"
+                                    style="font-size:12px;color:var(--dash-text-2);" />
+                                <button class="dash-btn dash-btn-primary" id="csv-upload-btn" onclick="uploadCsv()">Upload CSV</button>
+                                <span id="csv-hint" class="form-hint" style="margin:0;">Columns: name, phone. Invalid rows are reported per-row; valid rows are kept.</span>
+                            </div>
+                            <!-- Per-row CSV report — errors SHOWN, never swallowed (G3) -->
+                            <div id="csv-report" style="display:none;padding:12px 16px;font-size:13px;background:rgba(245,158,11,.05);border-bottom:1px solid var(--dash-border);"></div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Phone</th>
+                                            <th>Name</th>
+                                            <th>Call status</th>
+                                            <th>Outcome</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="contact-tbody"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1102,6 +1118,41 @@
                 <button class="dash-btn dash-btn-outline" onclick="closeCreateModal()">Cancel</button>
                 <button class="dash-btn dash-btn-primary" id="create-agent-btn" onclick="createAgentSubmit()">
                     Create Agent →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Campaign modal (issue #8) -->
+    <div class="modal-overlay" id="create-campaign-modal" onclick="if(event.target===this) closeCampaignModal()">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="create-campaign-title">
+            <div class="modal-header">
+                <span class="modal-title" id="create-campaign-title">📢 New Outbound Campaign</span>
+                <button class="modal-close" onclick="closeCampaignModal()" title="Close" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="new-campaign-name">Campaign name <span style="color:var(--dash-accent-red)">*</span></label>
+                    <input class="form-input" type="text" placeholder="e.g. March Survey Blast" id="new-campaign-name"
+                        required maxlength="200"
+                        onkeydown="if(event.key==='Enter') createCampaignSubmit()" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="new-campaign-agent">Agent <span style="color:var(--dash-accent-red)">*</span> — must be published to start calls</label>
+                    <select class="form-input" id="new-campaign-agent"></select>
+                    <p class="form-hint">Don't have an agent yet? Create one under Agents first.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="new-campaign-objective">Objective</label>
+                    <textarea class="form-input form-textarea" id="new-campaign-objective" rows="2"
+                        maxlength="500" style="min-height:60px;"
+                        placeholder="What should this campaign achieve? e.g. Book demos with warm leads"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="dash-btn dash-btn-outline" onclick="closeCampaignModal()">Cancel</button>
+                <button class="dash-btn dash-btn-primary" id="create-campaign-btn" onclick="createCampaignSubmit()">
+                    Create Campaign →
                 </button>
             </div>
         </div>

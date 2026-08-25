@@ -17,6 +17,22 @@ import { subscribeToConversations, subscribeToAgents, unsubscribeAll } from '@/s
 // ── Components ────────────────────────────────────────────────
 import { navigate, switchConfigTab, switchPeriodTab } from '@/components/Sidebar.js';
 import { openCreateModal, closeCreateModal, selectTemplate, readCreateAgentForm } from '@/components/Modal.js';
+import {
+    loadCampaigns,
+    openCampaign,
+    closeCampaign,
+    parseCampaignHash,
+    uploadCsv,
+    dismissCsvReport,
+    removeCampaignContact,
+    startCurrentCampaign,
+    stopCurrentCampaign,
+    simulateCurrentCampaign,
+    openCreateModal as openCreateCampaignModal,
+    closeCreateModal as closeCreateCampaignModal,
+    submitCreateCampaign,
+    teardownCampaigns,
+} from '@/components/Campaigns.js';
 import { openPlayground, closePlayground, togglePlaygroundCall, sendPlaygroundMessage } from '@/components/Playground.js';
 import { drawLineChart } from '@/components/Chart.js';
 
@@ -77,6 +93,11 @@ async function boot() {
 
   // 7. Live call ticker
   _startLiveTicker();
+
+  // 8. Outbound campaigns (issue #8) — agents are loaded, expose them to the
+  //    campaigns component for the agent picker / name resolution.
+  window.__AGENTS__ = _agents;
+  await loadCampaigns(); // re-opens detail from #outbound/<id> hash (G8)
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -429,6 +450,7 @@ function _setupRealtime() {
     if (eventType === 'UPDATE') _agents = _agents.map((a) => a.id === row.id ? row : a);
     if (eventType === 'DELETE') _agents = _agents.filter((a) => a.id !== old.id);
     if ($('#page-agents.active')) _renderAgents();
+    window.__AGENTS__ = _agents; // campaigns agent picker stays current
   });
 }
 
@@ -438,6 +460,7 @@ function _setupRealtime() {
 async function _logout() {
   clearTimeout(_tickerTimeout);
   unsubscribeAll();
+  teardownCampaigns();
   await authService.signOut();
   window.location.replace('/auth.html?mode=login');
 }
@@ -620,6 +643,19 @@ Object.assign(window, {
     });
     if (data) { _docs.unshift(data); _renderKnowledgeDocs(); showToast('✅ Document added & indexed', 'success'); }
   },
+
+  // Outbound campaigns (issue #8)
+  openCreateCampaign: openCreateCampaignModal,
+  closeCampaignModal: closeCreateCampaignModal,
+  createCampaignSubmit: submitCreateCampaign,
+  openCampaign,
+  closeCampaign,
+  uploadCsv,
+  dismissCsvReport,
+  removeCampaignContact,
+  startCampaign: startCurrentCampaign,
+  stopCampaign: stopCurrentCampaign,
+  simulateCampaign: simulateCurrentCampaign,
 });
 
 // ── Page-level navigate hooks ─────────────────────────────────
@@ -631,6 +667,12 @@ window.navigate = (pageId, navEl) => {
   if (pageId === 'knowledge') _renderKnowledgeDocs();
   if (pageId === 'phonenumbers') _renderPhoneNumbers();
   if (pageId === 'home') _initHomePage();
+  if (pageId === 'outbound') {
+    // Leaving detail view via sidebar clears its hash; campaigns reload from hash otherwise (G8).
+    if (!parseCampaignHash()) closeCampaign();
+    else openCampaign(parseCampaignHash());
+    window.__AGENTS__ = _agents;
+  }
 };
 
 // ── Resize → re-draw charts ───────────────────────────────────
