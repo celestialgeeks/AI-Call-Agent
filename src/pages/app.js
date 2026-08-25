@@ -34,7 +34,6 @@ let _agents = [];
 let _convs = [];
 let _phones = [];
 let _docs = [];
-let _tools = [];
 let _stats = [];
 let _tickerTimeout = null;
 
@@ -57,7 +56,7 @@ async function boot() {
   await seedUserData(_user.id);
 
   // 4. Parallel data fetch
-  [_agents, _convs, _phones, _docs, _tools, _stats] = await Promise.all([
+  [_agents, _convs, _phones, _docs, , _stats] = await Promise.all([
     getAgents(_user.id),
     getConversations(_user.id),
     getPhoneNumbers(_user.id),
