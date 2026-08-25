@@ -31,7 +31,9 @@ from typing import Optional
 import httpx
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from app.auth import get_websocket_user_id
 from app.config import STT_URL, STT_TIMEOUT_SEC
+from app.ratelimit import check_ws_rate
 from app.services import agent_service, rag
 from app.services.llm import build_prompt, stream_llm
 from app.services.tts import speak_to_bytes
@@ -174,9 +176,29 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     """
     Full voice pipeline WebSocket endpoint.
     Accepts audio chunks, returns transcripts and TTS audio.
+
+    Auth (Ruling B1): when AUTH_ENFORCED=true the query-param `user_id` is
+    IGNORED — identity comes from the Bearer token on the upgrade request.
+    Rate limited: RATE_LIMIT_WS_PER_MIN new connections per identity
+    (default 10/min); rejected connections get code 429 + close.
     """
+    # ── Auth + rate limit gate (before accept) ────────────────────────────
+    try:
+        ws_user_id = await get_websocket_user_id(ws)
+    except PermissionError:
+        await ws.close(code=4001, reason="missing or invalid bearer token")
+        logger.warning("[WS] Rejected unauthenticated connection (agent=%s)", agent_id)
+        return
+
+    if not await check_ws_rate(ws_user_id or None):
+        await ws.close(code=4029, reason="rate limit exceeded")
+        return
+
+    # Legacy mode: client-declared query param. Enforced mode: token identity only.
+    effective_user_id = ws_user_id or user_id
+
     await ws.accept()
-    logger.info("[WS] Connected — agent=%s user=%s", agent_id, user_id)
+    logger.info("[WS] Connected — agent=%s user=%s", agent_id, effective_user_id)
 
     # Fetch agent config
     agent = await agent_service.get_agent(agent_id) if agent_id else {}
@@ -237,8 +259,8 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
         nonlocal is_playing
         interrupt_event.clear()
 
-        # RAG context retrieval
-        context = await rag.retrieve_context(user_id, user_text) if user_id else ""
+        # RAG context retrieval — user identity from the authenticated connection
+        context = await rag.retrieve_context(effective_user_id, user_text) if effective_user_id else ""
 
         # Build prompt
         prompt = build_prompt(agent, user_text, context)

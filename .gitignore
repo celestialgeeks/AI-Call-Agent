@@ -31,3 +31,9 @@ npm-debug.log*
 
 # Vite
 vite.config.js.timestamp-*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+

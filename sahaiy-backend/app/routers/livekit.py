@@ -11,10 +11,11 @@ import logging
 import time
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 
 from app.config import LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET
+from app.errors import ApiError
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/livekit", tags=["LiveKit"])
@@ -45,10 +46,10 @@ async def get_token(body: TokenRequest):
     The client uses this token to connect to the WebRTC room.
     """
     if not _LIVEKIT_AVAILABLE:
-        raise HTTPException(status_code=501, detail="LiveKit SDK not installed on server.")
+        raise ApiError(501, "not_implemented", "LiveKit SDK not installed on server.")
 
     if not all([LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL]):
-        raise HTTPException(status_code=501, detail="LiveKit credentials not configured in .env")
+        raise ApiError(501, "not_configured", "LiveKit credentials not configured.")
 
     try:
         token = api.AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET) \
@@ -64,6 +65,8 @@ async def get_token(body: TokenRequest):
         logger.info("[LiveKit] Generated token for room=%s identity=%s", body.room_name, body.identity)
         return TokenResponse(token=token, server_url=LIVEKIT_URL)
 
+    except ApiError:
+        raise
     except Exception as exc:
         logger.error("[LiveKit] Token generation failed: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise ApiError(500, "internal_error", "Failed to generate LiveKit token.") from exc

@@ -12,13 +12,24 @@ CORS is configured to allow the Vite frontend origin.
 """
 
 import logging
+import time
 from contextlib import asynccontextmanager
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import FRONTEND_ORIGINS, ALLOW_VERCEL_PREVIEW_ORIGINS, LOG_LEVEL
+from app.errors import (
+    ApiError,
+    api_error_handler,
+    http_exception_handler,
+    new_request_id,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
 from app.routers import stt, audio_ws, calls, knowledge, health, phone_numbers, livekit
 
 logging.basicConfig(
@@ -61,6 +72,27 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Uniform error envelope (SEC-03) ───────────────────────────────────────
+app.add_exception_handler(ApiError, api_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
+
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """Attach a correlation id to every request and echo it in responses."""
+    rid = new_request_id()
+    request.state.request_id = rid
+    t0 = time.monotonic()
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = rid
+    logger.info("%s %s -> %d (%d ms) request_id=%s", request.method,
+                request.url.path, response.status_code,
+                int((time.monotonic() - t0) * 1000), rid)
+    return response
+
 
 # ── Routers ───────────────────────────────────────────────────────────────
 app.include_router(health.router)
