@@ -33,18 +33,15 @@ def calls_client():
 def patch_supabase():
     import unittest.mock as um
 
+    from app.services.supabase_client import get_supabase
+
+    get_supabase.cache_clear()  # drop any client cached by an earlier test file
     sb = make_rpc_result({"updated": True})
 
     def _factory(*a, **k):
         return sb
-
     cm = um.patch("app.services.supabase_client.create_client", new=_factory)
     cm.__enter__()
-    # get_supabase is @lru_cache'd; the campaign worker started in app lifespan
-    # may have populated it during an earlier test's startup. Clear so this
-    # test's patched create_client is actually used.
-    from app.services.supabase_client import get_supabase
-    get_supabase.cache_clear()
     # stash for assertions via module-level holder
     global _LAST_SB
     _LAST_SB = sb
@@ -62,6 +59,7 @@ def patch_supabase():
 def test_call_end_uses_finalize_conversation_rpc(calls_client):
     resp = calls_client.post(
         f"/agents/{AGENT_ROW['id']}/call/end",
+        headers={"X-User-Id": USER_ID},  # main's dev-mode identity (#21)
         json={"user_id": USER_ID, "conversation_id": CONV_ID,
               "duration_sec": 42, "transcript": "hello", "status": "resolved"},
     )
@@ -78,6 +76,7 @@ def test_call_end_never_calls_get_agent_call_count(calls_client):
     """The broken legacy RPC pattern must be gone entirely."""
     calls_client.post(
         f"/agents/{AGENT_ROW['id']}/call/end",
+        headers={"X-User-Id": USER_ID},
         json={"user_id": USER_ID, "conversation_id": CONV_ID, "status": "resolved"},
     )
     sb = _LAST_SB
@@ -98,12 +97,14 @@ def test_double_call_end_increment_exactly_once_contract(calls_client):
     body = {"user_id": USER_ID, "conversation_id": CONV_ID,
             "duration_sec": 10, "status": "resolved"}
 
-    r1 = calls_client.post(f"/agents/{AGENT_ROW['id']}/call/end", json=body)
+    r1 = calls_client.post(f"/agents/{AGENT_ROW['id']}/call/end",
+                           headers={"X-User-Id": USER_ID}, json=body)
     assert r1.status_code == 200 and r1.json() == {"ok": True}
 
     # Simulate the DB having already finalized: guard matches 0 rows.
     sb.rpc.return_value.execute.return_value.data = {"updated": False}
-    r2 = calls_client.post(f"/agents/{AGENT_ROW['id']}/call/end", json=body)
+    r2 = calls_client.post(f"/agents/{AGENT_ROW['id']}/call/end",
+                           headers={"X-User-Id": USER_ID}, json=body)
     assert r2.status_code == 200
     assert r2.json() == {"ok": True}
 

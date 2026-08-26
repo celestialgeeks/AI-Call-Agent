@@ -13,6 +13,7 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="./src/styles/base.css" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="./src/styles/landing.css" />
 </head>
 
@@ -23,7 +24,15 @@
 ════════════════════════════════════════ -->
   <nav class="nav" id="navbar">
     <a href="/index.html" class="nav-logo">
-      <div class="nav-logo-icon">🤖</div>
+      <div class="nav-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true">
+          <!-- Sahaiy mark v1 "Wave Tile" (design spec v2 §1) -->
+          <rect width="32" height="32" rx="7.5" fill="#111111"/>
+          <rect x="8" y="12" width="3.5" height="8" rx="1.75" fill="#FFFFFF"/>
+          <rect x="14.25" y="8" width="3.5" height="16" rx="1.75" fill="#FFFFFF"/>
+          <rect x="20.5" y="12" width="3.5" height="8" rx="1.75" fill="#FFFFFF"/>
+        </svg>
+      </div>
       Sahaiy
     </a>
     <ul class="nav-links">
@@ -128,7 +137,14 @@
                 <div class="orb-ring"></div>
                 <div class="orb-ring"></div>
                 <div class="orb-ring"></div>
-                <div class="orb-core">🎙️</div>
+                <div class="orb-core">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <!-- bare-wave mark (spec v2 §2b) -->
+                    <rect x="5" y="9.5" width="2.6" height="5" rx="1.3"/>
+                    <rect x="10.7" y="6" width="2.6" height="12" rx="1.3"/>
+                    <rect x="16.4" y="9.5" width="2.6" height="5" rx="1.3"/>
+                  </svg>
+                </div>
               </div>
               <div class="waveform">
                 <div class="wave-bar"></div>
@@ -144,7 +160,7 @@
             </div>
             <div class="phone-transcript">
               <div class="transcript-bubble agent">
-                Hi! I'm Priya from Sahaiy support. How can I help you today? 😊
+                Hi! I'm Priya from Sahaiy support. How can I help you today?
               </div>
               <div class="transcript-bubble user">
                 I need to check my order status for order #45821
@@ -224,7 +240,13 @@
             / LIVE CALL FLOW</div>
           <div class="demo-call-flow">
             <div class="call-step">
-              <div class="call-step-icon purple">📞</div>
+              <div class="call-step-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <path
+                    d="M20.5 16.72v2.36a1.75 1.75 0 0 1-1.91 1.74 17.3 17.3 0 0 1-7.55-2.69 17.05 17.05 0 0 1-5.25-5.25A17.3 17.3 0 0 1 3.1 5.25 1.75 1.75 0 0 1 4.84 3.5H7.2a1.75 1.75 0 0 1 1.75 1.5c.11.85.31 1.68.6 2.47a1.75 1.75 0 0 1-.4 1.84L8.1 10.35a14 14 0 0 0 5.25 5.25l1.04-1.04a1.75 1.75 0 0 1 1.84-.4c.79.29 1.62.49 2.47.61a1.75 1.75 0 0 1 1.5 1.78z" />
+                </svg>
+              </div>
               <div>
                 <div class="call-step-label">Incoming Call Detected</div>
                 <div class="call-step-sub">+91 98765 43210 · Customer: Rahul S.</div>
@@ -232,7 +254,16 @@
               <div class="call-step-arrow"></div>
             </div>
             <div class="call-step">
-              <div class="call-step-icon teal">🧠</div>
+              <div class="call-step-icon teal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <rect x="4.75" y="9" width="14.5" height="10.25" rx="2.5" />
+                  <path d="M12 5.5v3.5" />
+                  <circle cx="12" cy="4" r="1.25" />
+                  <circle cx="9.25" cy="13.5" r=".4" fill="currentColor" stroke="none" />
+                  <circle cx="14.75" cy="13.5" r=".4" fill="currentColor" stroke="none" />
+                </svg>
+              </div>
               <div>
                 <div class="call-step-label">Intent Identified</div>
                 <div class="call-step-sub">Order inquiry → shipping status</div>
@@ -240,7 +271,13 @@
               <div class="call-step-arrow"></div>
             </div>
             <div class="call-step">
-              <div class="call-step-icon orange">🔧</div>
+              <div class="call-step-icon orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <path
+                    d="M14.2 6.6a1.06 1.06 0 0 0 0 1.5l1.7 1.7a1.06 1.06 0 0 0 1.5 0l3.2-3.2a6 6 0 0 1-7.9 7.9l-6.5 6.5a2 2 0 0 1-2.8-2.8l6.5-6.5a6 6 0 0 1 7.9-7.9z" />
+                </svg>
+              </div>
               <div>
                 <div class="call-step-label">Tool Executed</div>
                 <div class="call-step-sub">GET /orders/45821 → Out for delivery</div>
@@ -248,7 +285,12 @@
               <div class="call-step-arrow"></div>
             </div>
             <div class="call-step">
-              <div class="call-step-icon green">✅</div>
+              <div class="call-step-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4.5 12.5l5 5 10-11" />
+                </svg>
+              </div>
               <div>
                 <div class="call-step-label">Call Resolved</div>
                 <div class="call-step-sub">Duration: 0:42 · CSAT: Positive</div>
@@ -337,22 +379,47 @@
             / DEPLOYMENT CHANNELS</div>
           <div class="demo-deploy">
             <div class="deploy-channel">
-              <div class="deploy-channel-icon">📞</div>
+              <div class="deploy-channel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <path
+                    d="M20.5 16.72v2.36a1.75 1.75 0 0 1-1.91 1.74 17.3 17.3 0 0 1-7.55-2.69 17.05 17.05 0 0 1-5.25-5.25A17.3 17.3 0 0 1 3.1 5.25 1.75 1.75 0 0 1 4.84 3.5H7.2a1.75 1.75 0 0 1 1.75 1.5c.11.85.31 1.68.6 2.47a1.75 1.75 0 0 1-.4 1.84L8.1 10.35a14 14 0 0 0 5.25 5.25l1.04-1.04a1.75 1.75 0 0 1 1.84-.4c.79.29 1.62.49 2.47.61a1.75 1.75 0 0 1 1.5 1.78z" />
+                </svg>
+              </div>
               <div class="deploy-channel-name">Phone / SIP</div>
               <div class="deploy-channel-desc">Inbound & outbound calls</div>
             </div>
             <div class="deploy-channel">
-              <div class="deploy-channel-icon">💬</div>
+              <div class="deploy-channel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4.75 4.75h14.5v11.5H9.5l-4.75 4v-15.5z" />
+                </svg>
+              </div>
               <div class="deploy-channel-name">WhatsApp</div>
               <div class="deploy-channel-desc">Voice & text messages</div>
             </div>
             <div class="deploy-channel">
-              <div class="deploy-channel-icon">🌐</div>
+              <div class="deploy-channel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8.25" />
+                  <path d="M12 3.75c2.6 2.3 2.6 14.2 0 16.5M12 3.75c-2.6 2.3-2.6 14.2 0 16.5" />
+                  <path d="M3.75 12h16.5" />
+                </svg>
+              </div>
               <div class="deploy-channel-name">Web Widget</div>
               <div class="deploy-channel-desc">Embed on any site</div>
             </div>
             <div class="deploy-channel">
-              <div class="deploy-channel-icon">📢</div>
+              <div class="deploy-channel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="1.9" />
+                  <path d="M8.7 15.3a4.67 4.67 0 0 1 0-6.6M15.3 8.7a4.67 4.67 0 0 1 0 6.6" />
+                  <path d="M6 18a8.49 8.49 0 0 1 0-12M18 6a8.49 8.49 0 0 1 0 12" />
+                </svg>
+              </div>
               <div class="deploy-channel-name">Outbound</div>
               <div class="deploy-channel-desc">Bulk campaign dialer</div>
             </div>
@@ -379,54 +446,110 @@
 
       <div class="caps-grid">
         <div class="cap-card">
-          <div class="cap-icon">🎙️</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M9.25 4.25a2.75 2.75 0 0 1 5.5 0v6a2.75 2.75 0 0 1-5.5 0z" />
+              <path d="M5.5 11.25a6.5 6.5 0 0 0 13 0" />
+              <path d="M12 17.75v3" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Voice Synthesis</h4>
           <p class="cap-p">Ultra-realistic voices in Hindi and English, including Hinglish. Clone your brand voice or
             choose from our premium voice library.</p>
         </div>
         <div class="cap-card">
-          <div class="cap-icon">🧠</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <rect x="4.75" y="9" width="14.5" height="10.25" rx="2.5" />
+              <path d="M12 5.5v3.5" />
+              <circle cx="12" cy="4" r="1.25" />
+              <circle cx="9.25" cy="13.5" r=".4" fill="currentColor" stroke="none" />
+              <circle cx="14.75" cy="13.5" r=".4" fill="currentColor" stroke="none" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Intent Recognition</h4>
           <p class="cap-p">State-of-the-art NLU models that understand customer intent even through noise, accents, and
             mixed languages.</p>
         </div>
         <div class="cap-card">
-          <div class="cap-icon">🔧</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path
+                d="M14.2 6.6a1.06 1.06 0 0 0 0 1.5l1.7 1.7a1.06 1.06 0 0 0 1.5 0l3.2-3.2a6 6 0 0 1-7.9 7.9l-6.5 6.5a2 2 0 0 1-2.8-2.8l6.5-6.5a6 6 0 0 1 7.9-7.9z" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Tool Execution</h4>
           <p class="cap-p">Connect your CRM, ticketing system, or any REST API. Agents take real actions during calls.
           </p>
         </div>
         <div class="cap-card">
-          <div class="cap-icon">📚</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path
+                d="M5.25 19.5V5.75A2.25 2.25 0 0 1 7.5 3.5h11.25v13.25H7.5a2.25 2.25 0 0 0-2.25 2.25 2.25 2.25 0 0 0 2.25 2.25h11.25" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Knowledge Base</h4>
           <p class="cap-p">Upload FAQs, SOPs, product docs — agents answer directly from your knowledge base, grounded
             in your content.</p>
         </div>
         <div class="cap-card">
-          <div class="cap-icon">🔀</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 5l6 3.5v6L7 18l-6-3.5v-6L7 5z" transform="translate(4.5 0.5)" />
+              <path d="M11.5 8.75v6.5M16.25 6.25v11.5M21 8.75v6.5" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Workflow Builder</h4>
           <p class="cap-p">Design multi-turn conversation flows visually. Set conditions, branches, and human escalation
             triggers.</p>
         </div>
         <div class="cap-card">
-          <div class="cap-icon">🛡️</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3.5l7.5 3v5c0 4.5-3.2 7.9-7.5 9-4.3-1.1-7.5-4.5-7.5-9v-5l7.5-3z" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Guardrails & Safety</h4>
           <p class="cap-p">Built-in content safety, hallucination prevention, and compliance controls for regulated
             industries.</p>
         </div>
         <div class="cap-card">
-          <div class="cap-icon">📊</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M6.5 16.25v-3.5M12 16.25v-8M17.5 16.25v-5.75" />
+              <path d="M4.25 19.75h15.5" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Quality Evaluation</h4>
           <p class="cap-p">Automated scoring of every call against custom rubrics. Catch quality issues before they
             scale.</p>
         </div>
         <div class="cap-card">
-          <div class="cap-icon">⚡</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <path d="M13 2.5L4.5 13.5H12l-1 8 8.5-11H13l1-8z" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Low Latency Streaming</h4>
           <p class="cap-p">Real-time streaming audio responses. Conversations feel natural, never robotic.</p>
         </div>
         <div class="cap-card">
-          <div class="cap-icon">🔒</div>
+          <div class="cap-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" aria-hidden="true">
+              <rect x="5" y="10.5" width="14" height="9.5" rx="2" />
+              <path d="M8.25 10.5V7.75a3.75 3.75 0 0 1 7.5 0v2.75" />
+            </svg>
+          </div>
           <h4 class="cap-h4">Enterprise Security</h4>
           <p class="cap-p">Privacy-first: your data is hosted in India on infrastructure we control. On-premise
             deployment available for sensitive workloads.</p>
@@ -456,7 +579,15 @@
               <div class="orb-ring"></div>
               <div class="orb-ring"></div>
               <div class="orb-ring"></div>
-              <div class="orb-core" style="width:96px; height:96px; font-size:36px;">🎙️</div>
+              <div class="orb-core" style="width:96px; height:96px;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+                  style="width:40px; height:40px;">
+                  <!-- bare-wave mark (spec v2 §2b) -->
+                  <rect x="5" y="9.5" width="2.6" height="5" rx="1.3"/>
+                  <rect x="10.7" y="6" width="2.6" height="12" rx="1.3"/>
+                  <rect x="16.4" y="9.5" width="2.6" height="5" rx="1.3"/>
+                </svg>
+              </div>
             </div>
           </div>
           <h3 style="font-size:20px; font-weight:700; margin-bottom:8px; color:var(--text-primary);">Customer Support
@@ -589,7 +720,7 @@
     <div class="container">
       <div class="footer-inner">
         <div class="footer-brand">
-          <h3>🤖 Sahaiy</h3>
+          <h3>Sahaiy</h3>
           <p>AI call automation that sounds human. Deploy voice agents for inbound support, outbound campaigns, and
             everything in between.</p>
           <div style="margin-top:20px; display:flex; gap:12px;">
@@ -631,7 +762,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2025 Sahaiy Technologies Pvt. Ltd. · Made in India 🇮🇳</span>
+        <span>© 2025 Sahaiy Technologies Pvt. Ltd. · Made in India</span>
         <span class="footer-badge">PRIVACY-FIRST · DATA HOSTED IN INDIA</span>
       </div>
     </div>

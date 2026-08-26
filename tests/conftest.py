@@ -19,12 +19,15 @@ os.environ.setdefault("AUTH_ENFORCED", "false")
 def client():
     """TestClient with the Supabase client mocked (service layer untouched)."""
     from fastapi.testclient import TestClient
+    from app.services.supabase_client import get_supabase
 
+    get_supabase.cache_clear()  # lru_cache would leak a mock across test files
     with patch("app.services.supabase_client.create_client", return_value=MagicMock()):
         from app.main import app
 
         with TestClient(app) as test_client:
             yield test_client
+    get_supabase.cache_clear()
 
 
 def make_jwt(secret: str, sub: str = "11111111-1111-1111-1111-111111111111",

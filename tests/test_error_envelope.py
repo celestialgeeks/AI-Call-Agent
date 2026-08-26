@@ -5,6 +5,8 @@ SEC-03: every error response uses the uniform envelope
     {"error": {"code", "message", "request_id"}}
 
 No raw str(exc), stack traces, or SQL ever reach the client.
+NOTE: adapted to main's auth convention (#21) — unauthenticated requests
+get a 401 envelope before validation runs, so the 422 cases send X-User-Id.
 """
 import pytest
 
@@ -16,7 +18,7 @@ def envelope_client(client):
 
 def test_validation_error_is_enveloped(envelope_client):
     # Missing required multipart file on /stt/transcribe → 422 in the envelope.
-    resp = envelope_client.post("/stt/transcribe")
+    resp = envelope_client.post("/stt/transcribe", headers={"X-User-Id": "u1"})
     assert resp.status_code == 422
     body = resp.json()
     err = body["error"]
@@ -46,3 +48,15 @@ def test_no_raw_exception_text_in_404(envelope_client):
     text = resp.text.lower()
     for leak in ("traceback", "exception:", "sqlalchemy", "postgres"):
         assert leak not in text
+
+
+def test_empty_file_is_enveloped_400(envelope_client):
+    # Empty upload → 400 via ApiError in the uniform envelope (SEC-03 on STT).
+    resp = envelope_client.post(
+        "/stt/transcribe",
+        files={"file": ("empty.wav", b"", "audio/wav")},
+    )
+    assert resp.status_code == 400
+    err = resp.json()["error"]
+    assert err["code"] == "empty_file"
+    assert set(err) >= {"code", "message", "request_id"}

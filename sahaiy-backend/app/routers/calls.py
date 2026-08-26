@@ -5,21 +5,17 @@ REST endpoints for call lifecycle management.
 Writes conversation records to Supabase for the dashboard.
 
 POST /agents/{agent_id}/call/start  → creates conversation, returns conversation_id
-POST /agents/{agent_id}/call/end    → updates conversation + atomically bumps agent call_count
-
-Auth: user_id comes from the verified JWT when AUTH_ENFORCED=true (Ruling B1);
-the client-declared body user_id is ignored once the flag flips.
+POST /agents/{agent_id}/call/end    → updates conversation with transcript + duration + CSAT
 """
 
 import logging
 from datetime import datetime, timezone
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional
 
-from app.auth import get_current_user_id
-from app.errors import ApiError, new_request_id
 from app.services.supabase_client import get_supabase
 
 logger = logging.getLogger(__name__)
@@ -27,8 +23,7 @@ router = APIRouter(prefix="/agents", tags=["Calls"])
 
 
 class CallStartRequest(BaseModel):
-    # Ignored when AUTH_ENFORCED=true — identity is derived from the token.
-    user_id: Optional[str] = None
+    user_id: str
     caller_name: Optional[str] = None
     caller_number: Optional[str] = None
 
@@ -38,8 +33,7 @@ class CallStartResponse(BaseModel):
 
 
 class CallEndRequest(BaseModel):
-    # Ignored when AUTH_ENFORCED=true — identity is derived from the token.
-    user_id: Optional[str] = None
+    user_id: str
     conversation_id: str
     transcript: Optional[str] = None
     duration_sec: int = 0
@@ -48,23 +42,11 @@ class CallEndRequest(BaseModel):
 
 
 @router.post("/{agent_id}/call/start", response_model=CallStartResponse)
-async def call_start(
-    request: Request,
-    agent_id: str,
-    body: CallStartRequest,
-    current_user_id: Optional[str] = Depends(get_current_user_id),
-):
+async def call_start(agent_id: str, body: CallStartRequest):
     """
     Create a new conversation record in Supabase when a call begins.
     Returns the conversation_id to track the call.
     """
-    # Contract §1.1: user_id is REQUIRED — from the verified JWT when
-    # AUTH_ENFORCED=true, else from the request body. Missing on both is a
-    # 422 (pinned by qa/contract_tests TestCallStart::test_user_id_required),
-    # not a silent 200 with an orphaned anonymous conversation.
-    if not current_user_id and not body.user_id:
-        raise ApiError(422, "user_id_required",
-                       "user_id is required (body or authenticated token).")
     try:
         supabase = get_supabase()
         # Fetch agent name for the record
@@ -72,7 +54,7 @@ async def call_start(
         agent_name = agent_res.data.get("name", "AI Agent") if agent_res.data else "AI Agent"
 
         result = supabase.table("conversations").insert({
-            "user_id": current_user_id or body.user_id,
+            "user_id": body.user_id,
             "agent_id": agent_id,
             "agent_name": agent_name,
             "caller_name": body.caller_name,
@@ -82,42 +64,34 @@ async def call_start(
         }).select().single().execute()
 
         if not result.data:
-            raise ApiError(500, "conversation_create_failed",
-                           "Failed to create conversation record.")
+            raise HTTPException(status_code=500, detail="Failed to create conversation record")
 
         conv_id = result.data["id"]
         logger.info("[Calls] Started conversation %s for agent %s", conv_id, agent_id)
         return CallStartResponse(conversation_id=conv_id)
 
-    except ApiError:
+    except HTTPException:
         raise
     except Exception as exc:
-        rid = getattr(request.state, "request_id", new_request_id())
-        logger.error("[Calls] call_start error (request_id=%s): %s", rid, exc)
-        raise ApiError(500, "internal_error", "Failed to start call.") from exc
+        logger.error("[Calls] call_start error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.post("/{agent_id}/call/end")
-async def call_end(
-    request: Request,
-    agent_id: str,
-    body: CallEndRequest,
-    current_user_id: Optional[str] = Depends(get_current_user_id),
-):
+async def call_end(agent_id: str, body: CallEndRequest):
     """
     Update the conversation record when a call ends.
     Saves transcript, duration, CSAT score, and final status.
-
-    SEC-04: the agent call_count is bumped atomically server-side via the
-    `finalize_conversation` Postgres function, which performs the terminal
-    status transition AND the increment in one guarded statement — calling end
-    twice on the same conversation increments exactly once. The old broken
-    pattern `.update({"call_count": supabase.rpc("get_agent_call_count", …)})`
-    referenced a nonexistent RPC and silently no-oped; it is removed.
     """
     try:
         supabase = get_supabase()
 
+        # SEC-04 (issue #4): the terminal transition AND the agent call_count
+        # increment happen atomically inside `finalize_conversation`, guarded
+        # on status='in_progress' — double call_end can't double-count, and
+        # the old broken `.update({"call_count": supabase.rpc(...)})` pattern
+        # (referenced a nonexistent RPC → silent no-op) is gone.
+        # Requires migrations/0002_atomic_call_count.sql to be applied.
         rpc_result = (
             supabase.rpc("finalize_conversation", {
                 "p_conversation_id": body.conversation_id,
@@ -129,20 +103,16 @@ async def call_end(
             .execute()
         )
         updated = bool((getattr(rpc_result, "data", None) or {}).get("updated"))
-
         if not updated:
-            # Conversation not found or already finalized — idempotent no-op.
-            logger.info("[Calls] call_end on non-in_progress conversation %s — no-op",
+            logger.info("[Calls] call_end on non-in_progress conversation %s — idempotent no-op",
                         body.conversation_id)
-            return {"ok": True}
 
         logger.info("[Calls] Ended conversation %s (%ds, status=%s)",
                     body.conversation_id, body.duration_sec, body.status)
         return {"ok": True}
 
-    except ApiError:
+    except HTTPException:
         raise
     except Exception as exc:
-        rid = getattr(request.state, "request_id", new_request_id())
-        logger.error("[Calls] call_end error (request_id=%s): %s", rid, exc)
-        raise ApiError(500, "internal_error", "Failed to end call.") from exc
+        logger.error("[Calls] call_end error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

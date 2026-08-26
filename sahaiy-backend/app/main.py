@@ -78,7 +78,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Uniform error envelope (SEC-03) ───────────────────────────────────────
+# ── Uniform error envelope (SEC-03, issue #4) ─────────────────────────────
 app.add_exception_handler(ApiError, api_error_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)

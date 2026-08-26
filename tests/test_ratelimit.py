@@ -49,6 +49,7 @@ def test_stt_transcribe_429_envelope(client):
         for _ in range(3):
             resp = client.post(
                 "/stt/transcribe",
+                headers={"X-User-Id": "rl-user"},  # main's dev-mode identity (#21)
                 files={"file": ("a.wav", b"RIFFfake-audio", "audio/wav")},
             )
             statuses.append(resp.status_code)
@@ -64,6 +65,7 @@ def test_stt_rate_limit_zero_disables_gate(client):
         statuses = []
         for _ in range(4):
             resp = client.post("/stt/transcribe",
+                               headers={"X-User-Id": "rl-user"},
                                files={"file": ("a.wav", b"x", "audio/wav")})
             statuses.append(resp.status_code)
         assert all(s != 429 for s in statuses), statuses

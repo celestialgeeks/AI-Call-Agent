@@ -39,9 +39,9 @@ DECLARE
   v_updated BOOLEAN;
   v_agent_id UUID;
 BEGIN
-  -- Validate status against the API contract §1.2 enum. 'in_progress' is
-  -- allowed (clients may re-persist fields mid-call) but is NOT terminal:
-  -- only terminal transitions trigger the agent call_count increment.
+  -- Validate status against the conversations CHECK constraint set.
+  -- 'in_progress' is allowed (a call_end re-save while the call continues);
+  -- the call_count increment only fires on TERMINAL statuses.
   IF p_status NOT IN ('resolved', 'escalated', 'missed', 'in_progress') THEN
     RAISE EXCEPTION 'invalid status: %', p_status;
   END IF;

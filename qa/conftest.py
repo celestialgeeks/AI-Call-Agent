@@ -121,30 +121,28 @@ class _FakeSupabase:
 
     def rpc(self, fn, params=None):
         self.rpc_calls.append((fn, params))
-        if fn == "finalize_conversation":
-            # Emulate migrations/0002_atomic_call_count.sql semantics:
-            # guarded UPDATE of the in_progress conversation + atomic agent
-            # call_count increment on terminal transitions only. Returns
-            # {"updated": bool} like the real SECURITY DEFINER function.
-            p = params or {}
-            updated = False
-            for row in self.store["conversations"]:
-                if (row.get("id") == p.get("p_conversation_id")
-                        and row.get("status") == "in_progress"):
-                    row["status"] = p.get("p_status", row["status"])
-                    if "p_duration_sec" in p:
-                        row["duration_sec"] = p["p_duration_sec"]
-                    if "p_transcript" in p:
-                        row["transcript"] = p["p_transcript"]
+        # SEC-04: emulate the real finalize_conversation Postgres function
+        # (migrations/0002_atomic_call_count.sql): guarded transition + atomic
+        # call_count increment, exactly-once per conversation.
+        if fn == "finalize_conversation" and params:
+            p = params
+            if p.get("p_status") not in ("resolved", "escalated", "missed", "in_progress"):
+                raise ValueError(f"invalid status: {p.get('p_status')}")
+            convs = self.store["conversations"]
+            for c in convs:
+                if c["id"] == p.get("p_conversation_id") and c.get("status") == "in_progress":
+                    c["status"] = p["p_status"]
+                    c["duration_sec"] = p.get("p_duration_sec")
+                    c["transcript"] = p.get("p_transcript")
                     if p.get("p_csat_score") is not None:
-                        row["csat_score"] = p["p_csat_score"]
-                    updated = True
-                    if p.get("p_status") != "in_progress":
-                        for agent in self.store["agents"]:
-                            if agent.get("id") == row.get("agent_id"):
-                                agent["call_count"] = agent.get("call_count", 0) + 1
-            result = {"updated": updated}
-            return type("R", (), {"execute": lambda self: type("R2", (), {"data": result})()})()
+                        c["csat_score"] = p["p_csat_score"]
+                    # Increment only on terminal statuses (SEC-04).
+                    if p["p_status"] != "in_progress":
+                        for a in self.store["agents"]:
+                            if a["id"] == c.get("agent_id"):
+                                a["call_count"] = a.get("call_count", 0) + 1
+                    return type("R", (), {"execute": lambda self: type("D", (), {"data": {"updated": True}})()})()
+            return type("R", (), {"execute": lambda self: type("D", (), {"data": {"updated": False}})()})()
         return type("R", (), {"execute": lambda self: None})()
 
 

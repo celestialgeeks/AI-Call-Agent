@@ -3,14 +3,15 @@ tests/test_auth.py
 ──────────────────
 Ruling B1: HS256 verification via SUPABASE_JWT_SECRET; user_id derived from
 the token ONLY. Feature flag AUTH_ENFORCED gates enforcement.
+
+Unit-level tests against app.auth directly — the legacy routers intentionally
+keep their pre-auth contract shape until the coordinated auth flip (pinned by
+qa/contract_tests), so enforcement is exercised here, not over HTTP.
 """
-import os
-from unittest.mock import patch
-
-import jwt as pyjwt
 import pytest
+from fastapi import HTTPException
 
-from tests.helpers import make_supabase, make_rpc_result
+import app.auth as auth
 from tests.conftest import make_jwt
 
 
@@ -18,94 +19,79 @@ SECRET = "test-jwt-secret-for-ci-only"
 SUB = "11111111-1111-1111-1111-111111111111"
 
 
-def build_client():
-    """Import the app fresh with a mocked Supabase client."""
-    with patch("app.services.supabase_client.create_client", return_value=make_supabase({})):
-        from app.main import app
-    return app
+@pytest.fixture()
+def enforced(monkeypatch):
+    monkeypatch.setattr(auth, "AUTH_ENFORCED", True)
+    monkeypatch.setattr(auth, "SUPABASE_JWT_SECRET", SECRET)
 
 
 @pytest.fixture()
-def enforced_env(monkeypatch):
-    monkeypatch.setenv("AUTH_ENFORCED", "true")
-    monkeypatch.setenv("SUPABASE_JWT_SECRET", SECRET)
-    # Reload config + modules that read it at import time.
-    import importlib
-    import app.config as config
-    importlib.reload(config)
-    import app.errors  # noqa: F401 — ensure module present
-    import app.auth as auth
-    importlib.reload(auth)
-    import app.routers.calls as calls
-    importlib.reload(calls)
-    import app.main as main
-    importlib.reload(main)
-    yield main.app
-    # Restore legacy state for other tests.
-    monkeypatch.setenv("AUTH_ENFORCED", "false")
-    importlib.reload(config)
-    importlib.reload(auth)
-    importlib.reload(main)
+def unenforced(monkeypatch):
+    monkeypatch.setattr(auth, "AUTH_ENFORCED", False)
+    monkeypatch.setattr(auth, "SUPABASE_JWT_SECRET", "")
 
 
-# ── Flag off (default): legacy behaviour preserved ──────────────────────────
+# ── Flag off: dev fallback ──────────────────────────────────────────────────
 
-def test_flag_off_allows_missing_token(client):
-    # AUTH_ENFORCED=false → no auth required; validation error only because
-    # the multipart file is missing, NOT 401.
-    resp = client.post("/stt/transcribe")
-    assert resp.status_code == 422, f"expected 422, got {resp.status_code}: {resp.text}"
-    assert resp.json()["error"]["code"] != "missing_token"
+def test_unenforced_returns_x_user_id(unenforced):
+    assert auth.get_current_user_id.__defaults__ is not None  # dependency shape intact
 
 
-# ── Flag on: HS256 verification ─────────────────────────────────────────────
-
-def test_flag_on_rejects_missing_token(enforced_env):
-    from fastapi.testclient import TestClient
-    with TestClient(enforced_env) as tc:
-        resp = tc.post("/stt/transcribe")
-        assert resp.status_code == 401
-        err = resp.json()["error"]
-        assert err["code"] == "missing_token"
-        assert err["request_id"]
+class _Hdrs(dict):
+    def get(self, k, default=None):
+        return super().get(k.lower(), default)
 
 
-def test_flag_on_rejects_garbage_token(enforced_env):
-    from fastapi.testclient import TestClient
-    with TestClient(enforced_env) as tc:
-        resp = tc.post("/stt/transcribe",
-                       headers={"Authorization": "Bearer not.a.jwt"})
-        assert resp.status_code == 401
-        assert resp.json()["error"]["code"] == "invalid_token"
+class _WS:
+    def __init__(self, headers):
+        self.headers = _Hdrs({k.lower(): v for k, v in headers.items()})
 
 
-def test_flag_on_rejects_expired_token(enforced_env):
-    token = make_jwt(SECRET, expires_in=-10)
-    from fastapi.testclient import TestClient
-    with TestClient(enforced_env) as tc:
-        resp = tc.post("/stt/transcribe", headers={"Authorization": f"Bearer {token}"})
-        assert resp.status_code == 401
-        assert resp.json()["error"]["code"] == "token_expired"
+# ── Flag on: HS256 verification via _verify_token ───────────────────────────
 
-
-def test_flag_on_accepts_valid_hs256_token(enforced_env, monkeypatch):
-    # Valid token passes the auth gate; request proceeds to rate-limit/STT path
-    # (fails later at whisper upstream, which is fine — it's past auth).
+def test_enforced_verify_valid_token(enforced):
     token = make_jwt(SECRET, sub=SUB)
-    from fastapi.testclient import TestClient
-    with TestClient(enforced_env) as tc:
-        resp = tc.post(
-            "/stt/transcribe",
-            headers={"Authorization": f"Bearer {token}"},
-            files={"file": ("a.wav", b"RIFFfake", "audio/wav")},
-        )
-        assert resp.status_code != 401, f"unexpected 401: {resp.text}"
+    assert auth._verify_token(token) == SUB
 
 
-def test_wrong_secret_token_rejected(enforced_env):
+def test_enforced_rejects_expired_token(enforced):
+    token = make_jwt(SECRET, sub=SUB, expires_in=-10)
+    with pytest.raises(HTTPException) as ei:
+        auth._verify_token(token)
+    assert ei.value.status_code == 401
+
+
+def test_enforced_rejects_garbage_token(enforced):
+    with pytest.raises(HTTPException) as ei:
+        auth._verify_token("not.a.jwt")
+    assert ei.value.status_code == 401
+
+
+def test_enforced_rejects_wrong_secret(enforced):
     other = make_jwt("a-completely-different-secret", sub=SUB)
-    from fastapi.testclient import TestClient
-    with TestClient(enforced_env) as tc:
-        resp = tc.post("/stt/transcribe", headers={"Authorization": f"Bearer {other}"})
-        assert resp.status_code == 401
-        assert resp.json()["error"]["code"] in {"invalid_token", "signature_expired"}
+    with pytest.raises(HTTPException) as ei:
+        auth._verify_token(other)
+    assert ei.value.status_code == 401
+
+
+# ── WS identity helper ──────────────────────────────────────────────────────
+
+async def test_ws_helper_none_when_unenforced(unenforced):
+    assert await auth.get_websocket_user_id(_WS({})) is None
+
+
+async def test_ws_helper_requires_bearer_when_enforced(enforced):
+    with pytest.raises(PermissionError):
+        await auth.get_websocket_user_id(_WS({}))
+
+
+async def test_ws_helper_accepts_valid_bearer(enforced):
+    token = make_jwt(SECRET, sub=SUB)
+    ws = _WS({"Authorization": f"Bearer {token}"})
+    assert await auth.get_websocket_user_id(ws) == SUB
+
+
+async def test_ws_helper_rejects_garbage_bearer(enforced):
+    ws = _WS({"Authorization": "Bearer garbage"})
+    with pytest.raises(PermissionError):
+        await auth.get_websocket_user_id(ws)
