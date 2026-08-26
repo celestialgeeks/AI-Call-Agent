@@ -121,6 +121,30 @@ class _FakeSupabase:
 
     def rpc(self, fn, params=None):
         self.rpc_calls.append((fn, params))
+        if fn == "finalize_conversation":
+            # Emulate migrations/0002_atomic_call_count.sql semantics:
+            # guarded UPDATE of the in_progress conversation + atomic agent
+            # call_count increment on terminal transitions only. Returns
+            # {"updated": bool} like the real SECURITY DEFINER function.
+            p = params or {}
+            updated = False
+            for row in self.store["conversations"]:
+                if (row.get("id") == p.get("p_conversation_id")
+                        and row.get("status") == "in_progress"):
+                    row["status"] = p.get("p_status", row["status"])
+                    if "p_duration_sec" in p:
+                        row["duration_sec"] = p["p_duration_sec"]
+                    if "p_transcript" in p:
+                        row["transcript"] = p["p_transcript"]
+                    if p.get("p_csat_score") is not None:
+                        row["csat_score"] = p["p_csat_score"]
+                    updated = True
+                    if p.get("p_status") != "in_progress":
+                        for agent in self.store["agents"]:
+                            if agent.get("id") == row.get("agent_id"):
+                                agent["call_count"] = agent.get("call_count", 0) + 1
+            result = {"updated": updated}
+            return type("R", (), {"execute": lambda self: type("R2", (), {"data": result})()})()
         return type("R", (), {"execute": lambda self: None})()
 
 
