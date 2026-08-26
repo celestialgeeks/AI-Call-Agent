@@ -176,20 +176,13 @@ class TestHealth:
         assert r.json()["service"] == "Sahaiy Backend"
 
 
-# ── Contract-drift tripwire for the outreach boundary (Part 2 DRAFT) ─────────
-
-
-class TestOutreachBoundaryDraft:
-    """
-    api-contracts Part 2 is a DRAFT pending @systems-architect ruling. The moment
-    /api/v1/campaigns ships, these become full conformance cases (exact shapes).
-    Today they pin that unimplemented routes do NOT silently appear with wrong shapes.
-    """
-
-    async def test_campaigns_route_absent_until_contract_locked(self, api):
-        r = await api.post("/api/v1/campaigns", json={"agent_id": AGENT_ID})
-        assert r.status_code in (404, 405), (
-            f"/api/v1/campaigns appeared with status {r.status_code} — "
-            "outreach contract shipped: replace this canary with exact-shape tests "
-            "per api-contracts-and-outreach-boundary-v1.md Part 2"
-        )
+# ── Outreach boundary (Part 2) ───────────────────────────────────────────────
+#
+# POST /api/v1/campaigns SHIPPED in PR #21 (commit 6eeb72c). The former
+# TestOutreachBoundaryDraft canary (asserting 404/405 until the contract was
+# locked) now fails everywhere and has been replaced by exact-shape conformance
+# cases per the canary's own instruction:
+#
+#     qa/contract_tests/test_campaigns_contracts.py
+#
+# (create/list shapes, auth 401, validation, ownership scoping).
