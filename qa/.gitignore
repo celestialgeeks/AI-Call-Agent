@@ -1,0 +1,7 @@
+node_modules/
+test-results/
+playwright-report/
+e2e-html/
+__pycache__/
+*.pyc
+.venv/

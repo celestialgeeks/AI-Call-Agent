@@ -109,6 +109,10 @@
                     </div>
                     <button class="user-menu-btn" onclick="showUserMenu(event)" title="Options">⋯</button>
                 </div>
+                <div style="text-align:center; font-size:11px; color:var(--dash-text-3); padding:10px 0 2px;">
+                    <a href="/terms.html" style="color:inherit;">Terms</a> ·
+                    <a href="/privacy.html" style="color:inherit;">Privacy</a>
+                </div>
             </div>
         </aside>
 
@@ -139,39 +143,39 @@
                     <p class="home-greeting">Good morning, Shreyash ☀️</p>
                     <p class="home-sub">Here's how your agents performed today</p>
 
-                    <!-- Stats -->
+                    <!-- Stats — values are populated live by _updateHomeStats() (ADR-0001: no fabricated numbers) -->
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Total Calls</span>
                                 <div class="stat-icon" style="background:rgba(124,92,252,0.1);">📞</div>
                             </div>
-                            <div class="stat-value">2,847</div>
-                            <div class="stat-delta up">↑ 18% vs yesterday</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">loading…</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Avg Duration</span>
                                 <div class="stat-icon" style="background:rgba(0,196,161,0.1);">⏱️</div>
                             </div>
-                            <div class="stat-value">2:14</div>
-                            <div class="stat-delta down">↓ 4% vs yesterday</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">today</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Success Rate</span>
                                 <div class="stat-icon" style="background:rgba(34,197,94,0.1);">✅</div>
                             </div>
-                            <div class="stat-value">98.2%</div>
-                            <div class="stat-delta up">↑ 1.2pp vs last week</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">no calls yet</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Total Cost</span>
                                 <div class="stat-icon" style="background:rgba(245,158,11,0.1);">💰</div>
                             </div>
-                            <div class="stat-value">₹1,240</div>
-                            <div class="stat-delta neutral">≈ ₹0.44 per call</div>
+                            <div class="stat-value">₹0</div>
+                            <div class="stat-delta neutral">no spend yet</div>
                         </div>
                     </div>
 
@@ -734,29 +738,29 @@
                             <div class="stat-card-top"><span class="stat-label">Total Calls</span>
                                 <div class="stat-icon" style="background:rgba(124,92,252,.1);">📞</div>
                             </div>
-                            <div class="stat-value">19,284</div>
-                            <div class="stat-delta up">↑ 22% vs prior period</div>
+                            <div class="stat-value">0</div>
+                            <div class="stat-delta neutral">No calls yet</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top"><span class="stat-label">Resolution Rate</span>
                                 <div class="stat-icon" style="background:rgba(34,197,94,.1);">✅</div>
                             </div>
-                            <div class="stat-value">98.2%</div>
-                            <div class="stat-delta up">↑ 2.1pp</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">No calls yet</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top"><span class="stat-label">CSAT Score</span>
                                 <div class="stat-icon" style="background:rgba(245,158,11,.1);">⭐</div>
                             </div>
-                            <div class="stat-value">4.8/5</div>
-                            <div class="stat-delta neutral">Stable</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">No calls yet</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top"><span class="stat-label">Escalations</span>
                                 <div class="stat-icon" style="background:rgba(239,68,68,.1);">📲</div>
                             </div>
-                            <div class="stat-value">1.8%</div>
-                            <div class="stat-delta down">↓ 0.4pp</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">No calls yet</div>
                         </div>
                     </div>
                     <div class="chart-card">
@@ -826,73 +830,39 @@
                         </div>
                         <button class="dash-btn dash-btn-primary">+ New campaign</button>
                     </div>
+                    <!-- Stats (honest empty states until real telemetry lands — see ADR-0001) -->
                     <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
                         <div class="stat-card">
                             <div class="stat-card-top"><span class="stat-label">Total Dialed</span>
                                 <div class="stat-icon" style="background:rgba(124,92,252,.1);">📢</div>
                             </div>
-                            <div class="stat-value">5,210</div>
-                            <div class="stat-delta up">↑ This month</div>
+                            <div class="stat-value">0</div>
+                            <div class="stat-delta neutral">No campaigns yet</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top"><span class="stat-label">Connect Rate</span>
                                 <div class="stat-icon" style="background:rgba(34,197,94,.1);">✅</div>
                             </div>
-                            <div class="stat-value">64.3%</div>
-                            <div class="stat-delta up">↑ 3pp vs last month</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">No calls yet</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top"><span class="stat-label">Conversion Rate</span>
                                 <div class="stat-icon" style="background:rgba(245,158,11,.1);">🎯</div>
                             </div>
-                            <div class="stat-value">12.8%</div>
-                            <div class="stat-delta up">↑ 1.4pp</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">No calls yet</div>
                         </div>
                     </div>
                     <div class="recent-card">
                         <div class="recent-card-header"><span class="recent-card-title">Campaigns</span></div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Campaign</th>
-                                        <th>Agent</th>
-                                        <th>Dialed</th>
-                                        <th>Connected</th>
-                                        <th>Converted</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span style="font-weight:600; color:var(--dash-text);">Feb
-                                                Reactivation</span></td>
-                                        <td>Sales Agent</td>
-                                        <td>1,200</td>
-                                        <td>772 (64%)</td>
-                                        <td>98 (8%)</td>
-                                        <td><span class="badge badge-green">Completed</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span style="font-weight:600; color:var(--dash-text);">Overdue
-                                                Collections</span></td>
-                                        <td>Collections Agent</td>
-                                        <td>840</td>
-                                        <td>540 (64%)</td>
-                                        <td>211 (25%)</td>
-                                        <td><span class="badge badge-green">Completed</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><span style="font-weight:600; color:var(--dash-text);">March Survey
-                                                Blast</span></td>
-                                        <td>Survey Agent</td>
-                                        <td>3,170</td>
-                                        <td>2,034 (64%)</td>
-                                        <td>856 (27%)</td>
-                                        <td><span class="badge badge-orange">Running</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <!-- Honest empty state per ADR-0001: no fabricated campaign analytics -->
+                        <div class="empty-state" style="padding:48px 24px;">
+                            <div class="empty-icon">📢</div>
+                            <div class="empty-title">No campaigns yet</div>
+                            <div class="empty-sub">Create your first outbound campaign to start dialing. Campaign
+                                results will appear here once real calls are made.</div>
+                            <button class="dash-btn dash-btn-primary">+ New campaign</button>
                         </div>
                     </div>
                 </div>
