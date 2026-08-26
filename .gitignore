@@ -31,4 +31,17 @@ npm-debug.log*
 
 # Vite
 vite.config.js.timestamp-*
+
+# ─────────────────────────────────────────────────────────
+#  QA suite artifacts (Playwright E2E) + Python
+# ─────────────────────────────────────────────────────────
+qa/e2e/test-results/
+qa/e2e/playwright-report/
+qa/e2e/e2e-html/
+
+# Python
 __pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+.venv/

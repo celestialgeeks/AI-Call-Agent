@@ -19,11 +19,14 @@ python-dotenv==1.1.0
 pydantic==2.12.5
 
 # ── RAG — Knowledge Base ───────────────────────────────────────
-# Optional — only needed if you want RAG / knowledge base retrieval.
-# Comment out if you don't need it.
-faiss-cpu>=1.12.0
-sentence-transformers==3.4.1
-numpy==2.2.4
+# OPTIONAL heavy deps (torch/CUDA transitives ~2GB+ RAM at install/import).
+# Commented out for small-container deployments (Render Free 512MB OOM-kills
+# the installer). rag.py degrades gracefully (_RAG_AVAILABLE=False → /knowledge
+# endpoints return honest 501-with-reason).
+# Re-enable ONLY on deployments with >= 2GB RAM:
+# faiss-cpu>=1.12.0
+# sentence-transformers==3.4.1
+# numpy==2.2.4
 
 # ── LiveKit WebRTC (optional — Phase 10) ──────────────────────
 # Server-side token route depends on livekit-api (imports as: from livekit import api)
