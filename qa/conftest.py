@@ -51,6 +51,10 @@ class _FakeTable:
         self._name = name
         self._filters = {}
         self._payload = None
+        self._ops = []  # non-eq filters: (op, col, value)
+        self._order_spec = None  # (col, desc)
+        self._limit_n = None
+        self._range_spec = None  # (start, end)
 
     def select(self, *_a, **_k):
         return self
@@ -63,32 +67,87 @@ class _FakeTable:
         self._payload = ("update", payload)
         return self
 
+    def delete(self):
+        self._payload = ("delete", None)
+        return self
+
     def eq(self, col, val):
         self._filters[col] = val
+        return self
+
+    def lt(self, col, val):
+        self._ops.append(("lt", col, val))
+        return self
+
+    def gt(self, col, val):
+        self._ops.append(("gt", col, val))
+        return self
+
+    def order(self, col, desc=False):
+        self._order_spec = (col, bool(desc))
+        return self
+
+    def limit(self, count):
+        self._limit_n = count
+        return self
+
+    def range(self, start, end):
+        self._range_spec = (start, end)
         return self
 
     def single(self):
         self._single = True
         return self
 
+    def _match(self, row):
+        if not all(row.get(c) == v for c, v in self._filters.items()):
+            return False
+        for op, col, val in self._ops:
+            rv = row.get(col)
+            if op == "lt" and not (rv is not None and rv < val):
+                return False
+            if op == "gt" and not (rv is not None and rv > val):
+                return False
+        return True
+
     def execute(self):
         rows = self._store.setdefault(self._name, [])
+        if isinstance(self._payload, tuple) and self._payload[0] == "delete":
+            kept = [r for r in rows if not self._match(r)]
+            rows[:] = kept
+            return type("R", (), {"data": None})()
         if isinstance(self._payload, tuple) and self._payload[0] == "update":
             _, fields = self._payload
             for row in rows:
-                if all(row.get(c) == v for c, v in self._filters.items()):
+                if self._match(row):
                     row.update(fields)
-            return type("R", (), {"data": [r for r in rows if all(r.get(c) == v for c, v in self._filters.items())]})()
+            return type("R", (), {"data": [r for r in rows if self._match(r)]})()
         if self._payload is not None:  # insert
-            row = dict(self._payload)
-            row.setdefault("id", f"{self._name}-row-{len(rows) + 1}")
-            if self._name == "conversations":
-                import uuid as _uuid
+            payload = self._payload
+            # Bulk insert (list of rows) support for campaign_contacts links.
+            new_rows = [dict(payload)] if isinstance(payload, dict) else [dict(p) for p in payload]
+            for row in new_rows:
+                row.setdefault("id", f"{self._name}-row-{len(rows) + 1}")
+                if self._name == "conversations":
+                    import uuid as _uuid
 
-                row["id"] = str(_uuid.uuid4())
-            rows.append(row)
-            return type("R", (), {"data": row})()
-        data = [r for r in rows if all(r.get(c) == v for c, v in self._filters.items())]
+                    row["id"] = str(_uuid.uuid4())
+                rows.append(row)
+            data = new_rows if isinstance(self._payload, list) else new_rows[0]
+            return type("R", (), {"data": data})()
+        data = [r for r in rows if self._match(r)]
+        if self._order_spec is not None:
+            col, desc = self._order_spec
+            data = sorted(
+                data,
+                key=lambda r: (r.get(col) is None, r.get(col)),
+                reverse=desc,
+            )
+        if self._range_spec is not None:
+            start, end = self._range_spec
+            data = data[start : end + 1]
+        elif self._limit_n is not None:
+            data = data[: self._limit_n]
         if getattr(self, "_single", False):
             # Faithful to supabase-py: .single() raises when 0 or >1 rows match
             if len(data) != 1:
