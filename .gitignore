@@ -39,9 +39,17 @@ qa/e2e/test-results/
 qa/e2e/playwright-report/
 qa/e2e/e2e-html/
 
+<<<<<<< HEAD
 # Python
+=======
+# Python (QA suite + backend)
+>>>>>>> origin/fix/issue-4-backend-hardening
 __pycache__/
 *.py[cod]
 *.pyc
+<<<<<<< HEAD
+=======
+*.py[cod]
+>>>>>>> origin/fix/issue-4-backend-hardening
 .pytest_cache/
 .venv/

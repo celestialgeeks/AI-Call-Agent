@@ -39,11 +39,17 @@ DECLARE
   v_updated BOOLEAN;
   v_agent_id UUID;
 BEGIN
+<<<<<<< HEAD
   -- Validate status against the API contract §1.2 enum. 'in_progress' is
   -- allowed (clients may re-persist fields mid-call) but is NOT terminal:
   -- only terminal transitions trigger the agent call_count increment.
   IF p_status NOT IN ('resolved', 'escalated', 'missed', 'in_progress') THEN
     RAISE EXCEPTION 'invalid status: %', p_status;
+=======
+  -- Validate terminal status against the conversations CHECK constraint set.
+  IF p_status NOT IN ('resolved', 'escalated', 'missed') THEN
+    RAISE EXCEPTION 'invalid terminal status: %', p_status;
+>>>>>>> origin/fix/issue-4-backend-hardening
   END IF;
 
   -- Single-statement transition + increment guard:
@@ -60,7 +66,11 @@ BEGIN
 
   v_updated := FOUND;
 
+<<<<<<< HEAD
   IF v_updated AND v_agent_id IS NOT NULL AND p_status <> 'in_progress' THEN
+=======
+  IF v_updated AND v_agent_id IS NOT NULL THEN
+>>>>>>> origin/fix/issue-4-backend-hardening
     PERFORM public.increment_agent_call_count(v_agent_id);
   END IF;
 

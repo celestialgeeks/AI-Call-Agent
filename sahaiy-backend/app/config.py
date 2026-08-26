@@ -58,6 +58,7 @@ AUTH_ENFORCED: bool = _parse_bool_env("AUTH_ENFORCED", False)
 # 0 disables the limiter.
 RATE_LIMIT_STT_RPM: int = int(os.getenv("RATE_LIMIT_STT_RPM", "20"))
 RATE_LIMIT_WS_PER_MIN: int = int(os.getenv("RATE_LIMIT_WS_PER_MIN", "10"))
+<<<<<<< HEAD
 
 # ── Auth (JWT HS256 — ruling B1, issues #4/#7) ───────────────────────────
 SUPABASE_JWT_SECRET: str = os.getenv("SUPABASE_JWT_SECRET", "")
@@ -71,6 +72,8 @@ CAMPAIGN_WS_TEXT_INPUT_TIMEOUT_SEC: float = float(
     os.getenv("CAMPAIGN_WS_TEXT_INPUT_TIMEOUT_SEC", "20")
 )
 CAMPAIGN_SIM_CONVERSATION_TURNS: int = int(os.getenv("CAMPAIGN_SIM_CONVERSATION_TURNS", "2"))
+=======
+>>>>>>> origin/fix/issue-4-backend-hardening
 
 # ── LiveKit ────────────────────────────────────────────────────────────────
 LIVEKIT_URL: str = os.getenv("LIVEKIT_URL", "")
