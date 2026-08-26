@@ -3,6 +3,10 @@ app/services/rag.py
 ────────────────────
 Retrieval-Augmented Generation (RAG) using FAISS + sentence-transformers.
 
+Usage:
+    await ingest_doc(user_id, doc_id, text)          # index one doc
+    context = await retrieve_context(user_id, query)  # get top-k context
+
 ADR-0003: the app host's disk is EPHEMERAL (HF Spaces). Supabase Postgres is
 the system of record for vectors:
 
@@ -13,10 +17,20 @@ the system of record for vectors:
 The per-user in-memory FAISS index is a CACHE; on boot / first touch it is
 rebuilt from knowledge_doc_chunks. SEC-05 proves a document stays retrievable
 across a backend restart.
+
+Memory safety (Render free tier / 512 MB containers):
+    numpy / faiss / sentence-transformers (→ torch) are NOT imported at module
+    load time — doing so pulled torch into every app boot (~300–400 MB RSS)
+    and got the process OOM-killed (exit 137) before uvicorn could bind $PORT.
+    Heavy imports now happen only on the first actual RAG call (_ensure_rag()),
+    cached after the first attempt. Set RAG_ENABLED=false to hard-disable RAG
+    entirely (recommended on 512 MB instances where a first RAG call would OOM
+    anyway).
 """
 
 import asyncio
 import logging
+import os
 import struct
 import base64
 import threading
@@ -24,20 +38,18 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Lazy imports so the app starts without these heavy deps if RAG is unused
-try:
-    import numpy as np
-    import faiss
-    from sentence_transformers import SentenceTransformer
-    _RAG_AVAILABLE = True
-except ImportError:
-    _RAG_AVAILABLE = False
-    logger.warning(
-        "[RAG] faiss-cpu or sentence-transformers not installed — RAG disabled. "
-        "Run: pip install faiss-cpu sentence-transformers"
-    )
-
 _MODEL_NAME = "all-MiniLM-L6-v2"
+
+# Populated lazily by _ensure_rag() — never at import time.
+np = None                 # type: ignore[assignment]
+faiss = None              # type: ignore[assignment]
+SentenceTransformer = None  # type: ignore[assignment]
+
+_RAG_ENABLED_CFG = os.getenv("RAG_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
+_rag_checked = False
+_RAG_AVAILABLE = False
+_rag_lock = threading.Lock()
+
 _model: Optional[object] = None
 
 # ── Chunking constants ────────────────────────────────────────────────────────
@@ -58,9 +70,48 @@ _lock = threading.Lock()
 _supabase = None
 
 
+def _ensure_rag() -> bool:
+    """
+    Import heavy ML deps on first RAG use. Returns True when RAG is usable.
+    The result is cached — imports are attempted exactly once per process.
+    Import failures (missing packages OR low-memory environments) degrade
+    gracefully: RAG is disabled and everything else keeps working.
+    """
+    global _rag_checked, _RAG_AVAILABLE
+    global np, faiss, SentenceTransformer
+
+    if _rag_checked:
+        return _RAG_AVAILABLE
+
+    with _rag_lock:
+        if _rag_checked:
+            return _RAG_AVAILABLE
+
+        if not _RAG_ENABLED_CFG:
+            logger.info("[RAG] RAG_ENABLED=false — RAG disabled by configuration.")
+        else:
+            try:
+                import numpy as _np
+                import faiss as _faiss
+                from sentence_transformers import SentenceTransformer as _ST
+
+                np, faiss, SentenceTransformer = _np, _faiss, _ST
+                _RAG_AVAILABLE = True
+                logger.info("[RAG] heavy deps loaded on first use (numpy/faiss/sentence-transformers).")
+            except Exception as exc:  # ImportError or OOM/segfault-prone loaders
+                _RAG_AVAILABLE = False
+                logger.warning(
+                    "[RAG] heavy deps unavailable (%s) — RAG disabled. "
+                    "Run: pip install faiss-cpu sentence-transformers",
+                    exc,
+                )
+        _rag_checked = True
+        return _RAG_AVAILABLE
+
+
 def _get_model():
     global _model
-    if _model is None and _RAG_AVAILABLE:
+    if _model is None and _ensure_rag():
         logger.info("[RAG] Loading sentence-transformer model '%s' …", _MODEL_NAME)
         _model = SentenceTransformer(_MODEL_NAME)
         logger.info("[RAG] Model loaded.")
@@ -136,7 +187,11 @@ def _vec_to_bytes(vec: "np.ndarray") -> bytes:
 
 
 def _bytes_to_vec(raw: bytes, dim: int) -> "np.ndarray":
-    return np.frombuffer(raw, dtype="<f4").astype("float32").reshape(1, dim)
+    # Local import (not module level): serialisation helpers must work even
+    # before _ensure_rag() binds the module-level alias. numpy alone is
+    # CPU-light; this never pulls in torch/sentence-transformers.
+    import numpy as _np
+    return _np.frombuffer(raw, dtype="<f4").astype("float32").reshape(1, dim)
 
 
 # ── Persistence layer (Supabase) ─────────────────────────────────────────────
@@ -167,7 +222,7 @@ async def _load_user_from_supabase(user_id: str) -> bool:
     Degrades to an empty cache when RAG deps are missing or Supabase fails —
     retrieval then simply returns no context instead of crashing calls.
     """
-    if not _RAG_AVAILABLE:
+    if not _ensure_rag():
         return False
 
     def _fetch():
@@ -238,7 +293,7 @@ async def ingest_doc(user_id: str, doc_id: str, text: str) -> int:
     Returns the number of chunks ingested. Raises on persistence failure so the
     router can mark the doc 'failed' honestly.
     """
-    if not _RAG_AVAILABLE:
+    if not _ensure_rag():
         raise RuntimeError("RAG dependencies not installed")
 
     text = (text or "").strip()
@@ -323,7 +378,7 @@ async def retrieve_context(user_id: str, query: str, top_k: int = 3) -> str:
     Lazily rebuilds the index from Supabase on first access after a restart —
     this is what makes SEC-05 (restart survival) pass.
     """
-    if not _RAG_AVAILABLE or not user_id:
+    if not _ensure_rag() or not user_id:
         return ""
 
     await ensure_user_loaded(user_id)

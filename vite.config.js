@@ -17,10 +17,12 @@ export default defineConfig({
     build: {
         rollupOptions: {
             input: {
-                // Landing, Auth, and Dashboard are independent pages
+                // Landing, Auth, Dashboard, and legal pages are independent entries
                 main: resolve(__dirname, 'index.html'),
                 auth: resolve(__dirname, 'auth.html'),
                 dashboard: resolve(__dirname, 'app.html'),
+                terms: resolve(__dirname, 'terms.html'),
+                privacy: resolve(__dirname, 'privacy.html'),
             },
         },
         // Output clean filename in production
