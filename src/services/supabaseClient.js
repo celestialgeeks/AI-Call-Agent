@@ -16,5 +16,10 @@ export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
+        // PKCE flow: the auth code is exchanged for a session via fetch (stored in
+        // localStorage) instead of relying on third-party cookies in the implicit-flow
+        // redirect chain. Fixes the login → instant-logout loop where the dashboard
+        // booted with no recoverable session and bounced back to auth.html.
+        flowType: 'pkce',
     },
 });

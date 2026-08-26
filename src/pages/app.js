@@ -7,8 +7,9 @@
  */
 
 // ── Services ──────────────────────────────────────────────────
-import { getSession } from '@/services/authService.js';
+import { getSession, onAuthStateChange } from '@/services/authService.js';
 import * as authService from '@/services/authService.js';
+import env from '@/config/env.js';
 import { getAgents, createAgent, deleteAgent } from '@/services/agentService.js';
 import { getConversations, addConversation, addKnowledgeDoc, getPhoneNumbers, deletePhoneNumber, getKnowledgeDocs, getTools } from '@/services/conversationService.js';
 import { getDailyStats, seedUserData, getProfile } from '@/services/analyticsService.js';
@@ -40,10 +41,50 @@ let _tickerTimeout = null;
 // ═══════════════════════════════════════════════════════════════
 //  Boot
 // ═══════════════════════════════════════════════════════════════
+/**
+ * Resolves once Supabase emits SIGNED_IN / INITIAL_SESSION with a session,
+ * or after `timeoutMs` — whichever comes first.
+ * Used to avoid bouncing to auth.html while an OAuth callback is still exchanging.
+ * @param {number} timeoutMs
+ * @returns {Promise<boolean>} true if a session appeared before the timeout
+ */
+function _waitForAuthEvent(timeoutMs) {
+    return new Promise((resolve) => {
+        let settled = false;
+        const finish = (found) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            try { sub?.data.subscription.unsubscribe(); } catch { /* already gone */ }
+            resolve(found);
+        };
+        const sub = onAuthStateChange((event, s) => {
+            if (s) finish(true);
+            else if (event === 'SIGNED_OUT') finish(false);
+        });
+        const timer = setTimeout(() => finish(false), timeoutMs);
+    });
+}
+
 async function boot() {
   // 1. Auth guard
   const session = await getSession();
-  if (!session) { window.location.replace('/auth.html?mode=login'); return; }
+  // Diagnostics for auth-loop investigation (login → instant logout).
+  const bootDiag = {
+    origin: window.location.origin,
+    appUrl: env.appUrl,
+    hasSession: Boolean(session),
+    ts: new Date().toISOString(),
+  };
+  window.__SAHAIY_BOOT_LOG__ = bootDiag;
+  // eslint-disable-next-line no-console
+  console.log('[Sahaiy Auth] boot:', JSON.stringify(bootDiag));
+  if (!session) {
+    // A PKCE/implicit callback may still be in flight when boot() runs — wait briefly
+    // for onAuthStateChange instead of bouncing instantly (avoids false sign-out).
+    const recovered = await _waitForAuthEvent(4000);
+    if (!recovered) { window.location.replace('/auth.html?mode=login'); return; }
+  }
   _user = session.user;
   window.__USER_ID__ = _user.id;
 
@@ -133,12 +174,13 @@ function _updateHomeStats() {
   const avgSec = todayConvs.length
     ? Math.round(todayConvs.reduce((s, c) => s + (c.duration_sec ?? 0), 0) / todayConvs.length)
     : 0;
-  const successRate = todayConvs.length ? ((resolvedToday / todayConvs.length) * 100).toFixed(1) : 98.2;
-  const costInr = (_convs.length * 0.44).toFixed(0);
+  const successRate = todayConvs.length ? ((resolvedToday / todayConvs.length) * 100).toFixed(1) : null;
+  const costInr = (todayConvs.length * 0.44).toFixed(0);
 
-  _setStatCard(0, _convs.length.toLocaleString(), '↑ 18% vs yesterday', true);
-  _setStatCard(1, formatDuration(avgSec), '↓ 4% vs yesterday', false);
-  _setStatCard(2, `${successRate}%`, '↑ 1.2pp vs last week', true);
+  // Honest empty states per ADR-0001: never show fabricated numbers or fake deltas.
+  _setStatCard(0, _convs.length.toLocaleString(), todayConvs.length ? `${todayConvs.length} today` : 'No calls yet', null);
+  _setStatCard(1, avgSec ? formatDuration(avgSec) : '—', 'Avg across calls', null);
+  _setStatCard(2, successRate ? `${successRate}%` : '—', successRate ? 'Resolved share' : 'No calls yet', null);
   _setStatCard(3, `₹${Number(costInr).toLocaleString()}`, '≈ ₹0.44 per call', null);
 }
 
@@ -179,7 +221,7 @@ function _renderRecentTable() {
 
 // ── Charts ────────────────────────────────────────────────────
 function _buildChartData(period) {
-  if (!_stats.length) return [240, 310, 285, 420, 380, 490, 518];
+  if (!_stats.length) return [0, 0, 0, 0, 0, 0, 0];
   const sorted = [..._stats].sort((a, b) => a.date.localeCompare(b.date));
   if (period === 'week') return sorted.slice(-7).map((d) => d.total_calls);
   if (period === 'month') return sorted.slice(-30).map((d) => d.total_calls);
