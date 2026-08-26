@@ -142,14 +142,26 @@ class TestSttTranscribe:
 
 
 class TestKnowledge:
+    async def _rag_ready(self, api) -> bool:
+        """True when this deployment has the optional heavy RAG deps."""
+        r = await api.get("/knowledge/status", params={"user_id": USER_A})
+        return bool(r.json().get("rag_available"))
+
     async def test_ingest_exact_shape(self, api):
+        if not await self._rag_ready(api):
+            pytest.xfail("RAG disabled in test env (faiss/sentence-transformers "
+                         "absent) — /knowledge/ingest honestly returns 503")
         r = await api.post(
             "/knowledge/ingest",
             json={"user_id": USER_A, "doc_id": "doc-1", "text": "Sahaiy demo facts."},
         )
         assert r.status_code == 200, r.text
-        assert r.json() == {"ok": True, "doc_id": "doc-1"}
-
+        # Contract §1.4 upgraded by issue #5 (ADR-0003): response keeps the
+        # v1 core {ok, doc_id} plus ADDITIVE honest metadata (status, chunks,
+        # size_bytes, name, source). Exact-equality pin relaxed accordingly.
+        body = r.json()
+        assert body["ok"] is True
+        assert body["doc_id"] == "doc-1"
     async def test_ingest_empty_text_400(self, api):
         r = await api.post(
             "/knowledge/ingest",
@@ -161,7 +173,8 @@ class TestKnowledge:
         r = await api.get("/knowledge/status", params={"user_id": USER_A})
         assert r.status_code == 200
         body = r.json()
-        assert set(body.keys()) == {"user_id", "indexed_docs", "rag_available"}
+        # Issue #5 adds additive fields to the v1 trio — superset allowed.
+        assert {"user_id", "indexed_docs", "rag_available"} <= set(body.keys())
         assert body["user_id"] == USER_A
         assert isinstance(body["indexed_docs"], int)
 
@@ -181,23 +194,23 @@ class TestHealth:
 
 class TestOutreachBoundaryDraft:
     """
-    api-contracts Part 2 is a DRAFT pending @systems-architect ruling. The moment
-    /api/v1/campaigns ships, these become full conformance cases (exact shapes).
-    Today they pin that unimplemented routes do NOT silently appear with wrong shapes.
+    Adopted from main (#47): the outreach ROUTE shipped via PR #21
+    (/api/v1/campaigns, SKIP LOCKED queue), so the old "route must be absent"
+    canary is replaced with a minimal wiring check: the route exists and
+    enforces its schema (CampaignCreate requires `name`).
     """
 
-    async def test_campaigns_route_absent_until_contract_locked(self, api):
-        """
-        UPDATED: /api/v1/campaigns shipped via #21 (outreach campaigns v1).
-        The route now exists, so the old absence-canary (404/405) is replaced
-        per this test's own docstring contract: verify the endpoint responds
-        with a validation-level status for a malformed body (missing required
-        campaign fields), i.e. the route is real and validated — exact-shape
-        conformance cases land with Part 2 of api-contracts.
-        """
-        r = await api.post("/api/v1/campaigns", json={"agent_id": AGENT_ID})
-        assert r.status_code in (200, 201, 400, 401, 403, 422), (
-            f"/api/v1/campaigns answered {r.status_code} — unexpected shape; "
-            "add exact-shape conformance cases per "
-            "api-contracts-and-outreach-boundary-v1.md Part 2"
+    async def test_campaigns_route_shipped_and_validates(self, api):
+        # Route exists (no longer 404) and CampaignCreate validation is live:
+        # a body missing the required `name` field → 422 envelope/validation.
+        r = await api.post(
+            "/api/v1/campaigns",
+            json={"agent_id": AGENT_ID},
+            headers={"X-User-Id": USER_A},
         )
+        assert r.status_code == 422, (
+            f"expected 422 (missing required 'name'), got {r.status_code}: {r.text} — "
+            "if this is 404/405 the campaigns router vanished from main"
+        )
+        body = r.json()
+        assert set(body.get("error", {}).keys()) >= {"code", "message", "request_id"}

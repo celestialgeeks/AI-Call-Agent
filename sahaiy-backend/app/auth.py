@@ -58,7 +58,7 @@ def _verify_token(token: str) -> str:
 async def get_current_user_id(
     authorization: Optional[str] = Header(default=None),
     x_user_id: Optional[str] = Header(default=None),
-) -> str:
+) -> Optional[str]:
     """
     FastAPI dependency: resolve the caller's user_id.
 
@@ -81,7 +81,11 @@ async def get_current_user_id(
     # Dev fallback only.
     if x_user_id:
         return x_user_id.strip()
-    raise _unauthorized("Provide Authorization: Bearer token (or X-User-Id in unenforced dev mode)")
+    # Legacy mode (flag off, no secret): no identity from headers → None so
+    # routers apply their own client-declared user_id resolution (e.g.
+    # knowledge ingest form/body fields). Raising here would break the
+    # documented AUTH_ENFORCED flag contract for legacy routers.
+    return None
 
 
 async def get_websocket_user_id(websocket) -> Optional[str]:

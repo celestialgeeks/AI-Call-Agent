@@ -254,6 +254,9 @@ def _run(coro):
 def client(rag_env, monkeypatch):
     # Pretend Supabase is configured so the honest status-lifecycle writes fire
     # (they go to the mocked client from the rag_env fixture).
+    # NOTE: SUPABASE_JWT_SECRET must stay unset — main's auth dev fallback is
+    # gated on "no secret configured" (AUTH_ENFORCED=false alone isn't enough),
+    # and these tests exercise the legacy client-declared user_id path.
     monkeypatch.setenv("SUPABASE_URL", "https://test-project.supabase.co")
     monkeypatch.setenv("SUPABASE_SERVICE_KEY", "test-service-key")
     monkeypatch.setenv("AUTH_ENFORCED", "false")
@@ -309,6 +312,9 @@ def test_status_endpoint_additive_compatible(client):
 
 
 def test_ingest_requires_user(client):
+    """Legacy mode (flag off, no secret): the auth dependency returns None, so
+    the ROUTER's ownership guard rejects a request with no user identity at
+    all with 400 missing_user (envelope)."""
     tc, _ = client
     resp = tc.post("/knowledge/ingest", json={"doc_id": "d1", "text": "x"})
     assert resp.status_code == 400

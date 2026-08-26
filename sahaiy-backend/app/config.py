@@ -59,10 +59,6 @@ AUTH_ENFORCED: bool = _parse_bool_env("AUTH_ENFORCED", False)
 RATE_LIMIT_STT_RPM: int = int(os.getenv("RATE_LIMIT_STT_RPM", "20"))
 RATE_LIMIT_WS_PER_MIN: int = int(os.getenv("RATE_LIMIT_WS_PER_MIN", "10"))
 
-# ── Auth (JWT HS256 — ruling B1, issues #4/#7) ───────────────────────────
-SUPABASE_JWT_SECRET: str = os.getenv("SUPABASE_JWT_SECRET", "")
-AUTH_ENFORCED: bool = _parse_bool_env("AUTH_ENFORCED", False)
-
 # ── Campaigns (outreach v1 — issue #7) ───────────────────────────────────
 CAMPAIGN_CSV_MAX_BYTES: int = int(os.getenv("CAMPAIGN_CSV_MAX_BYTES", str(5 * 1024 * 1024)))
 CAMPAIGN_WORKER_POLL_SEC: float = float(os.getenv("CAMPAIGN_WORKER_POLL_SEC", "2"))
