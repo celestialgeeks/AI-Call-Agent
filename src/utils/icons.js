@@ -52,6 +52,7 @@ const ICONS = {
         <path d="M7.5 14.5h9"/>`,
     'phone-numbers': `
         <path d="M20.5 16.72v2.36a1.75 1.75 0 0 1-1.91 1.74 17.3 17.3 0 0 1-7.55-2.69 17.05 17.05 0 0 1-5.25-5.25A17.3 17.3 0 0 1 3.1 5.25 1.75 1.75 0 0 1 4.84 3.5H7.2a1.75 1.75 0 0 1 1.75 1.5c.11.85.31 1.68.6 2.47a1.75 1.75 0 0 1-.4 1.84L8.1 10.35a14 14 0 0 0 5.25 5.25l1.04-1.04a1.75 1.75 0 0 1 1.84-.4c.79.29 1.62.49 2.47.61a1.75 1.75 0 0 1 1.5 1.78z"/>`,
+    phone: null, // alias resolved in icon() to 'phone-numbers'
     whatsapp: `
         <path d="M4.75 4.75h14.5v11.5H9.5l-4.75 4v-15.5z"/>`,
     outbound: `
@@ -82,6 +83,7 @@ const ICONS = {
 
 /** Returns the full inline-SVG string for one icon name. Unknown names → ''. */
 export function icon(name) {
+    if (name === 'phone') name = 'phone-numbers'; // alias
     const body = ICONS[name];
     return body ? `<svg ${S}>${body}</svg>` : '';
 }

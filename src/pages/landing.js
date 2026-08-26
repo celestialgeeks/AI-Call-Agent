@@ -56,7 +56,7 @@ import { showToast } from '@/utils/toast.js';
 /** Global handler for the pricing CTA — can be called from HTML */
 window.copyEmbedCode = () => {
     navigator.clipboard.writeText('<sahaiy-widget agent-id="ag_demo"></sahaiy-widget>').then(() => {
-        showToast('✅ Embed code copied!', 'success');
+        showToast('Embed code copied to clipboard', 'success');
     });
 };
 
@@ -66,5 +66,5 @@ window.copyEmbedCode = () => {
 // instead of throwing a ReferenceError from the inline onclick.
 window.startDemo = () => {
     document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
-    showToast('🎙️ Live demo coming soon — stay tuned!', 'info');
+    showToast('Live demo coming soon — stay tuned', 'info');
 };

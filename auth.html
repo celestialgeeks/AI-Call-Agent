@@ -11,6 +11,7 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="./src/styles/base.css" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- Vite module entry: all logic lives in src/pages/auth.js -->
     <script type="module" src="./src/pages/auth.js"></script>
     <style>
@@ -31,27 +32,11 @@
         }
 
         .auth-glow-left {
-            position: fixed;
-            top: -100px;
-            left: -150px;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(124, 92, 252, 0.12) 0%, transparent 65%);
-            pointer-events: none;
-            border-radius: 50%;
-            z-index: 0;
+            display: none; /* colored glow removed — achromatic chrome (spec v2 §0.1) */
         }
 
         .auth-glow-right {
-            position: fixed;
-            bottom: -100px;
-            right: -150px;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(0, 196, 161, 0.1) 0%, transparent 65%);
-            pointer-events: none;
-            border-radius: 50%;
-            z-index: 0;
+            display: none; /* colored glow removed — achromatic chrome (spec v2 §0.1) */
         }
 
         .auth-nav {
@@ -77,12 +62,14 @@
         .auth-nav-logo-icon {
             width: 32px;
             height: 32px;
-            background: linear-gradient(135deg, var(--accent) 0%, #00C4A1 100%);
-            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+        }
+
+        .auth-nav-logo-icon svg {
+            width: 28px;
+            height: 28px;
         }
 
         .auth-nav-right {
@@ -154,10 +141,8 @@
         }
 
         .auth-left h2 span {
-            background: linear-gradient(135deg, var(--accent), #00C4A1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
         .auth-left p {
@@ -187,10 +172,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
             flex-shrink: 0;
             border: 1px solid var(--border);
             background: var(--surface);
+            color: var(--text-primary);
+        }
+
+        .auth-feature-icon svg {
+            width: 16px;
+            height: 16px;
         }
 
         .auth-feature-text {
@@ -384,7 +374,7 @@
 
         .form-input:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
         }
 
         .form-input::placeholder {
@@ -567,7 +557,15 @@
 
     <nav class="auth-nav">
         <a href="index.html" class="auth-nav-logo">
-            <div class="auth-nav-logo-icon">🤖</div>
+            <div class="auth-nav-logo-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true">
+                    <!-- Sahaiy mark v1 "Wave Tile" (design spec v2 §1) -->
+                    <rect width="32" height="32" rx="7.5" fill="#111111"/>
+                    <rect x="8" y="12" width="3.5" height="8" rx="1.75" fill="#FFFFFF"/>
+                    <rect x="14.25" y="8" width="3.5" height="16" rx="1.75" fill="#FFFFFF"/>
+                    <rect x="20.5" y="12" width="3.5" height="8" rx="1.75" fill="#FFFFFF"/>
+                </svg>
+            </div>
             Sahaiy
         </a>
         <div class="auth-nav-right" id="nav-toggle-text">
@@ -584,7 +582,12 @@
                 <p>Set up, configure, and deploy your first AI call agent with Sahaiy — before your next meeting.</p>
                 <div class="auth-features">
                     <div class="auth-feature">
-                        <div class="auth-feature-icon">🚀</div>
+                        <div class="auth-feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M13 2.5L4.5 13.5H12l-1 8 8.5-11H13l1-8z" />
+                            </svg>
+                        </div>
                         <div class="auth-feature-text">
                             <div class="auth-feature-title">Deploy in minutes, not months</div>
                             <div class="auth-feature-desc">No engineering team needed. Use our no-code agent builder to
@@ -592,7 +595,13 @@
                         </div>
                     </div>
                     <div class="auth-feature">
-                        <div class="auth-feature-icon">📞</div>
+                        <div class="auth-feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path
+                                    d="M20.5 16.72v2.36a1.75 1.75 0 0 1-1.91 1.74 17.3 17.3 0 0 1-7.55-2.69 17.05 17.05 0 0 1-5.25-5.25A17.3 17.3 0 0 1 3.1 5.25 1.75 1.75 0 0 1 4.84 3.5H7.2a1.75 1.75 0 0 1 1.75 1.5c.11.85.31 1.68.6 2.47a1.75 1.75 0 0 1-.4 1.84L8.1 10.35a14 14 0 0 0 5.25 5.25l1.04-1.04a1.75 1.75 0 0 1 1.84-.4c.79.29 1.62.49 2.47.61a1.75 1.75 0 0 1 1.5 1.78z" />
+                            </svg>
+                        </div>
                         <div class="auth-feature-text">
                             <div class="auth-feature-title">Scales with your call volume</div>
                             <div class="auth-feature-desc">Cloud infrastructure that grows with you — never miss a
@@ -600,7 +609,13 @@
                         </div>
                     </div>
                     <div class="auth-feature">
-                        <div class="auth-feature-icon">🔒</div>
+                        <div class="auth-feature-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="5" y="10.5" width="14" height="9.5" rx="2" />
+                                <path d="M8.25 10.5V7.75a3.75 3.75 0 0 1 7.5 0v2.75" />
+                            </svg>
+                        </div>
                         <div class="auth-feature-text">
                             <div class="auth-feature-title">Enterprise-grade security</div>
                             <div class="auth-feature-desc">Privacy-first · Data hosted in India · You can request
