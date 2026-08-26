@@ -85,23 +85,34 @@ async def call_end(agent_id: str, body: CallEndRequest):
     """
     try:
         supabase = get_supabase()
-        update_payload = {
-            "status": body.status,
-            "duration_sec": body.duration_sec,
-            "transcript": body.transcript,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-        }
-        if body.csat_score is not None:
-            update_payload["csat_score"] = body.csat_score
 
-        supabase.table("conversations").update(update_payload).eq("id", body.conversation_id).execute()
+        # SEC-04 (issue #4): the terminal transition AND the agent call_count
+        # increment happen atomically inside `finalize_conversation`, guarded
+        # on status='in_progress' — double call_end can't double-count, and
+        # the old broken `.update({"call_count": supabase.rpc(...)})` pattern
+        # (referenced a nonexistent RPC → silent no-op) is gone.
+        # Requires migrations/0002_atomic_call_count.sql to be applied.
+        rpc_result = (
+            supabase.rpc("finalize_conversation", {
+                "p_conversation_id": body.conversation_id,
+                "p_status": body.status,
+                "p_duration_sec": body.duration_sec,
+                "p_transcript": body.transcript,
+                "p_csat_score": body.csat_score,
+            })
+            .execute()
+        )
+        updated = bool((getattr(rpc_result, "data", None) or {}).get("updated"))
+        if not updated:
+            logger.info("[Calls] call_end on non-in_progress conversation %s — idempotent no-op",
+                        body.conversation_id)
 
-        # Increment agent call_count
-        supabase.table("agents").update({"call_count": supabase.rpc("get_agent_call_count", {"p_id": agent_id})}).eq("id", agent_id)
-
-        logger.info("[Calls] Ended conversation %s (%ds, status=%s)", body.conversation_id, body.duration_sec, body.status)
+        logger.info("[Calls] Ended conversation %s (%ds, status=%s)",
+                    body.conversation_id, body.duration_sec, body.status)
         return {"ok": True}
 
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error("[Calls] call_end error: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
