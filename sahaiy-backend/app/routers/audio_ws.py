@@ -6,13 +6,22 @@ WebSocket audio pipeline: audio in -> STT -> LLM (streaming) -> TTS (Sarvam) -> 
 WS /ws/audio?agent_id=<uuid>&user_id=<uuid>
 
 Protocol:
-  Client sends: raw audio bytes (WAV chunks, 20-50 ms)
+  Client sends: raw audio bytes (WAV chunks, 20-50 ms) or JSON control frames
   Server sends: interleaved JSON frames OR binary WAV audio frames
     JSON:  { "type": "transcript", "text": "..." }
     JSON:  { "type": "fragment",   "text": "..." }
     JSON:  { "type": "interrupted" }
-    JSON:  { "type": "error",      "message": "..." }
+    JSON:  { "type": "error",      "code": "...", "message": "..." }
     bytes: WAV audio data for playback
+
+Error taxonomy (single client-visible vocabulary — issue #30):
+    backend_unreachable : a required dependency (STT/LLM) is not usable at all
+    stt_failed          : speech-to-text failed (provider named in message)
+    llm_failed          : language-model generation failed (provider named)
+    tts_failed          : text-to-speech synthesis failed
+
+Keepalive: server pings every WS_PING_INTERVAL_SEC so idle connections
+survive proxies/load balancers.
 
 Interrupt handling:
   Client sends a JSON frame { "type": "interrupt" } OR energy VAD detects speech
@@ -32,15 +41,23 @@ import httpx
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.auth import get_websocket_user_id
-from app.config import STT_URL, STT_TIMEOUT_SEC
+from app.config import WS_PING_INTERVAL_SEC
 from app.ratelimit import check_ws_rate
 from app.services import agent_service, rag
-from app.services.llm import build_prompt, stream_llm
+from app.services.llm import LLMProviderError, build_prompt, llm_provider, stream_llm
+from app.services.stt import stt_provider, transcribe
 from app.services.tts import speak_to_bytes
 from app.services.vad import is_speech
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Audio WebSocket"])
+
+# Client-visible error codes (issue #30 taxonomy). Do not invent new ones.
+ERR_BACKEND_UNREACHABLE = "backend_unreachable"
+ERR_MIC_DENIED = "mic_denied"       # client-side only; reserved for the frontend
+ERR_STT_FAILED = "stt_failed"
+ERR_LLM_FAILED = "llm_failed"
+ERR_TTS_FAILED = "tts_failed"
 
 _EMPTY_TRANSCRIPT_PATTERNS = [
     re.compile(r"^\s*$", re.IGNORECASE),
@@ -55,7 +72,7 @@ _DEVANAGARI_RE = re.compile(r"[\u0900-\u097F]")
 
 
 def _lang_hint_from_label(label: str) -> Optional[str]:
-    """Map human language labels to short Whisper language hints."""
+    """Map human language labels to short STT language hints."""
     value = (label or "").lower()
     if not value:
         return None
@@ -139,20 +156,21 @@ async def _transcribe(
     content_type: str = "audio/wav",
     language_hint: Optional[str] = None,
 ) -> str:
-    """Send audio bytes to whisper.cpp and return transcribed text."""
-    try:
-        resp = await http_client.post(
-            STT_URL,
-            files={"file": (file_name, audio_bytes, content_type)},
-            data={"language": language_hint} if language_hint else None,
-            timeout=float(STT_TIMEOUT_SEC),
-        )
-        resp.raise_for_status()
-        raw_text = resp.json().get("text", "")
-        return _normalize_transcript(raw_text)
-    except Exception as exc:
-        logger.error("[WS/STT] %s", exc)
-        return ""
+    """
+    Transcribe via the provider-selected STT service.
+
+    Returns "" for genuine silence/no-speech. Raises RuntimeError (with an
+    actionable message naming the failing provider) when STT actually fails —
+    callers translate that into an `stt_failed` error frame.
+    """
+    raw_text = await transcribe(
+        audio_bytes,
+        client=http_client,
+        file_name=file_name,
+        content_type=content_type,
+        language_hint=language_hint,
+    )
+    return _normalize_transcript(raw_text)
 
 
 async def _send_json(ws: WebSocket, payload: dict) -> None:
@@ -181,6 +199,8 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     IGNORED — identity comes from the Bearer token on the upgrade request.
     Rate limited: RATE_LIMIT_WS_PER_MIN new connections per identity
     (default 10/min); rejected connections get code 429 + close.
+    Connects whenever the configured primary cloud APIs are reachable;
+    local fallbacks are optional.
     """
     # ── Auth + rate limit gate (before accept) ────────────────────────────
     try:
@@ -198,7 +218,10 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     effective_user_id = ws_user_id or user_id
 
     await ws.accept()
-    logger.info("[WS] Connected — agent=%s user=%s", agent_id, effective_user_id)
+    logger.info(
+        "[WS] Connected — agent=%s user=%s stt=%s llm=%s",
+        agent_id, effective_user_id, stt_provider(), llm_provider(),
+    )
 
     # Fetch agent config
     agent = await agent_service.get_agent(agent_id) if agent_id else {}
@@ -230,6 +253,7 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     speech_chunks_in_buffer = 0
     stt_language_hint = _lang_hint_from_label(str(agent.get("language") or agent.get("voice_lang") or ""))
     greeting_sent = False
+    ping_task: Optional[asyncio.Task] = None
 
     async def _send_greeting_once() -> None:
         """Send optional first_message once per connection."""
@@ -253,9 +277,23 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
             greeting_sent = True
         except Exception as exc:
             logger.error("[WS/Greeting] %s", exc)
+            await _send_json(ws, {
+                "type": "error",
+                "code": ERR_TTS_FAILED,
+                "message": f"Greeting TTS failed: {exc}",
+            })
+
+    async def _ping_loop() -> None:
+        """Server-initiated keepalive so proxies don't kill idle sockets."""
+        while True:
+            await asyncio.sleep(WS_PING_INTERVAL_SEC)
+            try:
+                await ws.ping()
+            except Exception:
+                return
 
     async def _run_pipeline(user_text: str) -> None:
-        """Run STT -> RAG -> LLM streaming -> TTS for one utterance."""
+        """Run RAG -> LLM streaming -> TTS for one utterance (text or transcribed)."""
         nonlocal is_playing
         interrupt_event.clear()
 
@@ -268,7 +306,9 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
 
         is_playing = True
         try:
-            async for fragment in stream_llm(prompt, agent, client=http_client):
+            async for fragment in stream_llm(
+                prompt, agent, client=http_client, user_text=user_text, context=context
+            ):
                 if interrupt_event.is_set():
                     logger.info("[WS] LLM stream interrupted")
                     break
@@ -285,13 +325,36 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
                     await _send_audio(ws, wav_bytes)
                 except Exception as tts_exc:
                     logger.error("[WS/TTS] %s", tts_exc)
-        except Exception as llm_exc:
+                    await _send_json(ws, {
+                        "type": "error",
+                        "code": ERR_TTS_FAILED,
+                        "message": f"Text-to-speech failed ({tts_exc}). Check SARVAM_API_KEY / Sarvam quota.",
+                    })
+        except LLMProviderError as llm_exc:
             logger.error("[WS/LLM] %s", llm_exc)
-            await _send_json(ws, {"type": "error", "message": str(llm_exc)})
+            fallback_hint = (
+                " No local llama.cpp fallback is running."
+                if llm_provider() == "llama" else ""
+            )
+            await _send_json(ws, {
+                "type": "error",
+                "code": ERR_LLM_FAILED,
+                "message": f"{llm_exc}.{fallback_hint}",
+            })
+        except Exception as llm_exc:
+            logger.error("[WS/LLM] unexpected: %s", llm_exc)
+            await _send_json(ws, {
+                "type": "error",
+                "code": ERR_LLM_FAILED,
+                "message": f"Language model failed unexpectedly: {llm_exc}",
+            })
         finally:
             is_playing = False
 
     try:
+        # Server-initiated keepalive so idle connections survive proxies.
+        ping_task = asyncio.create_task(_ping_loop())
+
         while True:
             # Receive next WebSocket message (binary audio or JSON control)
             message = await ws.receive()
@@ -419,13 +482,23 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
                     payload_content_type = "audio/wav"
 
             t0 = time.monotonic()
-            user_text = await _transcribe(
-                audio_payload,
-                http_client,
-                file_name=payload_file_name,
-                content_type=payload_content_type,
-                language_hint=stt_language_hint,
-            )
+            try:
+                user_text = await _transcribe(
+                    audio_payload,
+                    http_client,
+                    file_name=payload_file_name,
+                    content_type=payload_content_type,
+                    language_hint=stt_language_hint,
+                )
+            except Exception as stt_exc:
+                # STT genuinely failed (both providers unreachable/erroring).
+                logger.error("[WS/STT] failed: %s", stt_exc)
+                await _send_json(ws, {
+                    "type": "error",
+                    "code": ERR_STT_FAILED,
+                    "message": f"Speech-to-text failed: {stt_exc}",
+                })
+                continue
             stt_ms = int((time.monotonic() - t0) * 1000)
 
             if not user_text:
@@ -447,5 +520,7 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     finally:
         if current_llm_task and not current_llm_task.done():
             current_llm_task.cancel()
+        if ping_task:
+            ping_task.cancel()
         await http_client.aclose()
         logger.info("[WS] Connection closed — agent=%s", agent_id)

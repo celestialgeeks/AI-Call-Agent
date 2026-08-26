@@ -114,28 +114,25 @@ async function _startCall() {
 
     _setOrbState('connecting');
 
-    try {
-        // 1. Request microphone
-        _audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (err) {
-        _removeTypingIndicator();
-        _appendChatBubble('❌ Microphone access denied. Please allow microphone in your browser.', 'agent');
-        _setOrbState('idle');
-        return;
-    }
-
-    // 2. Open WebSocket
+    // 1. Open WebSocket FIRST — mic is requested only after the socket is
+    //    live, so a denied mic can never masquerade as "backend unreachable".
     _ws = new WebSocket(`${WS_BASE}/ws/audio?agent_id=${agentId}&user_id=${userId}`);
     _ws.binaryType = 'arraybuffer';
 
-    _ws.onopen = () => {
+    _ws.onopen = async () => {
         _isConnected = true;
         _setOrbState('connected');
 
         _sendAgentMeta();
 
-        // Start streaming raw PCM16 chunks for whisper.cpp compatibility
-        _startPcmStreaming();
+        try {
+            await _startMic();
+            _startPcmStreaming();
+        } catch (err) {
+            // getUserMedia rejected → mic problem, NOT a connection problem.
+            console.warn('[Playground] mic unavailable:', err?.name || err);
+            _appendChatBubble('❌ Microphone access denied. Text chat below still works — allow the microphone in your browser and click the orb to retry.', 'agent');
+        }
     };
 
     _ws.onmessage = async (event) => {
@@ -153,7 +150,10 @@ async function _startCall() {
                 _audioQueue = []; // discard queued audio
             } else if (data.type === 'error') {
                 _removeTypingIndicator();
-                showToast('❌ ' + (data.message || data.detail), 'error');
+                _appendChatBubble(_errorCopy(data), 'agent');
+                if (data.code === 'backend_unreachable' || data.code === 'stt_failed') {
+                    showToast('❌ ' + (data.message || 'Voice service problem.'), 'error');
+                }
             }
         } else {
             // Binary frame: WAV audio — queue for sequential playback
@@ -163,19 +163,33 @@ async function _startCall() {
         }
     };
 
-    _ws.onerror = (err) => {
-        console.error('[Playground WS error]', err);
+    _ws.onerror = () => {
+        console.error('[Playground WS error]');
         _removeTypingIndicator();
-        _appendChatBubble('⚠️ Connection error. Is the backend running on :8000?', 'agent');
+        if (!_isConnected) {
+            // Socket never opened → genuine connectivity failure.
+            const backend = (() => { try { return new URL(env.backendUrl).origin; } catch { return env.backendUrl; } })();
+            _appendChatBubble(`⚠️ Backend unreachable at ${backend}. Check your connection or try again later.`, 'agent');
+        } else {
+            _appendChatBubble('⚠️ Connection problem — the call was interrupted.', 'agent');
+        }
         _setOrbState('idle');
     };
 
-    _ws.onclose = () => {
+    _ws.onclose = (event) => {
         // Only handle if we're still marked as connected (avoid double cleanup)
         if (_isConnected) {
+            if (event && event.code === 4001) {
+                _appendChatBubble('⚠️ Session expired — sign in again to start a call.', 'agent');
+            }
             _stopCall(true);
         }
     };
+}
+
+/** Request microphone access. Throws when the browser denies it. */
+async function _startMic() {
+    _audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 }
 
 function _stopCall(showEndBubble = true) {
@@ -296,6 +310,27 @@ function _removeTypingIndicator() {
 
 function _jsonSafe(str) {
     try { return JSON.parse(str); } catch { return {}; }
+}
+
+/**
+ * Human copy for server error frames — names the actual failing component
+ * instead of a generic "connection error" (issue #30).
+ */
+function _errorCopy(data) {
+    switch (data.code) {
+        case 'backend_unreachable':
+            return '⚠️ Voice backend is unreachable right now. Please try again shortly.';
+        case 'mic_denied':
+            return '❌ Microphone access denied. Allow the microphone in your browser to speak.';
+        case 'stt_failed':
+            return `⚠️ Speech recognition failed (${data.message || 'service error'}). Text chat still works.`;
+        case 'llm_failed':
+            return `⚠️ The AI model failed to respond (${data.message || 'LLM error'}). Please try again.`;
+        case 'tts_failed':
+            return `⚠️ Voice playback failed (${data.message || 'TTS error'}). Replies will still appear as text.`;
+        default:
+            return `⚠️ ${data.message || data.detail || 'Something went wrong.'}`;
+    }
 }
 
 function _sendAgentMeta() {

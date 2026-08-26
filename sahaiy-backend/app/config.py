@@ -25,14 +25,27 @@ def _parse_bool_env(var_name: str, default: bool = False) -> bool:
 	return raw in {"1", "true", "yes", "on"}
 
 
-# ── LLM (llama.cpp server) ─────────────────────────────────────────────────
+# ── LLM ────────────────────────────────────────────────────────────────────
+# PRIMARY: NVIDIA NIM (OpenAI-compatible chat/completions). Active when
+# NVIDIA_API_KEY is set. FALLBACK: local llama.cpp server (ChatML completion).
+NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY", "")
+NIM_BASE_URL: str = os.getenv("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1").rstrip("/")
+NIM_MODEL: str = os.getenv("NIM_MODEL", "meta/llama-3.1-8b-instruct")
 LLM_URL: str = os.getenv("LLM_URL", "http://localhost:8080/completion")
 LLM_N_PREDICT: int = int(os.getenv("LLM_N_PREDICT", "80"))
 LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.6"))
+LLM_TIMEOUT_SEC: int = int(os.getenv("LLM_TIMEOUT_SEC", "30"))
 
-# ── STT (whisper.cpp server) ───────────────────────────────────────────────
+# ── STT ────────────────────────────────────────────────────────────────────
+# PRIMARY: Sarvam AI speech-to-text (saaras:v3). Active when SARVAM_API_KEY is
+# set (same key as TTS). FALLBACK: local whisper.cpp server (STT_URL).
+SARVAM_STT_URL: str = os.getenv("SARVAM_STT_URL", "https://api.sarvam.ai/speech-to-text")
+SARVAM_STT_MODEL: str = os.getenv("SARVAM_STT_MODEL", "saaras:v3")
 STT_URL: str = os.getenv("STT_URL", "http://localhost:8081/inference")
 STT_TIMEOUT_SEC: int = int(os.getenv("STT_TIMEOUT_SEC", "5"))
+
+# ── WebSocket keepalive ─────────────────────────────────────────────────────
+WS_PING_INTERVAL_SEC: int = int(os.getenv("WS_PING_INTERVAL_SEC", "20"))
 
 # ── TTS (Sarvam AI) ────────────────────────────────────────────────────────
 SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "")
