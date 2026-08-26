@@ -1636,12 +1636,11 @@ td.mono-num {
     align-items: center;
     gap: var(--sp-3);
     cursor: default;
-    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .voice-card:hover {
     border-color: var(--dash-accent);
-    transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
 }
 

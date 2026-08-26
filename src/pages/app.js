@@ -397,7 +397,7 @@ function _renderAgents(filter = '') {
 
   container.innerHTML = filtered.map((a, i) => {
     const [c1, c2] = gradients[i % gradients.length];
-    return `<div class="agent-row" onclick="editAgent('${a.id}','${escHtml(a.name)}')">
+    return `<div class="agent-row" data-agent-id="${escHtml(a.id)}" data-agent-name="${escHtml(a.name)}">
       <div class="agent-name-cell">
         <div class="agent-avatar" style="background:linear-gradient(135deg,${c1},${c2})">${a.icon ?? '🤖'}</div>
         <div>
@@ -410,12 +410,30 @@ function _renderAgents(filter = '') {
       <span style="font-size:13px;color:var(--dash-text-2);">${(a.call_count ?? 0).toLocaleString()}</span>
       <span style="font-size:12px;color:var(--dash-text-3);font-family:var(--font-mono);">${timeAgo(a.created_at)}</span>
       <div class="agent-actions">
-        <button class="agent-action-btn agent-action-btn--edit" onclick="event.stopPropagation();editAgent('${a.id}','${escHtml(a.name)}')">Edit</button>
-        <button class="agent-action-btn agent-action-btn--delete" onclick="event.stopPropagation();removeAgent('${a.id}')">Delete</button>
+        <button class="agent-action-btn agent-action-btn--edit" data-agent-id="${escHtml(a.id)}" data-agent-name="${escHtml(a.name)}">Edit</button>
+        <button class="agent-action-btn agent-action-btn--delete" data-agent-id="${escHtml(a.id)}" data-agent-name="${escHtml(a.name)}">Delete</button>
       </div>
     </div>`;
   }).join('');
 }
+
+// ── Delegated handlers for agent rows (XSS fix: no inline onclick with
+//    interpolated values — reviewer BLOCKER on PR #35) ──────────────
+$('#agent-rows')?.addEventListener('click', (event) => {
+  const editBtn = event.target.closest('.agent-action-btn--edit');
+  const deleteBtn = event.target.closest('.agent-action-btn--delete');
+  const row = event.target.closest('.agent-row');
+
+  if (editBtn || (!deleteBtn && row)) {
+    const el = editBtn ?? row;
+    window.editAgent(el.dataset.agentId, el.dataset.agentName);
+    return;
+  }
+  if (deleteBtn) {
+    event.stopPropagation();
+    window.removeAgent(deleteBtn.dataset.agentId);
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════
 //  Conversations — spec v1 §3 (transcript · duration · outcome · est. cost)

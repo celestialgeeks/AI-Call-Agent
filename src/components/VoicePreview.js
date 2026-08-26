@@ -28,9 +28,10 @@ const resolveWsBase = () => {
         u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
         return u.origin;
     } catch {
-        return window.location.protocol === 'https:'
-            ? `wss://${window.location.host}`
-            : 'ws://localhost:8000';
+        // Fail loudly rather than silently connecting to a guessed host
+        // (code-reviewer minor #3, PR #35).
+        console.error('[VoicePreview] VITE_BACKEND_URL is not configured — cannot resolve preview WebSocket origin.');
+        throw new Error('Preview unavailable: backend URL is not configured.');
     }
 };
 
@@ -128,6 +129,13 @@ export function playPreview({ slug, language, onStart, onEnd, onError }) {
             // Empty binary frame = keepalive ping from server
             if (!event.data || !event.data.byteLength) return;
 
+            // Track chunk cadence for the end-of-stream grace window
+            const now = Date.now();
+            if (handle.lastChunkAt) {
+                handle.lastChunkGap = now - handle.lastChunkAt;
+            }
+            handle.lastChunkAt = now;
+
             if (!greeted) greeted = true;
 
             const blob = new Blob([event.data], { type: 'audio/wav' });
@@ -138,11 +146,14 @@ export function playPreview({ slug, language, onStart, onEnd, onError }) {
             if (!handle.audio) {
                 handle.audio = new Audio(url);
                 handle.audio.onended = () => {
-                    // Give a short grace window in case another WAV frame follows,
-                    // then treat silence as natural completion.
+                    // Natural end: wait for a possible follow-up WAV frame before
+                    // declaring completion. The window scales with observed chunk
+                    // cadence (min 250ms, up to 2s) so slow links don't truncate
+                    // previews mid-sentence (code-reviewer minor #1, PR #35).
+                    const grace = Math.min(Math.max(handle.lastChunkGap || 500, 250), 2000);
                     setTimeout(() => {
                         if (_current === handle && !handle.audio?.loop && handle.audio?.paused) finish();
-                    }, 250);
+                    }, grace);
                 };
                 handle.audio.play().catch(() => {
                     onError?.(slug, 'Playback failed in this browser.');
