@@ -70,6 +70,14 @@ async def _run_ingest(request: Request, owner_id: str, doc_id: str,
     rid = getattr(request.state, "request_id", new_request_id())
     sb_ready = _supabase_ready()
 
+    # Capability check BEFORE touching the store: on deployments without the
+    # optional heavy RAG deps (Render Free slim image) we say so honestly
+    # (503 rag_unavailable) instead of pretending the doc was indexed.
+    if not rag._ensure_rag():
+        raise ApiError(503, "rag_unavailable",
+                       "RAG dependencies not installed on this deployment; "
+                       "document was NOT ingested.")
+
     if sb_ready:
         try:
             loop = asyncio.get_event_loop()
