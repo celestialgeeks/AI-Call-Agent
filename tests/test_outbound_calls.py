@@ -46,18 +46,18 @@ class TestOutboundDormantMode:
         r = client.post(f"/agents/{AGENT_ID}/call/outbound",
                         json={"user_id": USER_A, "to_number": "+919876543210"})
         assert r.status_code == 501, r.text
-        assert "LIVEKIT" in r.json()["detail"]
+        assert "LIVEKIT" in r.json()["error"]["message"]
 
     def test_outbound_status_501_without_livekit_creds(self, client):
         r = client.get("/agents/outbound/some-conv-id/status")
         assert r.status_code == 501, r.text
-        assert "LIVEKIT" in r.json()["detail"]
+        assert "LIVEKIT" in r.json()["error"]["message"]
 
     def test_outbound_end_501_without_livekit_creds(self, client):
         r = client.post("/agents/outbound/some-conv-id/end",
                         json={"user_id": USER_A, "conversation_id": "x"})
         assert r.status_code == 501, r.text
-        assert "LIVEKIT" in r.json()["detail"]
+        assert "LIVEKIT" in r.json()["error"]["message"]
 
     def test_invalid_phone_number_rejected_by_validation(self, client):
         # Pydantic pattern guard fires BEFORE the dormancy gate — no dialing ever.

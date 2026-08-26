@@ -90,7 +90,7 @@ class TestWebhookVerifyHandshake:
             "hub.challenge": "chall-123",
         })
         assert r.status_code == 403, r.text
-        assert "Verification failed" in r.json()["detail"]
+        assert "Verification failed" in r.json()["error"]["message"]
 
     def test_verify_missing_token_rejected(self, client, monkeypatch):
         import app.routers.whatsapp as mod
@@ -119,7 +119,7 @@ class TestWebhookVerifyHandshake:
             "hub.mode": "subscribe", "hub.verify_token": "x", "hub.challenge": "c",
         })
         assert r.status_code == 501
-        assert "WHATSAPP_VERIFY_TOKEN" in r.json()["detail"]
+        assert "WHATSAPP_VERIFY_TOKEN" in r.json()["error"]["message"]
 
     def test_verify_wrong_mode_rejected(self, client, monkeypatch):
         import app.routers.whatsapp as mod
@@ -166,14 +166,14 @@ class TestWebhookSignatureAndConfig:
                      "Content-Type": "application/json"},
         )
         assert r.status_code == 501  # honest dormant answer
-        assert "WHATSAPP_ACCESS_TOKEN" in r.json()["detail"]
+        assert "WHATSAPP_ACCESS_TOKEN" in r.json()["error"]["message"]
 
     def test_unconfigured_no_secret_still_501_with_reason(self, client, monkeypatch):
         import app.routers.whatsapp as mod
         monkeypatch.setattr(mod, "WHATSAPP_APP_SECRET", "")  # sig check disabled
         r = client.post("/whatsapp/webhook", json={"entry": []})
         assert r.status_code == 501
-        detail = r.json()["detail"]
+        detail = r.json()["error"]["message"]
         assert "WHATSAPP_ACCESS_TOKEN" in detail and "WHATSAPP_PHONE_NUMBER_ID" in detail
 
     def test_invalid_json_400_when_configured(self, client, monkeypatch, wa_env):

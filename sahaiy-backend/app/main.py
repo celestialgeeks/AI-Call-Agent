@@ -16,9 +16,18 @@ from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import FRONTEND_ORIGINS, ALLOW_VERCEL_PREVIEW_ORIGINS, LOG_LEVEL
+from app.errors import (
+    ApiError,
+    api_error_handler,
+    http_exception_handler,
+    unhandled_exception_handler,
+    validation_exception_handler,
+)
 from app.routers import stt, audio_ws, calls, knowledge, health, phone_numbers, livekit, whatsapp
 
 logging.basicConfig(
@@ -67,6 +76,12 @@ app.include_router(health.router)
 app.include_router(stt.router)
 app.include_router(audio_ws.router)
 app.include_router(calls.router)
+
+# ── Uniform error envelope (SEC-03) ───────────────────────────────────────
+app.add_exception_handler(ApiError, api_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
 app.include_router(knowledge.router)
 app.include_router(phone_numbers.router)
 app.include_router(livekit.router)

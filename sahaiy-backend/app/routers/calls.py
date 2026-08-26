@@ -34,6 +34,7 @@ from typing import Optional
 
 from app.auth import get_current_user_id
 from app.config import LIVEKIT_URL
+from app.errors import ApiError
 from app.services.supabase_client import get_supabase
 from app.services import telephony
 
@@ -90,27 +91,36 @@ async def call_start(
     # not a silent 200 with an orphaned anonymous conversation.
     if not current_user_id and not body.user_id:
         raise HTTPException(status_code=422, detail="user_id is required")
-    supabase = get_supabase()
-    # Fetch agent name for the record
-    agent_res = supabase.table("agents").select("name").eq("id", agent_id).single().execute()
-    agent_name = agent_res.data.get("name", "AI Agent") if agent_res.data else "AI Agent"
+    try:
+        supabase = get_supabase()
+        # Fetch agent name for the record
+        agent_res = supabase.table("agents").select("name").eq("id", agent_id).single().execute()
+        agent_name = agent_res.data.get("name", "AI Agent") if agent_res.data else "AI Agent"
 
-    result = supabase.table("conversations").insert({
-        "user_id": current_user_id or body.user_id,
-        "agent_id": agent_id,
-        "agent_name": agent_name,
-        "caller_name": body.caller_name,
-        "caller_number": body.caller_number,
-        "status": "in_progress",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }).select().single().execute()
+        result = supabase.table("conversations").insert({
+            "user_id": current_user_id or body.user_id,
+            "agent_id": agent_id,
+            "agent_name": agent_name,
+            "caller_name": body.caller_name,
+            "caller_number": body.caller_number,
+            "status": "in_progress",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }).select().single().execute()
 
-    if not result.data:
-        raise HTTPException(status_code=500, detail="Failed to create conversation record")
+        if not result.data:
+            raise ApiError(500, "conversation_create_failed",
+                           "Failed to create conversation record.")
 
-    conv_id = result.data["id"]
-    logger.info("[Calls] Started conversation %s for agent %s", conv_id, agent_id)
-    return CallStartResponse(conversation_id=conv_id)
+        conv_id = result.data["id"]
+        logger.info("[Calls] Started conversation %s for agent %s", conv_id, agent_id)
+        return CallStartResponse(conversation_id=conv_id)
+
+    except ApiError:
+        raise
+    except Exception as exc:
+        # SEC-03: never leak raw upstream exception text to clients.
+        logger.error("[Calls] call_start error: %s", exc)
+        raise ApiError(500, "internal_error", "Failed to start call.") from exc
 
 
 @router.post("/{agent_id}/call/outbound")
@@ -263,6 +273,9 @@ async def call_end(
                     body.conversation_id, body.duration_sec, body.status)
         return {"ok": True}
 
+    except ApiError:
+        raise
     except Exception as exc:
+        # SEC-03: never leak raw upstream exception text to clients.
         logger.error("[Calls] call_end error: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise ApiError(500, "internal_error", "Failed to end call.") from exc
