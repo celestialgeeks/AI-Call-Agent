@@ -176,29 +176,14 @@ class TestHealth:
         assert r.json()["service"] == "Sahaiy Backend"
 
 
-# ── Contract-drift tripwire for the outreach boundary (Part 2 DRAFT) ─────────
-
-
-class TestOutreachBoundaryDraft:
-    """
-    api-contracts Part 2 conformance cases land after @systems-architect's
-    ruling. The outreach ROUTE itself shipped via PR #21 (/api/v1/campaigns,
-    SKIP LOCKED queue), so the old "route must be absent" canary was replaced
-    with a minimal wiring check: the route exists and enforces its schema
-    (CampaignCreate requires `name`).
-    """
-
-    async def test_campaigns_route_shipped_and_validates(self, api):
-        # Route exists (no longer 404) and CampaignCreate validation is live:
-        # a body missing the required `name` field → 422 envelope/validation.
-        r = await api.post(
-            "/api/v1/campaigns",
-            json={"agent_id": AGENT_ID},
-            headers={"X-User-Id": USER_A},
-        )
-        assert r.status_code == 422, (
-            f"expected 422 (missing required 'name'), got {r.status_code}: {r.text} — "
-            "if this is 404/405 the campaigns router vanished from main"
-        )
-        body = r.json()
-        assert set(body.get("error", {}).keys()) >= {"code", "message", "request_id"}
+# ── Outreach boundary (Part 2) ───────────────────────────────────────────────
+#
+# POST /api/v1/campaigns SHIPPED in PR #21 (commit 6eeb72c). The original
+# "route must be absent" canary was first reduced to a wiring check (#47) and
+# is now superseded by full exact-shape conformance cases per
+# api-contracts-and-outreach-boundary-v1.md Part 2:
+#
+#     qa/contract_tests/test_campaigns_contracts.py
+#
+# (create/list exact CampaignOut shapes, auth 401, validation 422, ownership
+# scoping, and a tripwire that unshipped Part 2 routes stay absent).
