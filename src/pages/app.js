@@ -7,8 +7,9 @@
  */
 
 // ── Services ──────────────────────────────────────────────────
-import { getSession } from '@/services/authService.js';
+import { getSession, onAuthStateChange } from '@/services/authService.js';
 import * as authService from '@/services/authService.js';
+import env from '@/config/env.js';
 import { getAgents, createAgent, deleteAgent } from '@/services/agentService.js';
 import { getConversations, addConversation, addKnowledgeDoc, getPhoneNumbers, deletePhoneNumber, getKnowledgeDocs, getTools } from '@/services/conversationService.js';
 import { getDailyStats, seedUserData, getProfile } from '@/services/analyticsService.js';
@@ -41,10 +42,50 @@ let _tickerTimeout = null;
 // ═══════════════════════════════════════════════════════════════
 //  Boot
 // ═══════════════════════════════════════════════════════════════
+/**
+ * Resolves once Supabase emits SIGNED_IN / INITIAL_SESSION with a session,
+ * or after `timeoutMs` — whichever comes first.
+ * Used to avoid bouncing to auth.html while an OAuth callback is still exchanging.
+ * @param {number} timeoutMs
+ * @returns {Promise<boolean>} true if a session appeared before the timeout
+ */
+function _waitForAuthEvent(timeoutMs) {
+    return new Promise((resolve) => {
+        let settled = false;
+        const finish = (found) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            try { sub?.data.subscription.unsubscribe(); } catch { /* already gone */ }
+            resolve(found);
+        };
+        const sub = onAuthStateChange((event, s) => {
+            if (s) finish(true);
+            else if (event === 'SIGNED_OUT') finish(false);
+        });
+        const timer = setTimeout(() => finish(false), timeoutMs);
+    });
+}
+
 async function boot() {
   // 1. Auth guard
   const session = await getSession();
-  if (!session) { window.location.replace('/auth.html?mode=login'); return; }
+  // Diagnostics for auth-loop investigation (login → instant logout).
+  const bootDiag = {
+    origin: window.location.origin,
+    appUrl: env.appUrl,
+    hasSession: Boolean(session),
+    ts: new Date().toISOString(),
+  };
+  window.__SAHAIY_BOOT_LOG__ = bootDiag;
+  // eslint-disable-next-line no-console
+  console.log('[Sahaiy Auth] boot:', JSON.stringify(bootDiag));
+  if (!session) {
+    // A PKCE/implicit callback may still be in flight when boot() runs — wait briefly
+    // for onAuthStateChange instead of bouncing instantly (avoids false sign-out).
+    const recovered = await _waitForAuthEvent(4000);
+    if (!recovered) { window.location.replace('/auth.html?mode=login'); return; }
+  }
   _user = session.user;
   window.__USER_ID__ = _user.id;
 
