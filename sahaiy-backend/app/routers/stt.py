@@ -13,7 +13,8 @@ import logging
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 
-from app.config import STT_URL, STT_TIMEOUT_SEC
+from app.config import STT_TIMEOUT_SEC
+from app.services.stt import transcribe as _transcribe_stt
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/stt", tags=["STT"])
@@ -23,7 +24,7 @@ router = APIRouter(prefix="/stt", tags=["STT"])
 async def transcribe_audio(request: Request, file: UploadFile = File(...)):
     """
     Accepts an audio file (WAV/WebM/OGG) and returns the transcribed text.
-    Forwards the file to whisper.cpp HTTP inference server.
+    Uses Sarvam saaras:v3 when SARVAM_API_KEY is set, whisper.cpp otherwise.
 
     Latency target: 150–250 ms (within STT_TIMEOUT_SEC limit).
     """
@@ -40,18 +41,19 @@ async def transcribe_audio(request: Request, file: UploadFile = File(...)):
         http_client = httpx.AsyncClient(timeout=float(STT_TIMEOUT_SEC))
 
     try:
-        response = await http_client.post(
-            STT_URL,
-            files={"file": (file.filename or "audio.wav", audio_bytes, file.content_type or "audio/wav")},
-            timeout=float(STT_TIMEOUT_SEC),
+        text = await _transcribe_stt(
+            audio_bytes,
+            client=http_client,
+            file_name=file.filename or "audio.wav",
+            content_type=file.content_type or "audio/wav",
         )
-        response.raise_for_status()
+        if not text.strip():
+            raise RuntimeError("STT returned empty transcript")
     except Exception as exc:
-        logger.error("[STT] whisper.cpp error: %s", exc)
+        logger.error("[STT] error: %s", exc)
         raise HTTPException(status_code=504, detail=f"STT service error: {exc}") from exc
 
-    data = response.json()
-    text = data.get("text", "").strip()
+    text = text.strip()
     duration_ms = int((time.monotonic() - t0) * 1000)
 
     logger.info("[STT] '%s' (%d ms)", text[:80], duration_ms)

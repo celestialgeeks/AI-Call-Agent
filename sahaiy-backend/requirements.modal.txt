@@ -1,0 +1,10 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20      # For file uploads (STT endpoint)
+httpx==0.28.1                  # Async HTTP — STT, LLM, Sarvam TTS calls
+supabase==2.15.2               # Server-side client (service role)
+python-dotenv==1.1.0
+pydantic==2.12.5
+numpy==2.2.4
+anyio==4.9.0
+starlette==0.46.1

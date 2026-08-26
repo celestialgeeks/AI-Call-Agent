@@ -25,12 +25,17 @@ def _parse_bool_env(var_name: str, default: bool = False) -> bool:
 	return raw in {"1", "true", "yes", "on"}
 
 
-# ── LLM (llama.cpp server) ─────────────────────────────────────────────────
+# ── LLM · NVIDIA NIM (primary, OpenAI-compatible) ─────────────────────────
+NIM_BASE_URL: str = os.getenv("NIM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+NIM_MODEL: str = os.getenv("NIM_MODEL", "nvidia/nvidia-nemotron-nano-9b-v2")
+NIM_API_KEY: str = os.getenv("NVIDIA_API_KEY", "")
+
+# ── LLM (llama.cpp server — kept as offline fallback) ─────────────────────
 LLM_URL: str = os.getenv("LLM_URL", "http://localhost:8080/completion")
 LLM_N_PREDICT: int = int(os.getenv("LLM_N_PREDICT", "80"))
 LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.6"))
 
-# ── STT (whisper.cpp server) ───────────────────────────────────────────────
+# ── STT (whisper.cpp server — local fallback) ───────────────────────────────
 STT_URL: str = os.getenv("STT_URL", "http://localhost:8081/inference")
 STT_TIMEOUT_SEC: int = int(os.getenv("STT_TIMEOUT_SEC", "5"))
 
@@ -41,6 +46,12 @@ SARVAM_TTS_MODEL: str = os.getenv("SARVAM_TTS_MODEL", "bulbul:v2")
 SARVAM_TTS_LANG: str = os.getenv("SARVAM_TTS_LANG", "en-IN")
 SARVAM_TTS_SPEAKER: str = os.getenv("SARVAM_TTS_SPEAKER", "anushka")
 
+# ── STT · Sarvam AI (primary when SARVAM_API_KEY present) ──────────────────
+SARVAM_STT_URL: str = os.getenv("SARVAM_STT_URL", "https://api.sarvam.ai/speech-to-text")
+SARVAM_STT_MODEL: str = os.getenv("SARVAM_STT_MODEL", "saaras:v3")
+SARVAM_STT_LANG: str = os.getenv("SARVAM_STT_LANG", "unknown")
+SARVAM_STT_TIMEOUT_SEC: int = int(os.getenv("SARVAM_STT_TIMEOUT_SEC", "8"))
+
 # ── Supabase (server-side service role) ────────────────────────────────────
 SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
 SUPABASE_SERVICE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
@@ -49,6 +60,16 @@ SUPABASE_SERVICE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
 LIVEKIT_URL: str = os.getenv("LIVEKIT_URL", "")
 LIVEKIT_API_KEY: str = os.getenv("LIVEKIT_API_KEY", "")
 LIVEKIT_API_SECRET: str = os.getenv("LIVEKIT_API_SECRET", "")
+
+# ── WhatsApp Cloud API (Meta official) ─────────────────────────────────────
+WHATSAPP_ACCESS_TOKEN: str = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
+WHATSAPP_PHONE_NUMBER_ID: str = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
+# Webhook GET verify token — any opaque string you also enter in the Meta
+# App Dashboard → WhatsApp → Configuration → Verify token.
+WHATSAPP_VERIFY_TOKEN: str = os.getenv("WHATSAPP_VERIFY_TOKEN", "")
+# Meta App Secret — enables X-Hub-Signature-256 payload verification when set.
+WHATSAPP_APP_SECRET: str = os.getenv("WHATSAPP_APP_SECRET", "")
+WHATSAPP_API_VERSION: str = os.getenv("WHATSAPP_API_VERSION", "v21.0")
 
 # ── App ────────────────────────────────────────────────────────────────────
 FRONTEND_ORIGIN: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")

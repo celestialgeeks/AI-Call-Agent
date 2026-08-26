@@ -31,9 +31,10 @@ from typing import Optional
 import httpx
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from app.config import STT_URL, STT_TIMEOUT_SEC
+from app.config import STT_TIMEOUT_SEC
 from app.services import agent_service, rag
 from app.services.llm import build_prompt, stream_llm
+from app.services.stt import transcribe as _transcribe_stt
 from app.services.tts import speak_to_bytes
 from app.services.vad import is_speech
 
@@ -137,16 +138,15 @@ async def _transcribe(
     content_type: str = "audio/wav",
     language_hint: Optional[str] = None,
 ) -> str:
-    """Send audio bytes to whisper.cpp and return transcribed text."""
+    """Transcribe audio bytes via the shared STT service (Sarvam primary, whisper.cpp fallback)."""
     try:
-        resp = await http_client.post(
-            STT_URL,
-            files={"file": (file_name, audio_bytes, content_type)},
-            data={"language": language_hint} if language_hint else None,
-            timeout=float(STT_TIMEOUT_SEC),
+        raw_text = await _transcribe_stt(
+            audio_bytes,
+            client=http_client,
+            file_name=file_name,
+            content_type=content_type,
+            language_hint=language_hint,
         )
-        resp.raise_for_status()
-        raw_text = resp.json().get("text", "")
         return _normalize_transcript(raw_text)
     except Exception as exc:
         logger.error("[WS/STT] %s", exc)
@@ -201,6 +201,7 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     is_playing = False          # True while AI audio is being sent
     interrupt_event = asyncio.Event()
     current_llm_task: Optional[asyncio.Task] = None
+    barge_in_deadline = 0.0     # monotonic time until which VAD self-interrupts are ignored
     audio_format = "wav"
     audio_mime_type = "audio/wav"
     audio_sample_rate = 16_000
@@ -300,6 +301,9 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
                     if current_llm_task and not current_llm_task.done():
                         current_llm_task.cancel()
 
+                    # Grace window so trailing mic chunks don't self-interrupt
+                    barge_in_deadline = time.monotonic() + 1.5
+
                     current_llm_task = asyncio.create_task(_run_pipeline(user_text))
                 elif ctrl.get("type") == "agent_meta":
                     incoming_agent = ctrl.get("agent") if isinstance(ctrl.get("agent"), dict) else ctrl
@@ -347,9 +351,11 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
 
             chunk_has_speech = audio_format == "pcm16" and is_speech(chunk)
 
-            # VAD: if AI is playing and user starts speaking -> interrupt
+            # VAD: if AI is playing and user starts speaking -> interrupt.
+            # Chunks that were already in flight when the pipeline started (the tail of
+            # the user's own utterance) must not cancel it — ignore VAD until deadline.
             if is_playing:
-                if chunk_has_speech:
+                if chunk_has_speech and time.monotonic() >= barge_in_deadline:
                     interrupt_event.set()
                     if current_llm_task and not current_llm_task.done():
                         current_llm_task.cancel()
@@ -415,6 +421,9 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
             # Cancel any in-flight pipeline, start fresh
             if current_llm_task and not current_llm_task.done():
                 current_llm_task.cancel()
+
+            # Grace window so the tail of this utterance doesn't self-interrupt
+            barge_in_deadline = time.monotonic() + 1.5
 
             current_llm_task = asyncio.create_task(_run_pipeline(user_text))
 
