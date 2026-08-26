@@ -148,7 +148,12 @@ class TestKnowledge:
             json={"user_id": USER_A, "doc_id": "doc-1", "text": "Sahaiy demo facts."},
         )
         assert r.status_code == 200, r.text
-        assert r.json() == {"ok": True, "doc_id": "doc-1"}
+        # Contract §1.4 upgraded by issue #5 (ADR-0003): response keeps the
+        # v1 core {ok, doc_id} plus ADDITIVE honest metadata (status, chunks,
+        # size_bytes, name, source). Exact-equality pin relaxed accordingly.
+        body = r.json()
+        assert body["ok"] is True
+        assert body["doc_id"] == "doc-1"
 
     async def test_ingest_empty_text_400(self, api):
         r = await api.post(
@@ -161,7 +166,8 @@ class TestKnowledge:
         r = await api.get("/knowledge/status", params={"user_id": USER_A})
         assert r.status_code == 200
         body = r.json()
-        assert set(body.keys()) == {"user_id", "indexed_docs", "rag_available"}
+        # Issue #5 adds additive fields to the v1 trio — superset allowed.
+        assert {"user_id", "indexed_docs", "rag_available"} <= set(body.keys())
         assert body["user_id"] == USER_A
         assert isinstance(body["indexed_docs"], int)
 
