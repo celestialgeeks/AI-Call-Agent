@@ -28,10 +28,6 @@ image = (
     .apt_install("espeak-ng", "ffmpeg")
     .pip_install_from_requirements(str(Path(__file__).parent / "requirements.modal.txt"))
     .add_local_python_source("app")           # backend package: sahaiy-backend/app/
-    .add_local_file(
-        str(Path(__file__).parent / "app" / "config.py"),
-        remote_path="/root/app/config.py",
-    )
 )
 
 # ── Secrets (Modal Secrets, created out-of-band) ─────────────────────────────
