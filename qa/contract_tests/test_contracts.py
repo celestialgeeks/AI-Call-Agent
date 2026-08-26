@@ -142,15 +142,7 @@ class TestSttTranscribe:
 
 
 class TestKnowledge:
-    async def _rag_ready(self, api) -> bool:
-        """True when this deployment has the optional heavy RAG deps."""
-        r = await api.get("/knowledge/status", params={"user_id": USER_A})
-        return bool(r.json().get("rag_available"))
-
     async def test_ingest_exact_shape(self, api):
-        if not await self._rag_ready(api):
-            pytest.xfail("RAG disabled in test env (faiss/sentence-transformers "
-                         "absent) — /knowledge/ingest honestly returns 503")
         r = await api.post(
             "/knowledge/ingest",
             json={"user_id": USER_A, "doc_id": "doc-1", "text": "Sahaiy demo facts."},
@@ -162,6 +154,7 @@ class TestKnowledge:
         body = r.json()
         assert body["ok"] is True
         assert body["doc_id"] == "doc-1"
+
     async def test_ingest_empty_text_400(self, api):
         r = await api.post(
             "/knowledge/ingest",
@@ -200,9 +193,15 @@ class TestOutreachBoundaryDraft:
     """
 
     async def test_campaigns_route_absent_until_contract_locked(self, api):
+        """
+        UPDATED: /api/v1/campaigns shipped via #21 (outreach campaigns v1).
+        The old absence-canary (404/405) is replaced: verify the endpoint
+        responds with a validation/auth-level status for a malformed body —
+        exact-shape conformance cases land with Part 2 of api-contracts.
+        """
         r = await api.post("/api/v1/campaigns", json={"agent_id": AGENT_ID})
-        assert r.status_code in (404, 405), (
-            f"/api/v1/campaigns appeared with status {r.status_code} — "
-            "outreach contract shipped: replace this canary with exact-shape tests "
-            "per api-contracts-and-outreach-boundary-v1.md Part 2"
+        assert r.status_code in (200, 201, 400, 401, 403, 422), (
+            f"/api/v1/campaigns answered {r.status_code} — unexpected shape; "
+            "add exact-shape conformance cases per "
+            "api-contracts-and-outreach-boundary-v1.md Part 2"
         )
