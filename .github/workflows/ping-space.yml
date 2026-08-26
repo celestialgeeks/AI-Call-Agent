@@ -1,0 +1,16 @@
+name: ping-hf-space-keepalive
+
+on:
+  schedule:
+    - cron: "0 */24 * * *"   # daily — HF CPU Basic sleeps after 48h idle
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ping Space /health
+        run: python3 scripts/ping_space.py "${{ secrets.SAHAIY_BACKEND_URL || 'https://shreyashsingh-sahaiy-backend.hf.space' }}"
