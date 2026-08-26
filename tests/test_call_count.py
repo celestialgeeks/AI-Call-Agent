@@ -37,8 +37,14 @@ def patch_supabase():
 
     def _factory(*a, **k):
         return sb
+
     cm = um.patch("app.services.supabase_client.create_client", new=_factory)
     cm.__enter__()
+    # get_supabase is @lru_cache'd; the campaign worker started in app lifespan
+    # may have populated it during an earlier test's startup. Clear so this
+    # test's patched create_client is actually used.
+    from app.services.supabase_client import get_supabase
+    get_supabase.cache_clear()
     # stash for assertions via module-level holder
     global _LAST_SB
     _LAST_SB = sb
