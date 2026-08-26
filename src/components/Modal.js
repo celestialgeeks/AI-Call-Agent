@@ -47,8 +47,10 @@ export function readCreateAgentForm() {
     // Voice select now uses value= attributes that match Sarvam AI speaker names exactly
     const voiceName = $('#new-agent-voice')?.value ?? 'anushka';
     const lang = $('#new-agent-lang')?.value ?? 'en-IN';
-    const icon = document.querySelector('.template-card.selected .template-icon')?.textContent?.trim() ?? '🤖';
+    // Template icons are now SVG glyphs (design spec v2 §3); the stored agent
+    // icon falls back to the template slug instead of an emoji.
     const template = document.querySelector('.template-card.selected')?.dataset?.template ?? 'blank';
+    const icon = template;
 
     // Friendly voice language label for display
     const langLabels = {

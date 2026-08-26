@@ -32,7 +32,12 @@
   --dash-text: #111111;
   --dash-text-2: #555555;
   --dash-text-3: #888888;
-  --dash-accent: #7C5CFC;
+  /* Spec v2 §2a: primary interactive accent = ink (premium achromatic).
+     Status colors stay semantic. Landing keeps --accent purple untouched. */
+  --dash-accent: #111111;
+  --dash-accent-hover: #333333;
+  --border-strong: rgba(0, 0, 0, 0.08);   /* Vercel-style ring border */
+  --ring: rgba(0, 0, 0, 0.05);            /* subtle card ring */
   --dash-accent-green: #22C55E;
   --dash-accent-red: #EF4444;
   --dash-accent-orange: #F59E0B;

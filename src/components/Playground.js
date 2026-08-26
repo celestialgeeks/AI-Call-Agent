@@ -6,6 +6,7 @@
  */
 
 import { $ } from '@/utils/dom.js';
+import { icon } from '@/utils/icons.js';
 import { showToast } from '@/utils/toast.js';
 import env from '@/config/env.js';
 
@@ -53,7 +54,7 @@ export function openPlayground(agentId, agentName) {
 
     // Update header title
     const title = $('#playground-title');
-    if (title) title.textContent = `🎮 ${_agentName}`;
+    if (title) title.textContent = _agentName;
 
     // Clear previous chat (keep only a loading placeholder)
     _clearChat();
@@ -234,27 +235,30 @@ function _setOrbState(state) {
 
     const config = {
         idle: {
-            icon: '🎙️',
+            icon: 'voices',
             label: 'CLICK ORB TO START A TEST CALL',
-            shadow: '0 0 0 12px rgba(124,92,252,0.08), 0 8px 24px rgba(124,92,252,0.25)',
+            shadow: 'var(--border-strong) 0 0 0 1px',
             color: 'var(--dash-text-3)',
         },
         connecting: {
-            icon: '⏳',
+            icon: 'widget',
             label: 'CONNECTING…',
-            shadow: '0 0 0 14px rgba(251,191,36,0.12), 0 8px 24px rgba(251,191,36,0.3)',
+            shadow: '0 0 0 14px rgba(251,191,36,0.12)',
             color: '#f59e0b',
         },
         connected: {
-            icon: '⏹',
+            icon: 'phone-numbers',
             label: '● LIVE — SPEAK NOW',
-            shadow: '0 0 0 14px rgba(34,197,94,0.12), 0 8px 32px rgba(34,197,94,0.35)',
+            shadow: '0 0 0 14px rgba(34,197,94,0.12)',
             color: '#22c55e',
         },
     };
 
     const cfg = config[state] ?? config.idle;
-    if (orb)    { orb.textContent = cfg.icon; orb.style.boxShadow = cfg.shadow; }
+    if (orb) {
+        orb.innerHTML = icon(cfg.icon);
+        orb.style.boxShadow = cfg.shadow;
+    }
     if (status) { status.textContent = cfg.label; status.style.color = cfg.color; }
 }
 

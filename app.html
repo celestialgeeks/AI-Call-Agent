@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sahaiy — Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;600&display=swap"
@@ -25,7 +26,15 @@
         <!-- ════════  SIDEBAR  ════════ -->
         <aside class="sidebar" id="sidebar">
             <a href="index.html" class="sidebar-logo">
-                <div class="sidebar-logo-icon">🤖</div>
+                <div class="sidebar-logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true">
+                        <!-- Sahaiy mark v1 "Wave Tile" (design spec v2 §1, by @design-bot) -->
+                        <rect width="32" height="32" rx="7.5" fill="#111111"/>
+                        <rect x="8" y="12" width="3.5" height="8" rx="1.75" fill="#FFFFFF"/>
+                        <rect x="14.25" y="8" width="3.5" height="16" rx="1.75" fill="#FFFFFF"/>
+                        <rect x="20.5" y="12" width="3.5" height="8" rx="1.75" fill="#FFFFFF"/>
+                    </svg>
+                </div>
                 Sahaiy
             </a>
 
@@ -38,68 +47,68 @@
             <nav class="sidebar-nav">
                 <!-- Home -->
                 <button class="sidebar-item active" onclick="navigate('home', this)" id="nav-home">
-                    <span class="nav-icon">🏠</span> Home
+                    <span class="nav-icon" data-icon="home"></span> Home
                 </button>
 
                 <!-- Configure -->
                 <div class="sidebar-section-label">Configure</div>
                 <button class="sidebar-item" onclick="navigate('agents', this)" id="nav-agents">
-                    <span class="nav-icon">🤖</span> Agents
+                    <span class="nav-icon" data-icon="agents"></span> Agents
                 </button>
                 <button class="sidebar-item" onclick="navigate('knowledge', this)" id="nav-knowledge">
-                    <span class="nav-icon">📚</span> Knowledge Base
+                    <span class="nav-icon" data-icon="knowledge"></span> Knowledge Base
                 </button>
                 <button class="sidebar-item" onclick="navigate('tools', this)" id="nav-tools">
-                    <span class="nav-icon">🔧</span> Tools
+                    <span class="nav-icon" data-icon="tools"></span> Tools
                 </button>
                 <button class="sidebar-item" onclick="navigate('integrations', this)" id="nav-integrations">
-                    <span class="nav-icon">🔗</span> Integrations
+                    <span class="nav-icon" data-icon="integrations"></span> Integrations
                     <span class="nav-badge">Alpha</span>
                 </button>
                 <button class="sidebar-item" onclick="navigate('voices', this)" id="nav-voices">
-                    <span class="nav-icon">🎙️</span> Voices
+                    <span class="nav-icon" data-icon="voices"></span> Voices
                 </button>
 
                 <!-- Monitor -->
                 <div class="sidebar-section-label">Monitor</div>
                 <button class="sidebar-item" onclick="navigate('conversations', this)" id="nav-conversations">
-                    <span class="nav-icon">💬</span> Conversations
+                    <span class="nav-icon" data-icon="conversations"></span> Conversations
                 </button>
                 <button class="sidebar-item" onclick="navigate('analytics', this)" id="nav-analytics">
-                    <span class="nav-icon">📊</span> Analytics
+                    <span class="nav-icon" data-icon="analytics"></span> Analytics
                 </button>
                 <button class="sidebar-item" onclick="navigate('tests', this)" id="nav-tests">
-                    <span class="nav-icon">🧪</span> Tests
+                    <span class="nav-icon" data-icon="tests"></span> Tests
                 </button>
 
                 <!-- Deploy -->
                 <div class="sidebar-section-label">Deploy</div>
                 <button class="sidebar-item" onclick="navigate('phonenumbers', this)" id="nav-phonenumbers">
-                    <span class="nav-icon">📞</span> Phone Numbers
+                    <span class="nav-icon" data-icon="phone-numbers"></span> Phone Numbers
                 </button>
                 <button class="sidebar-item" onclick="navigate('whatsapp', this)" id="nav-whatsapp">
-                    <span class="nav-icon">💬</span> WhatsApp
+                    <span class="nav-icon" data-icon="whatsapp"></span> WhatsApp
                     <span class="nav-badge">Alpha</span>
                 </button>
                 <button class="sidebar-item" onclick="navigate('outbound', this)" id="nav-outbound">
-                    <span class="nav-icon">📢</span> Outbound
+                    <span class="nav-icon" data-icon="outbound"></span> Outbound
                 </button>
                 <button class="sidebar-item" onclick="navigate('widget', this)" id="nav-widget">
-                    <span class="nav-icon">🌐</span> Web Widget
+                    <span class="nav-icon" data-icon="widget"></span> Web Widget
                 </button>
             </nav>
 
             <!-- Bottom actions -->
             <div class="sidebar-bottom">
                 <div class="sidebar-upgrade">
-                    <span class="upgrade-icon">⚡</span>
+                    <span class="upgrade-icon" data-icon="widget" style="display:inline-flex;"></span>
                     <div class="upgrade-text">
                         <div class="upgrade-text-top">Upgrade to Pro</div>
                         <div class="upgrade-text-sub">Unlock unlimited agents</div>
                     </div>
                 </div>
-                <button class="sidebar-item" onclick="navigate('settings', this)" id="nav-settings" style="margin:0;">
-                    <span class="nav-icon">⚙️</span> Settings
+                <button class="sidebar-item" onclick="navigate('settings', this)" id="nav-settings">
+                    <span class="nav-icon" data-icon="settings"></span> Settings
                 </button>
                 <div class="sidebar-user">
                     <div class="user-avatar" id="user-avatar-el">SS</div>
@@ -108,10 +117,6 @@
                         <div class="user-email" id="user-email-el">shreyash@sahaiy.ai</div>
                     </div>
                     <button class="user-menu-btn" onclick="showUserMenu(event)" title="Options">⋯</button>
-                </div>
-                <div style="text-align:center; font-size:11px; color:var(--dash-text-3); padding:10px 0 2px;">
-                    <a href="/terms.html" style="color:inherit;">Terms</a> ·
-                    <a href="/privacy.html" style="color:inherit;">Privacy</a>
                 </div>
             </div>
         </aside>
@@ -122,12 +127,12 @@
             <div class="topbar">
                 <div class="topbar-title" id="topbar-title">Home</div>
                 <div class="topbar-search">
-                    <span style="color:var(--dash-text-3); font-size:12px;">🔍</span>
+                    <span data-icon="search" style="color:var(--dash-text-3); display:inline-flex;"></span>
                     <input type="text" placeholder="Search agents, conversations..." />
                 </div>
                 <div class="topbar-actions">
-                    <button class="topbar-icon-btn" title="Notifications">🔔</button>
-                    <button class="topbar-icon-btn" title="Help">❓</button>
+                    <button class="topbar-icon-btn" title="Notifications" aria-label="Notifications" data-icon="bell"></button>
+                    <button class="topbar-icon-btn" title="Help" aria-label="Help" data-icon="help"></button>
                     <div style="width:1px; height:20px; background:var(--dash-border);"></div>
                     <button class="dash-btn dash-btn-primary" onclick="openCreateModal()" id="topbar-new-agent">
                         + New Agent
@@ -140,42 +145,36 @@
 
                 <!-- ══════ PAGE: HOME ══════ -->
                 <div class="page active" id="page-home">
-                    <p class="home-greeting">Good morning, Shreyash ☀️</p>
+                    <p class="home-greeting" id="home-greeting">Good morning</p>
                     <p class="home-sub">Here's how your agents performed today</p>
 
-                    <!-- Stats — values are populated live by _updateHomeStats() (ADR-0001: no fabricated numbers) -->
+                    <!-- Stats — values are populated live by _updateHomeStats() (ADR-0001: no fabricated numbers).
+                         Stat icons dropped per design spec v2 §3 (more premium). -->
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Total Calls</span>
-                                <div class="stat-icon" style="background:rgba(124,92,252,0.1);">📞</div>
                             </div>
                             <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">loading…</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Avg Duration</span>
-                                <div class="stat-icon" style="background:rgba(0,196,161,0.1);">⏱️</div>
                             </div>
                             <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">today</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Success Rate</span>
-                                <div class="stat-icon" style="background:rgba(34,197,94,0.1);">✅</div>
                             </div>
                             <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">no calls yet</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Total Cost</span>
-                                <div class="stat-icon" style="background:rgba(245,158,11,0.1);">💰</div>
+                                <span class="badge badge-purple">estimated</span>
                             </div>
-                            <div class="stat-value">₹0</div>
-                            <div class="stat-delta neutral">no spend yet</div>
+                            <div class="stat-value mono-num">₹0.00</div>
                         </div>
                     </div>
 
@@ -231,18 +230,18 @@
                             <p class="page-sub">Manage your AI call agents</p>
                         </div>
                         <div style="display:flex; gap:10px; align-items:center;">
-                            <button class="dash-btn dash-btn-outline" onclick="openPlayground()">🎮 Playground</button>
+                            <button class="dash-btn dash-btn-outline" onclick="openPlayground()">Playground</button>
                             <button class="dash-btn dash-btn-primary" onclick="openCreateModal()">+ New agent</button>
                         </div>
                     </div>
 
                     <div class="search-bar">
                         <div class="search-input-wrap">
-                            <span style="font-size:13px; color:var(--dash-text-3);">🔍</span>
+                            <span data-icon="search" style="color:var(--dash-text-3); display:inline-flex;"></span>
                             <input type="text" placeholder="Search agents…" id="agent-search"
                                 oninput="filterAgents(this.value)" />
                         </div>
-                        <button class="dash-btn dash-btn-outline" style="font-size:12px;">📦 Archived</button>
+                        <button class="dash-btn dash-btn-outline" style="font-size:12px;">Archived</button>
                     </div>
 
                     <div class="agent-table-wrap">
@@ -280,7 +279,7 @@
                         <div style="display:flex; gap:8px; align-items:center;">
                             <span class="badge badge-green" id="config-status-badge">● Published</span>
                             <button class="dash-btn dash-btn-outline" style="font-size:12px;"
-                                onclick="openPlayground(window.__CURRENT_AGENT_ID__, window.__CURRENT_AGENT_NAME__)">🎮 Preview</button>
+                                onclick="openPlayground(window.__CURRENT_AGENT_ID__, window.__CURRENT_AGENT_NAME__)">Preview</button>
                             <button class="dash-btn dash-btn-primary">Publish ↗</button>
                         </div>
                     </div>
@@ -342,21 +341,21 @@
                                 style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                                 <div
                                     style="font-size:12px; font-weight:700; color:var(--dash-text); margin-bottom:14px;">
-                                    🎙️ Voice</div>
+                                    Voice</div>
                                 <div style="display:flex; align-items:center; gap:10px; padding:12px; background:var(--dash-surface-2); border:1px solid var(--dash-border); border-radius:var(--radius); margin-bottom:10px; cursor:pointer;"
                                     onmouseover="this.style.borderColor='var(--dash-accent)'"
                                     onmouseout="this.style.borderColor='var(--dash-border)'">
                                     <div
-                                        style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#ff6b6b,#ffa06b); display:flex; align-items:center; justify-content:center; font-size:16px;">
-                                        👩</div>
+                                        style="width:36px; height:36px; border-radius:50%; background:var(--dash-surface); border:1px solid var(--dash-border); display:flex; align-items:center; justify-content:center; color:var(--dash-text-2);">
+                                        <span data-icon="voices" style="display:inline-flex;"></span></div>
                                     <div>
-                                        <div style="font-size:13px; font-weight:600; color:var(--dash-text);">Priya
+                                        <div style="font-size:13px; font-weight:600; color:var(--dash-text);" id="config-voice-name">Anushka
                                         </div>
                                         <div
-                                            style="font-size:10px; color:var(--dash-text-3); font-family:var(--font-mono);">
-                                            Hindi · Female · Natural</div>
+                                            style="font-size:10px; color:var(--dash-text-3); font-family:var(--font-mono);"
+                                            id="config-voice-meta">Hindi · Female · Natural</div>
                                     </div>
-                                    <button
+                                    <button type="button" class="config-voice-preview"
                                         style="margin-left:auto; width:28px; height:28px; border-radius:50%; background:var(--dash-surface); border:1px solid var(--dash-border); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center;">▶</button>
                                 </div>
                                 <button class="dash-btn dash-btn-outline"
@@ -368,7 +367,7 @@
                                 style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                                 <div
                                     style="font-size:12px; font-weight:700; color:var(--dash-text); margin-bottom:14px;">
-                                    🧠 LLM Model</div>
+                                    LLM Model</div>
                                 <select class="form-input" style="font-size:12px;">
                                     <option>Gemini 2.5 Flash</option>
                                     <option>Gemini 2.0 Pro</option>
@@ -381,7 +380,7 @@
                                 style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                                 <div
                                     style="font-size:12px; font-weight:700; color:var(--dash-text); margin-bottom:14px;">
-                                    ⚙️ Call Settings</div>
+                                    Call Settings</div>
                                 <div class="form-group" style="margin-bottom:12px;">
                                     <label class="form-label" style="font-size:11px;">Max call duration</label>
                                     <select class="form-input" style="font-size:12px;">
@@ -406,7 +405,7 @@
                     <!-- Other config tabs (hidden) -->
                     <div id="config-tab-workflow" style="display:none;">
                         <div class="empty-state">
-                            <div class="empty-icon">🔀</div>
+                            <div class="empty-icon" data-icon="widget"></div>
                             <div class="empty-title">Workflow Builder</div>
                             <div class="empty-sub">Design multi-turn conversation flows with conditional branching and
                                 human escalation triggers.</div>
@@ -415,7 +414,7 @@
                     </div>
                     <div id="config-tab-kb" style="display:none;">
                         <div class="empty-state">
-                            <div class="empty-icon">📚</div>
+                            <div class="empty-icon" data-icon="knowledge"></div>
                             <div class="empty-title">No knowledge base attached</div>
                             <div class="empty-sub">Attach a knowledge base so the agent can answer questions from your
                                 documents.</div>
@@ -426,7 +425,7 @@
                     </div>
                     <div id="config-tab-tools" style="display:none;">
                         <div class="empty-state">
-                            <div class="empty-icon">🔧</div>
+                            <div class="empty-icon" data-icon="tools"></div>
                             <div class="empty-title">No tools configured</div>
                             <div class="empty-sub">Add tools so your agent can call external APIs and take actions
                                 during calls.</div>
@@ -435,7 +434,7 @@
                     </div>
                     <div id="config-tab-analysis" style="display:none;">
                         <div class="empty-state">
-                            <div class="empty-icon">📊</div>
+                            <div class="empty-icon" data-icon="analytics"></div>
                             <div class="empty-title">Call Analysis</div>
                             <div class="empty-sub">View detailed per-call quality scores, sentiment trends, and outcome
                                 tracking.</div>
@@ -443,7 +442,7 @@
                     </div>
                     <div id="config-tab-tests" style="display:none;">
                         <div class="empty-state">
-                            <div class="empty-icon">🧪</div>
+                            <div class="empty-icon" data-icon="tests"></div>
                             <div class="empty-title">No tests created</div>
                             <div class="empty-sub">Create automated test scenarios to validate agent behavior before
                                 going live.</div>
@@ -466,7 +465,7 @@
                     </div>
                     <div id="config-tab-security" style="display:none;">
                         <div class="empty-state">
-                            <div class="empty-icon">🛡️</div>
+                            <div class="empty-icon" data-icon="settings"></div>
                             <div class="empty-title">Security Settings</div>
                             <div class="empty-sub">Configure allowlisted phone numbers, abuse protection, and content
                                 safety filters.</div>
@@ -474,7 +473,7 @@
                     </div>
                     <div id="config-tab-advanced" style="display:none;">
                         <div class="empty-state">
-                            <div class="empty-icon">⚙️</div>
+                            <div class="empty-icon" data-icon="settings"></div>
                             <div class="empty-title">Advanced Settings</div>
                             <div class="empty-sub">Configure STT model, temperature, response speed, interruption
                                 handling, and more.</div>
@@ -492,40 +491,16 @@
                         <button class="dash-btn dash-btn-primary">+ Add source</button>
                     </div>
                     <div class="upload-zone" onclick="void(0)">
-                        <div class="upload-zone-icon">📄</div>
+                        <div class="upload-zone-icon" data-icon="file"></div>
                         <div class="upload-zone-title">Drop files here or click to upload</div>
                         <div class="upload-zone-sub">PDF, DOCX, TXT, CSV · Max 50 MB per file</div>
                     </div>
-                    <div
-                        style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); overflow:hidden;">
-                        <div
-                            style="padding:14px 20px; border-bottom:1px solid var(--dash-border); background:var(--dash-surface-2); font-family:var(--font-mono); font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--dash-text-3);">
-                            3 documents · 2.4 MB total
+                    <div class="recent-card">
+                        <div class="recent-card-header">
+                            <span class="recent-card-title">Sources</span>
                         </div>
-                        <div class="kb-doc-row">
-                            <span class="kb-doc-icon">📋</span>
-                            <div>
-                                <div class="kb-doc-name">Customer FAQ — Returns & Refunds.pdf</div>
-                                <div class="kb-doc-meta">0.8 MB · Uploaded Feb 24, 2025 · ✓ Indexed</div>
-                            </div>
-                            <button class="agent-action-btn agent-action-edit" style="margin-left:auto;">⋯</button>
-                        </div>
-                        <div class="kb-doc-row">
-                            <span class="kb-doc-icon">📋</span>
-                            <div>
-                                <div class="kb-doc-name">Product Catalog Q1 2025.docx</div>
-                                <div class="kb-doc-meta">1.2 MB · Uploaded Feb 20, 2025 · ✓ Indexed</div>
-                            </div>
-                            <button class="agent-action-btn agent-action-edit" style="margin-left:auto;">⋯</button>
-                        </div>
-                        <div class="kb-doc-row">
-                            <span class="kb-doc-icon">🌐</span>
-                            <div>
-                                <div class="kb-doc-name">https://help.mystore.in/shipping-policy</div>
-                                <div class="kb-doc-meta">URL · Crawled Feb 26, 2025 · ✓ Indexed</div>
-                            </div>
-                            <button class="agent-action-btn agent-action-edit" style="margin-left:auto;">⋯</button>
-                        </div>
+                        <!-- Filled by _renderKnowledgeDocs() — empty state until real docs exist (ADR-0001) -->
+                        <div id="kb-doc-list" style="padding: 4px 8px;"></div>
                     </div>
                 </div>
 
@@ -538,50 +513,8 @@
                         </div>
                         <button class="dash-btn dash-btn-primary" onclick="openCreateModal('tool')">+ Add tool</button>
                     </div>
-                    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:16px;">
-                        <div
-                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
-                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-                                <div
-                                    style="width:40px; height:40px; background:rgba(124,92,252,0.1); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px;">
-                                    📦</div>
-                                <div>
-                                    <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Get Order
-                                        Status</div>
-                                    <div
-                                        style="font-family:var(--font-mono); font-size:10px; color:var(--dash-text-3);">
-                                        GET /orders/{orderId}</div>
-                                </div>
-                                <span class="badge badge-green" style="margin-left:auto;">Active</span>
-                            </div>
-                            <p style="font-size:12px; color:var(--dash-text-3);">Fetches the current status and delivery
-                                info for a given order ID.</p>
-                        </div>
-                        <div
-                            style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
-                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-                                <div
-                                    style="width:40px; height:40px; background:rgba(0,196,161,0.1); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px;">
-                                    ↩️</div>
-                                <div>
-                                    <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Initiate
-                                        Return</div>
-                                    <div
-                                        style="font-family:var(--font-mono); font-size:10px; color:var(--dash-text-3);">
-                                        POST /returns</div>
-                                </div>
-                                <span class="badge badge-green" style="margin-left:auto;">Active</span>
-                            </div>
-                            <p style="font-size:12px; color:var(--dash-text-3);">Creates a return request for an
-                                eligible order on behalf of the customer.</p>
-                        </div>
-                        <div style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px; border-style:dashed; cursor:pointer; text-align:center;"
-                            onmouseover="this.style.borderColor='var(--dash-accent)'"
-                            onmouseout="this.style.borderColor='var(--dash-border)'" onclick="openCreateModal('tool')">
-                            <div style="font-size:28px; margin-bottom:8px;">+</div>
-                            <div style="font-size:13px; font-weight:600; color:var(--dash-text-3);">Add new tool</div>
-                        </div>
-                    </div>
+                    <!-- Tools render from real _tools data (ADR-0001); empty state until a tool is added -->
+                    <div id="tool-rows" class="tools-grid"></div>
                 </div>
 
                 <!-- ══════ PAGE: INTEGRATIONS ══════ -->
@@ -593,15 +526,16 @@
                             <p class="page-sub">Connect your existing tools and platforms</p>
                         </div>
                     </div>
+                    <!-- Integration statuses are static catalog info (Available), not fabricated usage data.
+                         Emoji replaced by inline SVG glyphs per design spec v2 §3. -->
                     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
                         <div
                             style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                             <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                                <div
-                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
-                                    📞</div>
+                                <div data-icon="phone-numbers"
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--dash-text-2); border:1px solid var(--dash-border);"></div>
                                 <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Twilio</div>
-                                <span class="badge badge-green" style="margin-left:auto;">Connected</span>
+                                <span class="badge badge-gray" style="margin-left:auto;">Available</span>
                             </div>
                             <p style="font-size:12px; color:var(--dash-text-3); line-height:1.5;">SIP trunking &amp;
                                 phone number provisioning</p>
@@ -609,9 +543,8 @@
                         <div
                             style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                             <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                                <div
-                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
-                                    💬</div>
+                                <div data-icon="whatsapp"
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--dash-text-2); border:1px solid var(--dash-border);"></div>
                                 <div style="font-size:13px; font-weight:700; color:var(--dash-text);">WhatsApp Business
                                 </div>
                                 <span class="badge badge-gray" style="margin-left:auto;">Available</span>
@@ -622,9 +555,8 @@
                         <div
                             style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                             <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                                <div
-                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
-                                    🎯</div>
+                                <div data-icon="integrations"
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--dash-text-2); border:1px solid var(--dash-border);"></div>
                                 <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Salesforce CRM
                                 </div>
                                 <span class="badge badge-gray" style="margin-left:auto;">Available</span>
@@ -635,12 +567,11 @@
                         <div
                             style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                             <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                                <div
-                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
-                                    📊</div>
+                                <div data-icon="analytics"
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--dash-text-2); border:1px solid var(--dash-border);"></div>
                                 <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Google Sheets
                                 </div>
-                                <span class="badge badge-green" style="margin-left:auto;">Connected</span>
+                                <span class="badge badge-gray" style="margin-left:auto;">Available</span>
                             </div>
                             <p style="font-size:12px; color:var(--dash-text-3); line-height:1.5;">Log call data to
                                 spreadsheets automatically</p>
@@ -648,9 +579,8 @@
                         <div
                             style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                             <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                                <div
-                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
-                                    🔔</div>
+                                <div data-icon="bell"
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--dash-text-2); border:1px solid var(--dash-border);"></div>
                                 <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Slack</div>
                                 <span class="badge badge-gray" style="margin-left:auto;">Available</span>
                             </div>
@@ -660,9 +590,8 @@
                         <div
                             style="background:var(--dash-surface); border:1px solid var(--dash-border); border-radius:var(--radius); padding:20px;">
                             <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                                <div
-                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--dash-border);">
-                                    📧</div>
+                                <div data-icon="file"
+                                    style="width:40px; height:40px; background:var(--dash-surface-2); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--dash-text-2); border:1px solid var(--dash-border);"></div>
                                 <div style="font-size:13px; font-weight:700; color:var(--dash-text);">Mailchimp</div>
                                 <span class="badge badge-gray" style="margin-left:auto;">Available</span>
                             </div>
@@ -677,12 +606,22 @@
                     <div class="page-header">
                         <div>
                             <h1 class="page-title">Voices</h1>
-                            <p class="page-sub">Browse and manage voices for your agents</p>
+                            <p class="page-sub">Sarvam text-to-speech voices available for your agents</p>
                         </div>
-                        <button class="dash-btn dash-btn-primary">+ Clone voice</button>
                     </div>
-                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;" id="voices-grid">
-                        <!-- filled by JS -->
+                    <div class="search-bar">
+                        <div class="search-input-wrap">
+                            <span data-icon="search" style="color:var(--dash-text-3); display:inline-flex;"></span>
+                            <input type="text" placeholder="Search voices…" id="voice-search" />
+                        </div>
+                        <div style="display:flex; gap:6px;" role="group" aria-label="Filter voices by gender">
+                            <button type="button" class="voice-gender-chip active" data-gender="All">All</button>
+                            <button type="button" class="voice-gender-chip" data-gender="Female">Female</button>
+                            <button type="button" class="voice-gender-chip" data-gender="Male">Male</button>
+                        </div>
+                    </div>
+                    <div class="voice-grid" id="voices-grid">
+                        <!-- filled by src/components/Voices.js -->
                     </div>
                 </div>
 
@@ -698,23 +637,24 @@
                             <button class="dash-btn dash-btn-outline" style="font-size:12px;">Export</button>
                         </div>
                     </div>
-                    <div class="recent-card">
+                    <div class="recent-card" id="conversations-card">
                         <div class="table-wrap">
-                            <table>
+                            <table class="conv-table">
                                 <thead>
                                     <tr>
                                         <th>Caller</th>
                                         <th>Agent</th>
-                                        <th>Duration</th>
-                                        <th>Status</th>
-                                        <th>CSAT</th>
+                                        <th>Transcript</th>
+                                        <th style="text-align:right;">Duration</th>
+                                        <th>Outcome</th>
+                                        <th style="text-align:right;">Est. cost</th>
                                         <th>Date</th>
-                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody id="conv-tbody"></tbody>
                             </table>
                         </div>
+                        <div id="conv-footer" class="table-footnote" hidden></div>
                     </div>
                 </div>
 
@@ -723,54 +663,29 @@
                     <div class="page-header">
                         <div>
                             <h1 class="page-title">Analytics</h1>
-                            <p class="page-sub">Performance insights across all agents</p>
-                        </div>
-                        <div style="display:flex; gap:8px;">
-                            <select class="dash-btn dash-btn-outline" style="font-size:12px; cursor:pointer;">
-                                <option>Last 7 days</option>
-                                <option>Last 30 days</option>
-                                <option>Last 90 days</option>
-                            </select>
+                            <p class="page-sub">Usage across all published agents</p>
                         </div>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Total Calls</span>
-                                <div class="stat-icon" style="background:rgba(124,92,252,.1);">📞</div>
-                            </div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-delta neutral">No calls yet</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Resolution Rate</span>
-                                <div class="stat-icon" style="background:rgba(34,197,94,.1);">✅</div>
-                            </div>
-                            <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">No calls yet</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">CSAT Score</span>
-                                <div class="stat-icon" style="background:rgba(245,158,11,.1);">⭐</div>
-                            </div>
-                            <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">No calls yet</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Escalations</span>
-                                <div class="stat-icon" style="background:rgba(239,68,68,.1);">📲</div>
-                            </div>
-                            <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">No calls yet</div>
-                        </div>
-                    </div>
+                    <!-- KPI strip — rendered by src/components/Analytics.js -->
+                    <div class="stats-grid stats-grid--5" id="analytics-kpis"></div>
                     <div class="chart-card">
                         <div class="chart-card-header">
-                            <span class="chart-card-title">Call Volume — Last 30 Days</span>
+                            <span class="chart-card-title">Calls over time</span>
+                            <div class="chart-period-tabs" id="analytics-period-tabs">
+                                <button type="button" class="chart-period-tab"
+                                    onclick="switchAnalyticsPeriod('day', this)">Day</button>
+                                <button type="button" class="chart-period-tab active"
+                                    onclick="switchAnalyticsPeriod('week', this)">Week</button>
+                                <button type="button" class="chart-period-tab"
+                                    onclick="switchAnalyticsPeriod('month', this)">Month</button>
+                            </div>
                         </div>
-                        <div class="chart-wrap">
-                            <canvas id="analyticsChart"></canvas>
-                        </div>
+                        <div id="analytics-chart-wrap"></div>
                     </div>
+                    <!-- Estimated-cost card (spec §4B) -->
+                    <div class="chart-card" id="cost-estimate-card"></div>
+                    <!-- Breakdown table (spec §1) -->
+                    <div class="recent-card" id="analytics-breakdown"></div>
                 </div>
 
                 <!-- ══════ PAGE: TESTS ══════ -->
@@ -783,7 +698,7 @@
                         <button class="dash-btn dash-btn-primary">+ New test</button>
                     </div>
                     <div class="empty-state">
-                        <div class="empty-icon">🧪</div>
+                        <div class="empty-icon" data-icon="tests"></div>
                         <div class="empty-title">No tests yet</div>
                         <div class="empty-sub">Create automated call simulations to catch regressions before new changes
                             go live.</div>
@@ -813,7 +728,7 @@
                         </div>
                     </div>
                     <div class="empty-state">
-                        <div class="empty-icon">💬</div>
+                        <div class="empty-icon" data-icon="whatsapp"></div>
                         <div class="empty-title">Connect your WhatsApp Business account</div>
                         <div class="empty-sub">Link your Meta WhatsApp Business API account to deploy Sahaiy agents
                             directly in WhatsApp chats and voice calls.</div>
@@ -830,40 +745,15 @@
                         </div>
                         <button class="dash-btn dash-btn-primary">+ New campaign</button>
                     </div>
-                    <!-- Stats (honest empty states until real telemetry lands — see ADR-0001) -->
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px;">
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Total Dialed</span>
-                                <div class="stat-icon" style="background:rgba(124,92,252,.1);">📢</div>
-                            </div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-delta neutral">No campaigns yet</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Connect Rate</span>
-                                <div class="stat-icon" style="background:rgba(34,197,94,.1);">✅</div>
-                            </div>
-                            <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">No calls yet</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-card-top"><span class="stat-label">Conversion Rate</span>
-                                <div class="stat-icon" style="background:rgba(245,158,11,.1);">🎯</div>
-                            </div>
-                            <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">No calls yet</div>
-                        </div>
-                    </div>
-                    <div class="recent-card">
-                        <div class="recent-card-header"><span class="recent-card-title">Campaigns</span></div>
-                        <!-- Honest empty state per ADR-0001: no fabricated campaign analytics -->
-                        <div class="empty-state" style="padding:48px 24px;">
-                            <div class="empty-icon">📢</div>
-                            <div class="empty-title">No campaigns yet</div>
-                            <div class="empty-sub">Create your first outbound campaign to start dialing. Campaign
-                                results will appear here once real calls are made.</div>
-                            <button class="dash-btn dash-btn-primary">+ New campaign</button>
-                        </div>
+                    <!-- ADR-0001: fabricated campaign KPIs (5,210 dialed / 64.3% / 12.8%) and fake
+                         campaign rows removed. Real campaigns arrive via the campaigns service
+                         (issue #7/#8); until then this page shows the honest empty state. -->
+                    <div class="empty-state">
+                        <div class="empty-icon" data-icon="outbound"></div>
+                        <div class="empty-title">No campaigns yet</div>
+                        <div class="empty-sub">Create an outbound campaign to reach many contacts with a
+                            published agent. Results appear here once dialing starts.</div>
+                        <button class="dash-btn dash-btn-primary">+ New campaign</button>
                     </div>
                 </div>
 
@@ -904,9 +794,9 @@
                             <div
                                 style="position:absolute; top:16px; left:16px; font-family:var(--font-mono); font-size:10px; color:var(--dash-text-3); text-transform:uppercase; letter-spacing:0.1em;">
                                 Preview</div>
-                            <div
-                                style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--dash-accent),#00C4A1); display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 8px 24px rgba(124,92,252,.35); cursor:pointer; animation:float 3s ease-in-out infinite;">
-                                📞</div>
+                            <div data-icon="phone-numbers"
+                                style="width:56px; height:56px; border-radius:50%; background:var(--dash-text); color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:var(--border-strong) 0 0 0 1px; cursor:pointer; animation:float 3s ease-in-out infinite;">
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -970,11 +860,11 @@
     <!-- ════════ PLAYGROUND PANEL ════════ -->
     <div class="playground-panel" id="playground-panel">
         <div class="playground-header">
-            <span class="playground-title" id="playground-title">🎮 Test Agent</span>
+            <span class="playground-title" id="playground-title">Test Agent</span>
             <button class="playground-close" onclick="closePlayground()" title="Close">×</button>
         </div>
         <div class="playground-orb-area">
-            <div class="playground-orb" onclick="togglePlaygroundCall()" id="playground-orb-btn">🎙️</div>
+            <div class="playground-orb" onclick="togglePlaygroundCall()" id="playground-orb-btn" data-icon="voices"></div>
             <div class="playground-status" id="playground-call-status">CLICK ORB TO START A TEST CALL</div>
         </div>
         <div class="playground-chat" id="playground-chat">
@@ -991,7 +881,7 @@
     <div class="modal-overlay" id="create-modal" onclick="if(event.target===this) closeCreateModal()">
         <div class="modal">
             <div class="modal-header">
-                <span class="modal-title">✨ Create New Agent</span>
+                <span class="modal-title">Create New Agent</span>
                 <button class="modal-close" onclick="closeCreateModal()" title="Close">×</button>
             </div>
             <div class="modal-body">
@@ -1000,32 +890,32 @@
                     <label class="form-label" style="margin-bottom:12px;display:block;">Start from a template</label>
                     <div class="modal-templates" id="modal-templates">
                         <div class="template-card selected" data-template="customer_support" onclick="selectTemplate(this)">
-                            <div class="template-icon">🎧</div>
+                            <div class="template-icon" data-icon="conversations"></div>
                             <div class="template-name">Customer Support</div>
                             <div class="template-desc">Handles inbound support calls, returns, and FAQs</div>
                         </div>
                         <div class="template-card" data-template="sales" onclick="selectTemplate(this)">
-                            <div class="template-icon">📈</div>
+                            <div class="template-icon" data-icon="outbound"></div>
                             <div class="template-name">Sales Outreach</div>
                             <div class="template-desc">Qualifies leads and books demos via outbound calls</div>
                         </div>
                         <div class="template-card" data-template="collections" onclick="selectTemplate(this)">
-                            <div class="template-icon">💰</div>
+                            <div class="template-icon" data-icon="phone-numbers"></div>
                             <div class="template-name">Collections</div>
                             <div class="template-desc">Follows up on overdue payments professionally</div>
                         </div>
                         <div class="template-card" data-template="survey" onclick="selectTemplate(this)">
-                            <div class="template-icon">📋</div>
+                            <div class="template-icon" data-icon="knowledge"></div>
                             <div class="template-name">Survey / NPS</div>
                             <div class="template-desc">Conducts customer satisfaction surveys at scale</div>
                         </div>
                         <div class="template-card" data-template="appointments" onclick="selectTemplate(this)">
-                            <div class="template-icon">📅</div>
+                            <div class="template-icon" data-icon="tests"></div>
                             <div class="template-name">Appointment Booking</div>
                             <div class="template-desc">Books, reschedules and confirms appointments</div>
                         </div>
                         <div class="template-card" data-template="blank" onclick="selectTemplate(this)">
-                            <div class="template-icon">⚙️</div>
+                            <div class="template-icon" data-icon="widget"></div>
                             <div class="template-name">Blank</div>
                             <div class="template-desc">Start from scratch with a custom prompt</div>
                         </div>
@@ -1043,12 +933,16 @@
                     <div class="form-group">
                         <label class="form-label" for="new-agent-voice">Voice</label>
                         <select class="form-input" id="new-agent-voice">
-                            <option value="anushka">Anushka (Female, Hindi/EN)</option>
-                            <option value="abhilash">Abhilash (Male, Hindi/EN)</option>
-                            <option value="manisha">Manisha (Female, Hindi)</option>
-                            <option value="arjun">Arjun (Male, Hindi)</option>
+                            <!-- All 9 Sarvam Bulbul speakers (spec v1 §2 catalog) -->
+                            <option value="anushka">Anushka (Female, Multilingual)</option>
+                            <option value="abhilash">Abhilash (Male, Multilingual)</option>
+                            <option value="manisha">Manisha (Female, Multilingual)</option>
+                            <option value="vidya">Vidya (Female, Multilingual)</option>
+                            <option value="arjun">Arjun (Male, Multilingual)</option>
                             <option value="maya">Maya (Female, English-IN)</option>
                             <option value="neel">Neel (Male, English-IN)</option>
+                            <option value="maitreyi">Maitreyi (Female, English-IN)</option>
+                            <option value="amartya">Amartya (Male, English-IN)</option>
                         </select>
                     </div>
                 </div>
@@ -1059,7 +953,6 @@
                     <select class="form-input" id="new-agent-lang">
                         <option value="en-IN">English (India)</option>
                         <option value="hi-IN">Hindi</option>
-                        <option value="hi-IN">Hinglish (Hindi + English)</option>
                         <option value="ta-IN">Tamil</option>
                         <option value="te-IN">Telugu</option>
                         <option value="mr-IN">Marathi</option>

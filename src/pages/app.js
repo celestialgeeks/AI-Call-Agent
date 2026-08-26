@@ -7,11 +7,10 @@
  */
 
 // ── Services ──────────────────────────────────────────────────
-import { getSession, onAuthStateChange } from '@/services/authService.js';
+import { getSession } from '@/services/authService.js';
 import * as authService from '@/services/authService.js';
-import env from '@/config/env.js';
 import { getAgents, createAgent, deleteAgent } from '@/services/agentService.js';
-import { getConversations, addConversation, addKnowledgeDoc, getPhoneNumbers, deletePhoneNumber, getKnowledgeDocs, getTools } from '@/services/conversationService.js';
+import { getConversations, addKnowledgeDoc, getPhoneNumbers, deletePhoneNumber, getKnowledgeDocs, getTools } from '@/services/conversationService.js';
 import { getDailyStats, seedUserData, getProfile } from '@/services/analyticsService.js';
 import { subscribeToConversations, subscribeToAgents, unsubscribeAll } from '@/services/realtimeService.js';
 
@@ -20,6 +19,10 @@ import { navigate, switchConfigTab, switchPeriodTab } from '@/components/Sidebar
 import { openCreateModal, closeCreateModal, selectTemplate, readCreateAgentForm } from '@/components/Modal.js';
 import { openPlayground, closePlayground, togglePlaygroundCall, sendPlaygroundMessage } from '@/components/Playground.js';
 import { drawLineChart } from '@/components/Chart.js';
+import { SARVAM_VOICES, renderVoiceGrid, initVoiceFilters } from '@/components/Voices.js';
+import { loadAnalyticsPage, switchAnalyticsPeriod } from '@/components/Analytics.js';
+import { estimateCallCost, formatINR } from '@/config/pricing.js';
+import { icon } from '@/utils/icons.js';
 
 // ── Utils ─────────────────────────────────────────────────────
 import { formatDuration, timeAgo, formatBytes, statusBadgeClass } from '@/utils/formatters.js';
@@ -42,50 +45,10 @@ let _tickerTimeout = null;
 // ═══════════════════════════════════════════════════════════════
 //  Boot
 // ═══════════════════════════════════════════════════════════════
-/**
- * Resolves once Supabase emits SIGNED_IN / INITIAL_SESSION with a session,
- * or after `timeoutMs` — whichever comes first.
- * Used to avoid bouncing to auth.html while an OAuth callback is still exchanging.
- * @param {number} timeoutMs
- * @returns {Promise<boolean>} true if a session appeared before the timeout
- */
-function _waitForAuthEvent(timeoutMs) {
-    return new Promise((resolve) => {
-        let settled = false;
-        const finish = (found) => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timer);
-            try { sub?.data.subscription.unsubscribe(); } catch { /* already gone */ }
-            resolve(found);
-        };
-        const sub = onAuthStateChange((event, s) => {
-            if (s) finish(true);
-            else if (event === 'SIGNED_OUT') finish(false);
-        });
-        const timer = setTimeout(() => finish(false), timeoutMs);
-    });
-}
-
 async function boot() {
   // 1. Auth guard
   const session = await getSession();
-  // Diagnostics for auth-loop investigation (login → instant logout).
-  const bootDiag = {
-    origin: window.location.origin,
-    appUrl: env.appUrl,
-    hasSession: Boolean(session),
-    ts: new Date().toISOString(),
-  };
-  window.__SAHAIY_BOOT_LOG__ = bootDiag;
-  // eslint-disable-next-line no-console
-  console.log('[Sahaiy Auth] boot:', JSON.stringify(bootDiag));
-  if (!session) {
-    // A PKCE/implicit callback may still be in flight when boot() runs — wait briefly
-    // for onAuthStateChange instead of bouncing instantly (avoids false sign-out).
-    const recovered = await _waitForAuthEvent(4000);
-    if (!recovered) { window.location.replace('/auth.html?mode=login'); return; }
-  }
+  if (!session) { window.location.replace('/auth.html?mode=login'); return; }
   _user = session.user;
   window.__USER_ID__ = _user.id;
 
@@ -108,16 +71,19 @@ async function boot() {
   ]);
 
   // 5. Render home page & initial components
+  _hydrateIcons();       // Inline all [data-icon] SVGs (design spec v2 §3)
   _initHomePage();
   _renderAgents();
-  _renderVoices();
+  _renderTools();        // Tools page — real data or honest empty state
+  renderVoiceGrid();      // Voices library (src/components/Voices.js)
+  initVoiceFilters();
   _renderPhoneNumbers();
+  _renderKnowledgeDocs();
 
   // 6. Realtime subscriptions
   _setupRealtime();
 
-  // 7. Live call ticker
-  _startLiveTicker();
+  // 7. Live ticker removed (ADR-0001) — real conversations arrive via realtime.
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -156,7 +122,50 @@ function _hydrateUserUI() {
   // Greeting
   const hour = new Date().getHours();
   const period = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
-  setText($('.home-greeting'), `Good ${period}, ${firstName} ☀️`);
+  setText($('.home-greeting'), `Good ${period}, ${firstName}`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Icon hydration (design spec v2 §3)
+//  Replaces every [data-icon] placeholder with its inline SVG once at boot.
+// ═══════════════════════════════════════════════════════════════
+function _hydrateIcons() {
+  document.querySelectorAll('[data-icon]').forEach((el) => {
+    if (el.querySelector('svg')) return; // already hydrated
+    el.innerHTML = icon(el.dataset.icon) || el.innerHTML;
+    el.removeAttribute('data-icon');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Tools (real data or honest empty state — ADR-0001)
+// ═══════════════════════════════════════════════════════════════
+function _renderTools() {
+  const container = $('#tool-rows');
+  if (!container) return;
+
+  if (!_tools.length) {
+    container.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1;">
+        <div class="empty-icon">${icon('tools')}</div>
+        <div class="empty-title">No tools configured</div>
+        <div class="empty-sub">Add tools so your agents can call external APIs and take actions during calls.</div>
+        <button type="button" class="dash-btn dash-btn-primary" onclick="openCreateModal()">+ Add tool</button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = _tools.map((t) => `
+    <div class="tool-card">
+      <div class="tool-card__head">
+        <div>
+          <div class="tool-card__name">${escHtml(t.name ?? 'Untitled tool')}</div>
+          <div class="tool-card__endpoint mono-num">${escHtml(t.method ?? 'GET')} ${escHtml(t.endpoint ?? '')}</div>
+        </div>
+        <span class="badge ${t.status === 'active' ? 'badge-green' : 'badge-gray'}">${escHtml(t.status ?? 'inactive')}</span>
+      </div>
+      ${t.description ? `<p class="tool-card__desc">${escHtml(t.description)}</p>` : ''}
+    </div>`).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -175,37 +184,101 @@ function _updateHomeStats() {
   const avgSec = todayConvs.length
     ? Math.round(todayConvs.reduce((s, c) => s + (c.duration_sec ?? 0), 0) / todayConvs.length)
     : 0;
-  const successRate = todayConvs.length ? ((resolvedToday / todayConvs.length) * 100).toFixed(1) : null;
-  const costInr = (todayConvs.length * 0.44).toFixed(0);
+  // ADR-0001: no data ⇒ real zeros. Fabricated fallbacks removed
+  // (was: successRate default 98.2%, cost = convs × hardcoded ₹0.44).
+  const successRate = todayConvs.length ? ((resolvedToday / todayConvs.length) * 100).toFixed(1) : '0.0';
+  // Cost from pricing.js — null rate ⇒ em-dash, never a guess.
+  const totalSecToday = todayConvs.reduce((s, c) => s + (c.duration_sec ?? 0), 0);
+  const costVal = estimateCallCost({ seconds: totalSecToday });
+  const perCallVal = estimateCallCost({
+    seconds: todayConvs.length ? Math.round(totalSecToday / todayConvs.length) : 0,
+  });
 
-  // Honest empty states per ADR-0001: never show fabricated numbers or fake deltas.
-  _setStatCard(0, _convs.length.toLocaleString(), todayConvs.length ? `${todayConvs.length} today` : 'No calls yet', null);
-  _setStatCard(1, avgSec ? formatDuration(avgSec) : '—', 'Avg across calls', null);
-  _setStatCard(2, successRate ? `${successRate}%` : '—', successRate ? 'Resolved share' : 'No calls yet', null);
-  _setStatCard(3, `₹${Number(costInr).toLocaleString()}`, '≈ ₹0.44 per call', null);
+  _setStatCard(0, todayConvs.length.toLocaleString('en-IN'), null);
+  _setStatCard(1, formatDuration(avgSec), null);
+  _setStatCard(2, `${successRate}%`, null);
+  _setStatCard(3, formatINR(costVal, { compact: true }), `≈ ${formatINR(perCallVal)} per call`);
 }
 
-function _setStatCard(index, value, sub, positive) {
+/**
+ * Fills one home stat card. Deltas render ONLY from a real previous-period
+ * comparison (design spec §1/§6.4); passing `null` omits the line entirely.
+ */
+function _setStatCard(index, value, sub) {
   const cards = $$('.stat-card');
   if (!cards[index]) return;
   const valEl = cards[index].querySelector('.stat-value');
   const subEl = cards[index].querySelector('.stat-delta, .stat-cost');
   setText(valEl, value);
-  if (subEl) {
+  if (!subEl) return;
+  if (sub === null || sub === undefined) {
+    subEl.textContent = '';
+    subEl.hidden = true; // no fabricated "↑ x% vs yesterday" lines
+  } else {
+    subEl.hidden = false;
     subEl.textContent = sub;
-    if (positive !== null) subEl.style.color = positive ? '#22c55e' : '#ef4444';
+    subEl.style.color = '';
   }
 }
 
+// ── Charts ────────────────────────────────────────────────────
+function _buildChartData(period) {
+  // ADR-0001: no data ⇒ empty array ⇒ caller renders the empty-chart state.
+  if (!_stats.length) return [];
+  const sorted = [..._stats].sort((a, b) => a.date.localeCompare(b.date));
+  if (period === 'week') return sorted.slice(-7).map((d) => d.total_calls);
+  if (period === 'month') return sorted.slice(-30).map((d) => d.total_calls);
+  return sorted.slice(-12).map((d) => Math.round(d.total_calls / 8));
+}
+
+function _initHomeChart(period = 'week') {
+  const data = _buildChartData(period);
+  const wrap = document.querySelector('#page-home .chart-wrap');
+  if (!wrap) return;
+  if (data.length < 2) {
+    wrap.innerHTML = `
+      <div class="empty-chart">
+        <div class="empty-chart__icon">${icon('phone-numbers')}</div>
+        <div class="empty-chart__title">No calls yet</div>
+        <div class="empty-chart__sub">Metrics appear after your agents handle their first call.</div>
+      </div>`;
+    return;
+  }
+  if (!wrap.querySelector('canvas')) {
+    wrap.innerHTML = '<canvas id="callChart"></canvas>';
+  }
+  requestAnimationFrame(() => drawLineChart('callChart', data));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Recent Conversations (home)
+// ═══════════════════════════════════════════════════════════════
 function _renderRecentTable() {
   const tbody = $('#recent-tbody');
   if (!tbody) return;
-  const palette = ['#7C5CFC', '#00C4A1', '#f59e0b', '#ef4444', '#6366f1'];
-  tbody.innerHTML = _convs.slice(0, 5).map((c, i) => `
+  if (!_convs.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="5">
+        <div class="empty-state">
+          <div class="empty-icon">${icon('conversations')}</div>
+          <div class="empty-title">No conversations yet</div>
+          <div class="empty-sub">Once an agent answers a call, the transcript will show up here.</div>
+          <button type="button" class="dash-btn dash-btn-outline" onclick="openPlayground()">Test in Playground</button>
+        </div>
+      </td></tr>`;
+    return;
+  }
+  _renderRecentRows();
+}
+
+function _renderRecentRows() {
+  const tbody = $('#recent-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = _convs.slice(0, 5).map((c) => `
     <tr>
       <td>
         <div class="caller-info">
-          <div class="caller-avatar" style="background:${palette[i % palette.length]}">${(c.caller_name ?? '?').charAt(0)}</div>
+          <div class="caller-avatar">${escHtml((c.caller_name ?? '?').charAt(0).toUpperCase())}</div>
           <div>
             <div class="caller-name">${escHtml(c.caller_name ?? 'Unknown')}</div>
             <div class="caller-num">${escHtml(c.caller_number ?? '')}</div>
@@ -220,23 +293,6 @@ function _renderRecentTable() {
   `).join('');
 }
 
-// ── Charts ────────────────────────────────────────────────────
-function _buildChartData(period) {
-  if (!_stats.length) return [0, 0, 0, 0, 0, 0, 0];
-  const sorted = [..._stats].sort((a, b) => a.date.localeCompare(b.date));
-  if (period === 'week') return sorted.slice(-7).map((d) => d.total_calls);
-  if (period === 'month') return sorted.slice(-30).map((d) => d.total_calls);
-  return sorted.slice(-12).map((d) => Math.round(d.total_calls / 8));
-}
-
-function _initHomeChart(period = 'week') {
-  requestAnimationFrame(() => drawLineChart('callChart', _buildChartData(period)));
-}
-
-function _initAnalyticsChart() {
-  requestAnimationFrame(() => drawLineChart('analyticsChart', _buildChartData('month'), '#00C4A1'));
-}
-
 // ═══════════════════════════════════════════════════════════════
 //  Agents
 // ═══════════════════════════════════════════════════════════════
@@ -246,10 +302,6 @@ function _renderAgents(filter = '') {
   const filtered = _agents.filter((a) =>
     a.name.toLowerCase().includes(filter.toLowerCase())
   );
-  const gradients = [
-    ['#7C5CFC', '#a78bfa'], ['#00C4A1', '#34d399'],
-    ['#f59e0b', '#fbbf24'], ['#6366f1', '#818cf8'],
-  ];
 
   if (!filtered.length) {
     container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--dash-text-3);grid-column:1/-1;">
@@ -258,11 +310,10 @@ function _renderAgents(filter = '') {
     return;
   }
 
-  container.innerHTML = filtered.map((a, i) => {
-    const [c1, c2] = gradients[i % gradients.length];
+  container.innerHTML = filtered.map((a) => {
     return `<div class="agent-row" onclick="editAgent('${a.id}','${escHtml(a.name)}')">
       <div class="agent-name-cell">
-        <div class="agent-avatar" style="background:linear-gradient(135deg,${c1},${c2})">${a.icon ?? '🤖'}</div>
+        <div class="agent-avatar">${escHtml((a.name ?? 'A').charAt(0).toUpperCase())}</div>
         <div>
           <div class="agent-name">${escHtml(a.name)}</div>
           <div class="agent-id">ag_${a.id.slice(0, 8)}</div>
@@ -281,17 +332,54 @@ function _renderAgents(filter = '') {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Conversations
+//  Conversations (spec §3: Caller | Agent | Transcript | Duration |
+//  Outcome | Est. cost | Date — 48px rows, honest empty state)
 // ═══════════════════════════════════════════════════════════════
+
+/** Maps backend status → badge variant 1:1; never infers. */
+function _outcomeBadge(status) {
+  const map = {
+    resolved: 'badge-green',
+    completed: 'badge-green',
+    escalated: 'badge-orange',
+    in_progress: 'badge-orange',
+    missed: 'badge-red',
+    failed: 'badge-red',
+    abandoned: 'badge-gray',
+  };
+  return map[status] ?? 'badge-gray';
+}
+
 function _renderConversations() {
   const tbody = $('#conv-tbody');
   if (!tbody) return;
-  const palette = ['#7C5CFC', '#00C4A1', '#f59e0b', '#ef4444', '#6366f1', '#ec4899'];
-  tbody.innerHTML = _convs.map((c, i) => `
+
+  // Empty state (ADR-0001 hero moment, spec §3)
+  if (!_convs.length) {
+    tbody.innerHTML = `
+      <tr><td colspan="7">
+        <div class="empty-state">
+          <div class="empty-icon">${icon('conversations')}</div>
+          <div class="empty-title">No conversations yet</div>
+          <div class="empty-sub">Once an agent answers a call, the transcript will show up here.</div>
+          <button type="button" class="dash-btn dash-btn-outline" onclick="openPlayground()">Test in Playground</button>
+        </div>
+      </td></tr>`;
+    const footer = $('#conv-footer');
+    if (footer) footer.hidden = true;
+    return;
+  }
+
+  tbody.innerHTML = _convs.map((c) => {
+    const costVal = estimateCallCost({ seconds: c.duration_sec ?? 0 });
+    const transcript = c.transcript || c.first_message || '';
+    const preview = transcript ? String(transcript).slice(0, 120) : '\u2014';
+    const inProgress = c.status === 'in_progress';
+    return `
     <tr>
       <td>
         <div class="caller-info">
-          <div class="caller-avatar" style="background:${palette[i % palette.length]}">${(c.caller_name ?? '?').charAt(0)}</div>
+          <div class="caller-avatar">${escHtml((c.caller_name ?? '?').charAt(0).toUpperCase())}</div>
           <div>
             <div class="caller-name">${escHtml(c.caller_name ?? 'Unknown')}</div>
             <div class="caller-num">${escHtml(c.caller_number ?? '')}</div>
@@ -299,13 +387,20 @@ function _renderConversations() {
         </div>
       </td>
       <td>${escHtml(c.agent_name ?? '—')}</td>
-      <td>${formatDuration(c.duration_sec)}</td>
-      <td><span class="badge ${statusBadgeClass(c.status)}">${escHtml(c.status)}</span></td>
-      <td>${c.csat_score ? '⭐'.repeat(c.csat_score) : '—'}</td>
+      <td><span class="conv-transcript" title="${escHtml(preview)}">${escHtml(preview)}</span></td>
+      <td class="mono-num" style="text-align:right;">${formatDuration(c.duration_sec)}</td>
+      <td><span class="badge ${_outcomeBadge(c.status)}${inProgress ? ' pulse-dot' : ''}">${escHtml(c.status)}</span></td>
+      <td class="conv-cost" style="text-align:right;">${formatINR(costVal)}</td>
       <td style="color:var(--dash-text-3);font-size:12px;font-family:var(--font-mono);">${timeAgo(c.created_at)}</td>
-      <td><button class="agent-action-btn agent-action-btn--edit" style="font-size:11px;">View →</button></td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
+
+  // Footer count line — "Showing X–Y of Z", Z only when known.
+  const footer = $('#conv-footer');
+  if (footer) {
+    footer.hidden = false;
+    footer.textContent = `Showing 1\u2013${_convs.length} of ${_convs.length}`;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -331,8 +426,7 @@ function _renderPhoneNumbers() {
   list.innerHTML = _phones.map((phone) => {
     const capabilities = Array.isArray(phone.capabilities) ? phone.capabilities : [];
     const isOutboundOnly = capabilities.length === 1 && String(capabilities[0]).toLowerCase() === 'outbound';
-    const icon = isOutboundOnly ? '📱' : '📞';
-    const iconBg = isOutboundOnly ? 'rgba(0,196,161,0.1)' : 'rgba(124,92,252,0.1)';
+    const phoneIcon = icon('phone-numbers');
     const agentName = phone.agent_name ?? phone.agents?.name ?? 'Unassigned';
     const status = String(phone.status ?? 'inactive').toLowerCase();
     const statusLabel = status === 'active' ? 'Active' : 'Inactive';
@@ -340,7 +434,7 @@ function _renderPhoneNumbers() {
 
     return `
       <div class="phone-num-card">
-        <div class="phone-num-icon" style="background:${iconBg};">${icon}</div>
+        <div class="phone-num-icon">${phoneIcon}</div>
         <div class="phone-num-info">
           <div class="phone-num-number">${escHtml(phone.number ?? '—')}</div>
           <div class="phone-num-meta">${escHtml(phone.country ?? 'India')} · ${escHtml(phone.city ?? '—')} · ${escHtml(_formatPhoneCapabilities(capabilities))}</div>
@@ -368,7 +462,7 @@ function _renderKnowledgeDocs() {
   }
   list.innerHTML = _docs.map((d) => `
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--dash-surface);border:1px solid var(--dash-border);border-radius:var(--radius);">
-      <span style="font-size:20px;">${d.type === 'url' ? '🔗' : '📄'}</span>
+      <span style="display:inline-flex;color:var(--dash-text-2);">${d.type === 'url' ? icon('integrations') : icon('file')}</span>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:600;color:var(--dash-text);">${escHtml(d.name)}</div>
         <div style="font-size:11px;color:var(--dash-text-3);font-family:var(--font-mono);">${d.size_bytes ? formatBytes(d.size_bytes) : ''} · ${timeAgo(d.created_at)}</div>
@@ -379,79 +473,18 @@ function _renderKnowledgeDocs() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Voices (static data — no DB row needed)
+//  Voices — moved to src/components/Voices.js (Sarvam catalog,
+//  per-voice TTS preview, gender/search filters). SARVAM_VOICES is
+//  imported there; the create-agent voice picker consumes the same list.
 // ═══════════════════════════════════════════════════════════════
-const VOICES = [
-  { name: 'Priya', lang: 'Hindi/English', gender: 'Female', style: 'Natural', emoji: '👩', gradient: 'linear-gradient(135deg,#ff6b6b,#ffa06b)' },
-  { name: 'Rahul', lang: 'Hindi', gender: 'Male', style: 'Professional', emoji: '👨', gradient: 'linear-gradient(135deg,#667eea,#764ba2)' },
-  { name: 'Anita', lang: 'English-IN', gender: 'Female', style: 'Warm', emoji: '👩‍💼', gradient: 'linear-gradient(135deg,#f093fb,#f5576c)' },
-  { name: 'Arjun', lang: 'English-IN', gender: 'Male', style: 'Confident', emoji: '👨‍💼', gradient: 'linear-gradient(135deg,#4facfe,#00f2fe)' },
-  { name: 'Kavya', lang: 'Tamil/English', gender: 'Female', style: 'Friendly', emoji: '💁‍♀️', gradient: 'linear-gradient(135deg,#43e97b,#38f9d7)' },
-  { name: 'Amit', lang: 'Bengali/Hindi', gender: 'Male', style: 'Calm', emoji: '🧑‍💻', gradient: 'linear-gradient(135deg,#fa709a,#fee140)' },
-];
-
-function _renderVoices() {
-  const grid = $('#voices-grid');
-  if (!grid) return;
-  grid.innerHTML = VOICES.map((v) => `
-    <div class="voice-card" tabindex="0" role="button" aria-label="Preview voice ${v.name}">
-      <div class="voice-card__header">
-        <div class="voice-card__avatar" style="background:${v.gradient}">${v.emoji}</div>
-        <div class="voice-card__info">
-          <div class="voice-card__name">${v.name}</div>
-          <div class="voice-card__meta">${v.gender} · ${v.lang}</div>
-        </div>
-        <button class="voice-card__play" aria-label="Play ${v.name}">▶</button>
-      </div>
-      <div class="voice-card__tags">
-        <span class="badge badge--gray">${v.style}</span>
-        <span class="badge badge--gray">${v.lang}</span>
-      </div>
-    </div>
-  `).join('');
-}
 
 // ═══════════════════════════════════════════════════════════════
-//  Live Ticker — simulates incoming calls every 15-35 seconds
+//  Live Ticker — REMOVED (ADR-0001).
+//  The old ticker fabricated incoming calls (random callers, durations,
+//  statuses) and wrote them into Supabase every 15–35s. Real conversations
+//  arrive via the realtime subscription below; nothing else may invent them.
 // ═══════════════════════════════════════════════════════════════
-function _startLiveTicker() {
-  const CALLERS = ['Priya Mehta', 'Rohit Gupta', 'Kavya Iyer', 'Amit Sharma', 'Sunita Reddy', 'Raj Patel', 'Nisha Kumar'];
-  const STATUSES = ['resolved', 'resolved', 'resolved', 'escalated', 'missed'];
-  const EMOJI = { resolved: '✅', escalated: '⚠️', missed: '📵' };
-
-  const tick = () => {
-    const delay = (15 + Math.random() * 20) * 1_000;
-    _tickerTimeout = setTimeout(async () => {
-      const published = _agents.filter((a) => a.status === 'published');
-      const agent = published[Math.floor(Math.random() * published.length)];
-      const status = STATUSES[Math.floor(Math.random() * STATUSES.length)];
-
-      const payload = {
-        user_id: _user.id,
-        agent_id: agent?.id ?? null,
-        agent_name: agent?.name ?? 'Customer Support Agent',
-        caller_name: CALLERS[Math.floor(Math.random() * CALLERS.length)],
-        caller_number: `+91 ${Math.floor(70000 + Math.random() * 29999)} ${Math.floor(10000 + Math.random() * 89999)}`,
-        duration_sec: Math.floor(30 + Math.random() * 300),
-        status,
-        csat_score: Math.random() > 0.3 ? Math.floor(4 + Math.random() * 2) : null,
-      };
-
-      const { data } = await addConversation(payload);
-      if (data) {
-        _convs.unshift(data);
-        _updateHomeStats();
-        showToast(`${EMOJI[status] ?? '📞'} ${payload.caller_name} · ${payload.agent_name} · ${formatDuration(payload.duration_sec)}`);
-
-        const activePage = $('[id^="page-"].active');
-        if (activePage?.id === 'page-conversations') _renderConversations();
-        if (activePage?.id === 'page-home') _renderRecentTable();
-      }
-      tick();
-    }, delay);
-  };
-  tick();
-}
+function _startLiveTicker() { /* intentionally empty — see ADR-0001 note above */ }
 
 // ═══════════════════════════════════════════════════════════════
 //  Realtime
@@ -498,7 +531,7 @@ function _showUserMenu(e) {
       <div style="font-size:12px;font-weight:700;color:var(--dash-text);">${escHtml(name)}</div>
       <div style="font-size:11px;color:var(--dash-text-3);">${escHtml(email)}</div>
     </div>
-    <button id="menu-settings" style="width:100%;text-align:left;padding:10px 14px;border:none;background:none;font-size:13px;color:var(--dash-text-2);cursor:pointer;font-family:var(--font-sans);">⚙️ Settings</button>
+    <button id="menu-settings" style="width:100%;text-align:left;padding:10px 14px;border:none;background:none;font-size:13px;color:var(--dash-text-2);cursor:pointer;font-family:var(--font-sans);">Settings</button>
     <div style="height:1px;background:var(--dash-border);margin:4px 0;"></div>
     <button id="menu-signout" style="width:100%;text-align:left;padding:10px 14px;border:none;background:none;font-size:13px;color:#ef4444;cursor:pointer;font-family:var(--font-sans);">↩ Sign out</button>
   `;
@@ -516,11 +549,14 @@ Object.assign(window, {
   navigate,
   switchConfigTab,
 
-  // Chart period
+  // Chart period (home page)
   switchPeriod: (period, btn) => {
     switchPeriodTab(btn);
-    requestAnimationFrame(() => drawLineChart('callChart', _buildChartData(period)));
+    requestAnimationFrame(() => _initHomeChart(period));
   },
+
+  // Analytics period tabs
+  switchAnalyticsPeriod,
 
   // Agent panel
   openCreateAgent: openCreateModal,
@@ -669,7 +705,7 @@ const _originalNavigate = navigate;
 window.navigate = (pageId, navEl) => {
   _originalNavigate(pageId, navEl);
   if (pageId === 'conversations') _renderConversations();
-  if (pageId === 'analytics') _initAnalyticsChart();
+  if (pageId === 'analytics') loadAnalyticsPage();
   if (pageId === 'knowledge') _renderKnowledgeDocs();
   if (pageId === 'phonenumbers') _renderPhoneNumbers();
   if (pageId === 'home') _initHomePage();
@@ -678,8 +714,8 @@ window.navigate = (pageId, navEl) => {
 // ── Resize → re-draw charts ───────────────────────────────────
 window.addEventListener('resize', () => {
   const active = $('[id^="page-"].active')?.id;
-  if (active === 'page-home') drawLineChart('callChart', _buildChartData('week'));
-  if (active === 'page-analytics') drawLineChart('analyticsChart', _buildChartData('month'), '#00C4A1');
+  if (active === 'page-home') _initHomeChart('week');
+  if (active === 'page-analytics') loadAnalyticsPage();
 }, { passive: true });
 
 // ── Start ─────────────────────────────────────────────────────
