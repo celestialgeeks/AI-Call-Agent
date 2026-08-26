@@ -31,3 +31,10 @@ npm-debug.log*
 
 # Vite
 vite.config.js.timestamp-*
+
+# ─────────────────────────────────────────────────────────
+#  QA suite artifacts (Playwright E2E)
+# ─────────────────────────────────────────────────────────
+qa/e2e/test-results/
+qa/e2e/playwright-report/
+qa/e2e/e2e-html/
