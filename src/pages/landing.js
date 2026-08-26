@@ -28,16 +28,11 @@ const fadeObserver = new IntersectionObserver(
 
 document.querySelectorAll('.fade-up').forEach((el) => fadeObserver.observe(el));
 
-// ── Demo orb interaction ─────────────────────────────────────
-const demoOrb = document.getElementById('demo-orb');
-if (demoOrb) {
-    demoOrb.addEventListener('click', () => {
-        demoOrb.classList.toggle('active');
-        const isActive = demoOrb.classList.contains('active');
-        const label = demoOrb.querySelector('.demo-orb-label');
-        if (label) label.textContent = isActive ? 'Listening…' : 'Try Sahaiy';
-    });
-}
+// ── Demo orb interaction → simulated call widget (issue #6) ──
+import { startDemo } from '@/widgets/demoCallWidget.js';
+
+/** Global handler for the demo orb + START CALL button — called from HTML */
+window.startDemo = () => startDemo();
 
 // ── Smooth scroll for anchor links ──────────────────────────
 document.querySelectorAll('a[href^="#"]').forEach((link) => {
