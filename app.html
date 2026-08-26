@@ -143,15 +143,15 @@
                     <p class="home-greeting">Good morning, Shreyash ☀️</p>
                     <p class="home-sub">Here's how your agents performed today</p>
 
-                    <!-- Stats (honest empty states until real telemetry lands — see ADR-0001) -->
+                    <!-- Stats — values are populated live by _updateHomeStats() (ADR-0001: no fabricated numbers) -->
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-card-top">
                                 <span class="stat-label">Total Calls</span>
                                 <div class="stat-icon" style="background:rgba(124,92,252,0.1);">📞</div>
                             </div>
-                            <div class="stat-value">0</div>
-                            <div class="stat-delta neutral">No calls yet</div>
+                            <div class="stat-value">—</div>
+                            <div class="stat-delta neutral">loading…</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
@@ -159,7 +159,7 @@
                                 <div class="stat-icon" style="background:rgba(0,196,161,0.1);">⏱️</div>
                             </div>
                             <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">No calls yet</div>
+                            <div class="stat-delta neutral">today</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
@@ -167,7 +167,7 @@
                                 <div class="stat-icon" style="background:rgba(34,197,94,0.1);">✅</div>
                             </div>
                             <div class="stat-value">—</div>
-                            <div class="stat-delta neutral">No calls yet</div>
+                            <div class="stat-delta neutral">no calls yet</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-card-top">
@@ -175,7 +175,7 @@
                                 <div class="stat-icon" style="background:rgba(245,158,11,0.1);">💰</div>
                             </div>
                             <div class="stat-value">₹0</div>
-                            <div class="stat-delta neutral">No usage yet</div>
+                            <div class="stat-delta neutral">no spend yet</div>
                         </div>
                     </div>
 

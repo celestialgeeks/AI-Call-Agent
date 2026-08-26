@@ -1227,6 +1227,17 @@
     color: white;
 }
 
+/* ── Honest "coming soon" links (no destination yet) ────────── */
+a.coming-soon {
+    cursor: default;
+    opacity: 0.45;
+}
+
+a.coming-soon:hover {
+    color: inherit;
+    text-decoration: none;
+}
+
 .footer-bottom {
     display: flex;
     align-items: center;

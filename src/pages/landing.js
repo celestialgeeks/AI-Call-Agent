@@ -59,3 +59,12 @@ window.copyEmbedCode = () => {
         showToast('✅ Embed code copied!', 'success');
     });
 };
+
+// ── Graceful demo start handler ──────────────────────────────
+// The real interactive demo widget lands in a separate task; until then
+// startDemo() scrolls to the demo section and gives honest feedback
+// instead of throwing a ReferenceError from the inline onclick.
+window.startDemo = () => {
+    document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
+    showToast('🎙️ Live demo coming soon — stay tuned!', 'info');
+};
