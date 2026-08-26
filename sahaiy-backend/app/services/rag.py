@@ -7,37 +7,84 @@ Per-user in-memory FAISS indices built from knowledge docs stored in Supabase.
 Usage:
     await ingest_doc(user_id, doc_id, text)          # index one doc
     context = await retrieve_context(user_id, query)  # get top-k context
+
+Memory safety (Render free tier / 512 MB containers):
+    numpy / faiss / sentence-transformers (→ torch) are NOT imported at module
+    load time — doing so pulled torch into every app boot (~300–400 MB RSS)
+    and got the process OOM-killed (exit 137) before uvicorn could bind $PORT.
+    Heavy imports now happen only on the first actual RAG call, cached after
+    the first attempt. Set RAG_ENABLED=false to hard-disable RAG entirely
+    (recommended on 512 MB instances where a first RAG call would OOM anyway).
 """
 
 import asyncio
 import logging
+import os
+import threading
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# Lazy imports so the app starts without these heavy deps if RAG is unused
-try:
-    import numpy as np
-    import faiss
-    from sentence_transformers import SentenceTransformer
-    _RAG_AVAILABLE = True
-except ImportError:
-    _RAG_AVAILABLE = False
-    logger.warning(
-        "[RAG] faiss-cpu or sentence-transformers not installed — RAG disabled. "
-        "Run: pip install faiss-cpu sentence-transformers"
-    )
-
 _MODEL_NAME = "all-MiniLM-L6-v2"
+
+# Populated lazily by _ensure_rag() — never at import time.
+np = None                 # type: ignore[assignment]
+faiss = None              # type: ignore[assignment]
+SentenceTransformer = None  # type: ignore[assignment]
+
+_RAG_ENABLED_CFG = os.getenv("RAG_ENABLED", "true").strip().lower() not in {"0", "false", "no", "off"}
+_rag_checked = False
+_RAG_AVAILABLE = False
+_rag_lock = threading.Lock()
+
 _model: Optional[object] = None
 _indices: dict = {}        # user_id -> faiss.IndexFlatL2
 _doc_store: dict = {}      # user_id -> list[str]  (parallel to FAISS index)
 _doc_ids: dict = {}        # user_id -> list[str]  (Supabase doc UUIDs)
 
 
+def _ensure_rag() -> bool:
+    """
+    Import heavy ML deps on first RAG use. Returns True when RAG is usable.
+    The result is cached — imports are attempted exactly once per process.
+    Import failures (missing packages OR low-memory environments) degrade
+    gracefully: RAG is disabled and everything else keeps working.
+    """
+    global _rag_checked, _RAG_AVAILABLE
+    global np, faiss, SentenceTransformer
+
+    if _rag_checked:
+        return _RAG_AVAILABLE
+
+    with _rag_lock:
+        if _rag_checked:
+            return _RAG_AVAILABLE
+
+        if not _RAG_ENABLED_CFG:
+            logger.info("[RAG] RAG_ENABLED=false — RAG disabled by configuration.")
+        else:
+            try:
+                import numpy as _np
+                import faiss as _faiss
+                from sentence_transformers import SentenceTransformer as _ST
+
+                np, faiss, SentenceTransformer = _np, _faiss, _ST
+                _RAG_AVAILABLE = True
+                logger.info("[RAG] heavy deps loaded on first use (numpy/faiss/sentence-transformers).")
+            except Exception as exc:  # ImportError or OOM/segfault-prone loaders
+                _RAG_AVAILABLE = False
+                logger.warning(
+                    "[RAG] heavy deps unavailable (%s) — RAG disabled. "
+                    "Run: pip install faiss-cpu sentence-transformers",
+                    exc,
+                )
+        _rag_checked = True
+        return _RAG_AVAILABLE
+
+
 def _get_model():
     global _model
-    if _model is None and _RAG_AVAILABLE:
+    if _model is None and _ensure_rag():
         logger.info("[RAG] Loading sentence-transformer model '%s' …", _MODEL_NAME)
         _model = SentenceTransformer(_MODEL_NAME)
         logger.info("[RAG] Model loaded.")
@@ -48,8 +95,9 @@ async def ingest_doc(user_id: str, doc_id: str, text: str) -> None:
     """
     Encode text and add it to the per-user FAISS index.
     Safe to call multiple times — duplicate doc_ids are skipped.
+    No-op (logs once) when RAG is disabled or deps are unavailable.
     """
-    if not _RAG_AVAILABLE:
+    if not _ensure_rag():
         return
 
     if user_id not in _doc_ids:
@@ -82,7 +130,7 @@ async def retrieve_context(user_id: str, query: str, top_k: int = 3) -> str:
     Returns:
         Concatenated context string, or empty string if no index exists.
     """
-    if not _RAG_AVAILABLE or user_id not in _indices:
+    if not _ensure_rag() or user_id not in _indices:
         return ""
 
     loop = asyncio.get_event_loop()
