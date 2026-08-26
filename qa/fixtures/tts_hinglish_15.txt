@@ -1,0 +1,17 @@
+# TTS-02 Hinglish set — ≥90% round-trip accuracy, no script-switch collapse.
+# Numerals/dates/₹ correctness (TTS-04) rows marked [num].
+मुझे अपना order track करना है।
+आप मुझे delivery date बता सकते हैं?
+Mera refund abhi tak nahi aaya.
+Please mere account me ₹500 credit कर दीजिए।
+[num] मेरा ऑर्डर नंबर 12345 है।
+[num] 15 तारीख को delivery होगी।
+क्या मैं payment UPI से कर सकता हूँ?
+Main aapko WhatsApp पर message भेजूँ?
+यह plan monthly ₹299 का है।
+Thank you, आपकी help के लिए।
+[num] मुझे कल 10:30 बजे call कीजिए।
+Invoice me galat amount show हो रहा है।
+क्या यह product warranty me आता है?
+Mujhe Hindi me baat karni hai, theek hai?
+[num] पिछले 30 दिनों में मैंने 3 orders किए।

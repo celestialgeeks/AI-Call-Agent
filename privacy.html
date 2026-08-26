@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy — Sahaiy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #fafafc;
+            --surface: #ffffff;
+            --text-primary: #16121f;
+            --text-secondary: #4b4657;
+            --text-muted: #8b8698;
+            --accent: #7c5cfc;
+            --border: #e9e7f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .legal-nav {
+            position: sticky; top: 0; z-index: 10;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 32px;
+        }
+        .legal-nav a.brand {
+            font-weight: 800; font-size: 17px; color: var(--text-primary); text-decoration: none;
+        }
+        .legal-nav a.back {
+            font-size: 13px; color: var(--accent); text-decoration: none; font-weight: 600;
+        }
+
+        .container { max-width: 720px; margin: 0 auto; padding: 48px 24px 96px; }
+
+        h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .updated { font-family: 'Roboto Mono', monospace; font-size: 11px; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 40px; }
+
+        h2 { font-size: 18px; font-weight: 700; margin: 36px 0 12px; letter-spacing: -0.01em; }
+        p { margin-bottom: 14px; color: var(--text-secondary); }
+        ul { margin: 0 0 14px 20px; color: var(--text-secondary); }
+        li { margin-bottom: 6px; }
+        strong { color: var(--text-primary); }
+
+        .summary-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 32px;
+        }
+        .summary-box h2 { margin-top: 0; font-size: 15px; }
+        .summary-box ul { margin-bottom: 0; }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 28px 32px;
+            font-size: 13px; color: var(--text-muted); text-align: center;
+        }
+        footer a { color: var(--text-muted); }
+    </style>
+</head>
+
+<body>
+    <nav class="legal-nav">
+        <a href="/index.html" class="brand">🤖 Sahaiy</a>
+        <a href="/index.html" class="back">← Back to home</a>
+    </nav>
+
+    <div class="container">
+        <h1>Privacy Policy</h1>
+        <div class="updated">Last updated · August 25, 2026</div>
+
+        <div class="summary-box">
+            <h2>In short</h2>
+            <ul>
+                <li>We collect only what we need to run the service: your account email, the calls made through
+                    Sahaiy (audio and transcripts), and any knowledge documents you upload.</li>
+                <li>Your data is processed and stored on infrastructure hosted in India.</li>
+                <li>We do not sell your data. Ever.</li>
+                <li>You can ask us for a copy of your data, corrections, or deletion at any time — write to
+                    privacy@sahaiy.in.</li>
+            </ul>
+        </div>
+
+        <h2>Who we are</h2>
+        <p>This Privacy Policy applies to Sahaiy, an AI voice-call automation service operated by
+            <strong>Sahaiy Technologies Pvt. Ltd.</strong>, India ("Sahaiy", "we", "us"). This policy describes how we
+            handle personal data when you use sahaiy.vercel.app and related services.</p>
+
+        <h2>What we collect</h2>
+        <ul>
+            <li><strong>Account information:</strong> your email address and name (as provided at signup or via
+                Google/GitHub sign-in).</li>
+            <li><strong>Calls:</strong> audio recordings and text transcripts of calls made by or with AI agents you
+                configure on Sahaiy, along with call metadata (duration, status, timestamps).</li>
+            <li><strong>Knowledge documents:</strong> files and content you upload so that your AI agents can answer
+                questions from them.</li>
+            <li><strong>Usage data:</strong> basic technical logs needed to operate and secure the service.</li>
+        </ul>
+
+        <h2>Why we process it</h2>
+        <p>We use this data solely to provide the service: creating and securing your account, running your AI call
+            agents, storing and displaying your call history and analytics, and supporting you when you contact us.
+            We do not use your call data to train models without your explicit consent, and we do not sell or rent
+            personal data to anyone.</p>
+
+        <h2>Where it lives</h2>
+        <p>Your data is processed and stored on infrastructure hosted in India, operated by us and our infrastructure
+            providers (including our authentication and database provider). We control what data is stored and can
+            delete it on request.</p>
+
+        <h2>Retention and deletion</h2>
+        <p>We keep your account and call data for as long as your account is active. If you close your account or ask
+            us to delete data, we will delete it within 30 days, except where retention is required by law.</p>
+
+        <h2>Your rights (under India's DPDP Act, 2023)</h2>
+        <p>You have the right to:</p>
+        <ul>
+            <li><strong>Access</strong> — request a summary of the personal data we hold about you and how it is
+                processed.</li>
+            <li><strong>Correction</strong> — ask us to correct inaccurate or incomplete personal data.</li>
+            <li><strong>Erasure</strong> — ask us to delete your personal data.</li>
+            <li><strong>Grievance redressal</strong> — raise a complaint about how your data is handled and have it
+                addressed.</li>
+        </ul>
+        <p>To exercise any of these rights, email <a href="mailto:privacy@sahaiy.in">privacy@sahaiy.in</a>. We aim to
+            respond to all requests within 7 working days. If your concern isn't resolved, you may escalate it to the
+            Data Protection Board of India once constituted under the DPDP Act.</p>
+
+        <h2>Our role regarding callers' data</h2>
+        <p>If you use Sahaiy to make calls to other people, you are responsible for obtaining any consents required
+            from those callers for recording and processing. We act as a processor for that content and delete or
+            return it at your direction.</p>
+
+        <h2>No certifications claimed</h2>
+        <p>We do not hold any security certifications or registrations. What is factually true:
+            we apply industry-standard technical and organisational measures — encryption in transit, access controls,
+            and least-privilege access — to protect your data.</p>
+
+        <h2>Contact</h2>
+        <p>Grievance Officer &amp; privacy contact:<br />
+            <strong>Sahaiy Technologies Pvt. Ltd.</strong><br />
+            Email: <a href="mailto:privacy@sahaiy.in">privacy@sahaiy.in</a></p>
+
+        <p>If we make material changes to this policy, we will notify you by email or through a notice in the product
+            before the change takes effect.</p>
+    </div>
+
+    <footer>
+        © 2025 Sahaiy Technologies Pvt. Ltd. · Made in India 🇮🇳 · <a href="/terms.html">Terms</a> · <a
+            href="/privacy.html">Privacy</a>
+    </footer>
+</body>
+
+</html>
