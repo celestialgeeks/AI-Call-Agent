@@ -120,7 +120,7 @@ async function _startCall() {
         _audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
         _removeTypingIndicator();
-        _appendChatBubble('❌ Microphone access denied. Please allow microphone in your browser.', 'agent');
+        _appendChatBubble('Microphone access denied. Please allow microphone in your browser.', 'agent');
         _setOrbState('idle');
         return;
     }
@@ -154,7 +154,7 @@ async function _startCall() {
                 _audioQueue = []; // discard queued audio
             } else if (data.type === 'error') {
                 _removeTypingIndicator();
-                showToast('❌ ' + (data.message || data.detail), 'error');
+                showToast('' + (data.message || data.detail), 'error');
             }
         } else {
             // Binary frame: WAV audio — queue for sequential playback
@@ -167,7 +167,7 @@ async function _startCall() {
     _ws.onerror = (err) => {
         console.error('[Playground WS error]', err);
         _removeTypingIndicator();
-        _appendChatBubble('⚠️ Connection error. Is the backend running on :8000?', 'agent');
+        _appendChatBubble('Connection error. Is the backend running on :8000?', 'agent');
         _setOrbState('idle');
     };
 

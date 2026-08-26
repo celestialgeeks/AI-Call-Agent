@@ -75,3 +75,19 @@ export async function getProfile(userId) {
     if (error) { console.error('[analyticsService.getProfile]', error); return null; }
     return data ?? null;
 }
+
+/**
+ * Updates the current user's profile row.
+ * @param {string} userId
+ * @param {object} payload — columns to update (e.g. { full_name })
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function updateProfile(userId, payload) {
+    const { data, error } = await supabase
+        .from('profiles')
+        .update({ ...payload, updated_at: new Date().toISOString() })
+        .eq('id', userId)
+        .select()
+        .single();
+    return { data, error };
+}

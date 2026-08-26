@@ -85,7 +85,7 @@ function _setPlayingUI(slug, playing) {
  * Any failure ⇒ toast + UI revert (spec §2 error state) — never throws.
  * @param {string} slug — Sarvam speaker identifier
  */
-async function previewVoice(slug) {
+export async function previewVoice(slug) {
     // Re-click on the playing voice toggles it off.
     if (_currentSlug === slug) { stopCurrentPreview(); return; }
 
@@ -110,7 +110,7 @@ async function previewVoice(slug) {
         await audio.play();
     } catch (err) {
         console.error('[Voices.previewVoice]', err);
-        showToast('\u26A0\uFE0F Voice preview unavailable right now', 'error');
+        showToast('Voice preview unavailable right now', 'error');
         stopCurrentPreview();
     }
 }

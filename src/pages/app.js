@@ -9,9 +9,9 @@
 // ── Services ──────────────────────────────────────────────────
 import { getSession } from '@/services/authService.js';
 import * as authService from '@/services/authService.js';
-import { getAgents, createAgent, deleteAgent } from '@/services/agentService.js';
+import { getAgents, createAgent, deleteAgent, updateAgent } from '@/services/agentService.js';
 import { getConversations, addKnowledgeDoc, getPhoneNumbers, deletePhoneNumber, getKnowledgeDocs, getTools } from '@/services/conversationService.js';
-import { getDailyStats, seedUserData, getProfile } from '@/services/analyticsService.js';
+import { getDailyStats, seedUserData, getProfile, updateProfile } from '@/services/analyticsService.js';
 import { subscribeToConversations, subscribeToAgents, unsubscribeAll } from '@/services/realtimeService.js';
 
 // ── Components ────────────────────────────────────────────────
@@ -19,7 +19,7 @@ import { navigate, switchConfigTab, switchPeriodTab } from '@/components/Sidebar
 import { openCreateModal, closeCreateModal, selectTemplate, readCreateAgentForm } from '@/components/Modal.js';
 import { openPlayground, closePlayground, togglePlaygroundCall, sendPlaygroundMessage } from '@/components/Playground.js';
 import { drawLineChart } from '@/components/Chart.js';
-import { SARVAM_VOICES, renderVoiceGrid, initVoiceFilters } from '@/components/Voices.js';
+import { SARVAM_VOICES, renderVoiceGrid, initVoiceFilters, previewVoice } from '@/components/Voices.js';
 import { loadAnalyticsPage, switchAnalyticsPeriod } from '@/components/Analytics.js';
 import { estimateCallCost, formatINR } from '@/config/pricing.js';
 import { icon } from '@/utils/icons.js';
@@ -548,6 +548,8 @@ Object.assign(window, {
   // Navigation
   navigate,
   switchConfigTab,
+  showToast,
+  previewVoice: (slug) => previewVoice(slug),
 
   // Chart period (home page)
   switchPeriod: (period, btn) => {
@@ -589,7 +591,7 @@ Object.assign(window, {
     // Validate name
     if (!form.name || form.name === 'New Agent' && !nameInput?.value?.trim()) {
       nameInput?.focus();
-      showToast('⚠️ Please enter a name for your agent', 'error');
+      showToast('Please enter a name for your agent', 'error');
       return;
     }
 
@@ -627,33 +629,94 @@ Object.assign(window, {
     });
 
     if (btn) { btn.textContent = 'Create Agent →'; btn.disabled = false; }
-    if (error) { showToast('❌ ' + error.message, 'error'); return; }
-
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
     _agents.unshift(data);
     closeCreateModal();
     navigate('agents', $('#nav-agents'));
     _renderAgents();
-    showToast(`✅ Agent "${form.name}" created!`, 'success');
+    showToast(`Agent "${form.name}" created!`, 'success');
   },
 
   removeAgent: async (id) => {
     if (!confirm('Delete this agent? This cannot be undone.')) return;
     const { error } = await deleteAgent(id);
-    if (error) { showToast('❌ ' + error.message, 'error'); return; }
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
     _agents = _agents.filter((a) => a.id !== id);
     _renderAgents();
-    showToast('🗑️ Agent deleted');
+    showToast('Agent deleted');
   },
   filterAgents: (val) => _renderAgents(val),
+
+  // Agent config: publish / save (Supabase-backed)
+  publishAgent: async () => {
+    const id = window.__CURRENT_AGENT_ID__;
+    if (!id) { showToast('Open an agent first', 'error'); return; }
+    const agent = _agents.find((a) => a.id === id);
+    if (agent?.status === 'published') { showToast('Agent is already published', 'info'); return; }
+    const { data, error } = await updateAgent(id, { status: 'published' });
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
+    _agents = _agents.map((a) => a.id === id ? data : a);
+    const badge = $('#config-status-badge');
+    if (badge) badge.textContent = '● Published';
+    showToast('Agent published', 'success');
+  },
+
+  saveAgentConfig: async () => {
+    const id = window.__CURRENT_AGENT_ID__;
+    if (!id) { showToast('Open an agent first', 'error'); return; }
+    const page = $('#page-agent-config');
+    if (!page) return;
+    const promptEl = page.querySelector('.form-textarea');
+    const inputs = page.querySelectorAll('#config-tab-agent input.form-input');
+    const payload = {};
+    if (promptEl?.value != null) payload.system_prompt = promptEl.value;
+    if (inputs[1]?.value != null) payload.first_message = inputs[1].value;
+    const nameInput = $('#config-agent-name');
+    if (!payload.system_prompt && !payload.first_message && !nameInput?.value) {
+      showToast('Nothing to save', 'info'); return;
+    }
+    if (nameInput?.value && window.__CURRENT_AGENT_NAME__ !== nameInput.value) {
+      payload.name = nameInput.value;
+    }
+    const { data, error } = await updateAgent(id, payload);
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
+    _agents = _agents.map((a) => a.id === id ? data : a);
+    if (payload.name) {
+      window.__CURRENT_AGENT_NAME__ = payload.name;
+      const nameEl = $('#config-agent-name');
+      if (nameEl) setText(nameEl, payload.name);
+    }
+    showToast('Changes saved', 'success');
+  },
+
+  copyEmbedCode: () => {
+    const snippet = '<script src="https://cdn.sahaiy.ai/widget.js"><\/script>\n<sahaiy-widget agent-id="' + (window.__CURRENT_AGENT_ID__ ?? 'ag_01jkxxx') + '" label="Talk to us"></sahaiy-widget>';
+    navigator.clipboard.writeText(snippet)
+      .then(() => showToast('Embed code copied to clipboard', 'success'))
+      .catch(() => showToast('Could not access clipboard', 'error'));
+  },
+
+  saveWorkspaceSettings: async () => {
+    const settingsPage = $('#page-settings');
+    if (!settingsPage || !_user) return;
+    const card = settingsPage.querySelector('.form-input');
+    const name = card?.value?.trim();
+    if (!name) { showToast('Enter a workspace name', 'error'); return; }
+    const { error } = await updateProfile(_user.id, { full_name: name });
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
+    _profile = { ..._profile, full_name: name };
+    _hydrateUserUI();
+    showToast('Settings saved', 'success');
+  },
 
   // Phone numbers
   removePhoneNumber: async (id) => {
     if (!confirm('Delete this phone number? This cannot be undone.')) return;
     const { error } = await deletePhoneNumber(id, _user.id);
-    if (error) { showToast('❌ ' + error.message, 'error'); return; }
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
     _phones = _phones.filter((p) => p.id !== id);
     _renderPhoneNumbers();
-    showToast('🗑️ Phone number deleted', 'success');
+    showToast('Phone number deleted', 'success');
   },
 
   // Playground
@@ -696,7 +759,7 @@ Object.assign(window, {
       url: isUrl ? value : null,
       status: 'indexed',
     });
-    if (data) { _docs.unshift(data); _renderKnowledgeDocs(); showToast('✅ Document added & indexed', 'success'); }
+    if (data) { _docs.unshift(data); _renderKnowledgeDocs(); showToast('Document added & indexed', 'success'); }
   },
 });
 

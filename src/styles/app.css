@@ -1751,7 +1751,7 @@ tr:hover td {
     color: var(--dash-text-2);
 }
 .conv-cost { font-family: var(--font-mono); font-size: 11px; }
-.badge-orange .pulse-dot::before {
+.badge.pulse-dot::before {
     content: '●';
     margin-right: 4px;
     animation: blink 1.2s step-start infinite;

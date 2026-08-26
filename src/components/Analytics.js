@@ -14,7 +14,8 @@ import { $, setText } from '@/utils/dom.js';
 import { drawLineChart } from '@/components/Chart.js';
 import { formatDuration } from '@/utils/formatters.js';
 import { getDailyStats } from '@/services/analyticsService.js';
-import { estimateCallCost, formatINR } from '@/config/pricing.js';
+import { estimateCallCost, formatINR, estimateFormulaText } from '@/config/pricing.js';
+import { icon } from '@/utils/icons.js';
 
 const PERIOD_DAYS = { day: 1, week: 7, month: 30 };
 
@@ -68,7 +69,7 @@ function _renderError() {
     if (kpiStrip) {
         kpiStrip.innerHTML = `
       <div class="error-banner" style="grid-column:1/-1;">
-        <span>\u26A0\uFE0F</span> Couldn't load analytics.
+        <span>Couldn't load analytics.</span>
         <button type="button" id="analytics-retry">Retry</button>
       </div>`;
     }
@@ -113,35 +114,30 @@ export async function loadAnalyticsPage() {
 function _renderPopulated() {
     const rows = _sliceForPeriod(PERIOD_DAYS[_analyticsPeriod] ?? 7);
 
-    // ── KPI strip ──
+    // ── KPI strip (spec v2 §3: stat-card icons dropped entirely — premium call) ──
     const kpis = _deriveKpis(rows);
     const strip = $('#analytics-kpis');
     if (strip) {
         strip.innerHTML = `
       <div class="stat-card">
-        <div class="stat-card-top"><span class="stat-label">Calls</span>
-          <div class="stat-icon" style="background:rgba(124,92,252,.1);">\uD83D\uDCDE</div></div>
+        <div class="stat-card-top"><span class="stat-label">Calls</span></div>
         <div class="stat-value mono-num">${kpis.calls}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-top"><span class="stat-label">Avg Duration</span>
-          <div class="stat-icon" style="background:rgba(0,196,161,.1);">\u23F1\uFE0F</div></div>
+        <div class="stat-card-top"><span class="stat-label">Avg Duration</span></div>
         <div class="stat-value mono-num">${kpis.avgDur}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-top"><span class="stat-label">Latency p50</span>
-          <div class="stat-icon" style="background:rgba(99,102,241,.1);">\u26A1</div></div>
+        <div class="stat-card-top"><span class="stat-label">Latency p50</span></div>
         <div class="stat-value mono-num">${kpis.p50}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-card-top"><span class="stat-label">Error Rate</span>
-          <div class="stat-icon" style="background:rgba(239,68,68,.1);\">\u26A0\uFE0F</div></div>
+        <div class="stat-card-top"><span class="stat-label">Error Rate</span></div>
         <div class="stat-value mono-num">${kpis.errRate}</div>
       </div>
       <div class="stat-card">
         <div class="stat-card-top"><span class="stat-label">Est. Cost</span>
-          <span class="badge badge-purple" title="${estimateFormulaTooltip()}">estimated</span>
-          <div class="stat-icon" style="background:rgba(245,158,11,.1);">\uD83D\uDCB0</div></div>
+          <span class="badge badge-purple" title="${estimateFormulaTooltip()}">estimated</span></div>
         <div class="stat-value mono-num">${kpis.cost}</div>
       </div>`;
     }
@@ -152,7 +148,7 @@ function _renderPopulated() {
         if (!rows.length || !rows.some((r) => (r.total_calls ?? 0) > 0)) {
             chartWrap.innerHTML = `
         <div class="empty-chart">
-          <div class="empty-chart__icon">\uD83D\uDCDE</div>
+          <div class="empty-chart__icon">${icon('phone-numbers')}</div>
           <div class="empty-chart__title">No calls yet</div>
           <div class="empty-chart__sub">Metrics appear after your agents handle their first call.</div>
         </div>`;
@@ -186,7 +182,7 @@ function _renderBreakdown(rows) {
     if (!rows.length || !rows.some((r) => (r.total_calls ?? 0) > 0)) {
         wrap.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">\uD83D\uDCCA</div>
+        <div class="empty-icon">${icon('analytics')}</div>
         <div class="empty-title">Nothing to break down yet</div>
         <div class="empty-sub">Per-agent numbers show up here once calls start flowing.</div>
       </div>`;
@@ -247,10 +243,7 @@ function _renderCostCard(rows) {
     <p class="cost-footnote">Calculated from metered call minutes at current rates. Not a bill.</p>`;
 }
 
-/** Tooltip formula text derived live from pricing.js exports. */
+/** Tooltip formula text — derived live from pricing.js (single source of truth). */
 function estimateFormulaTooltip() {
-    try {
-        // Lazy import avoided for simplicity — formula helper lives in pricing.js.
-        return 'STT \u20B930/hr \u00B7 TTS \u20B915/10k chars \u00B7 telephony rate pending';
-    } catch { return ''; }
+    return estimateFormulaText();
 }

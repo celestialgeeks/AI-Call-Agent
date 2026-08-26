@@ -38,7 +38,7 @@
                 Sahaiy
             </a>
 
-            <div class="sidebar-ws" onclick="void(0)">
+            <div class="sidebar-ws">
                 <div class="sidebar-ws-avatar" id="ws-avatar">SS</div>
                 <span class="sidebar-ws-name" id="ws-name">Shreyash's Workspace</span>
                 <span class="sidebar-ws-chevron">⌄</span>
@@ -131,8 +131,8 @@
                     <input type="text" placeholder="Search agents, conversations..." />
                 </div>
                 <div class="topbar-actions">
-                    <button class="topbar-icon-btn" title="Notifications" aria-label="Notifications" data-icon="bell"></button>
-                    <button class="topbar-icon-btn" title="Help" aria-label="Help" data-icon="help"></button>
+                    <button class="topbar-icon-btn" title="Notifications" aria-label="Notifications" onclick="showToast('No new notifications', 'info')" data-icon="bell"></button>
+                    <button class="topbar-icon-btn" title="Help" aria-label="Help" onclick="showToast('Docs live at docs.sahaiy.ai', 'info')" data-icon="help"></button>
                     <div style="width:1px; height:20px; background:var(--dash-border);"></div>
                     <button class="dash-btn dash-btn-primary" onclick="openCreateModal()" id="topbar-new-agent">
                         + New Agent
@@ -241,7 +241,6 @@
                             <input type="text" placeholder="Search agents…" id="agent-search"
                                 oninput="filterAgents(this.value)" />
                         </div>
-                        <button class="dash-btn dash-btn-outline" style="font-size:12px;">Archived</button>
                     </div>
 
                     <div class="agent-table-wrap">
@@ -280,7 +279,7 @@
                             <span class="badge badge-green" id="config-status-badge">● Published</span>
                             <button class="dash-btn dash-btn-outline" style="font-size:12px;"
                                 onclick="openPlayground(window.__CURRENT_AGENT_ID__, window.__CURRENT_AGENT_NAME__)">Preview</button>
-                            <button class="dash-btn dash-btn-primary">Publish ↗</button>
+                            <button class="dash-btn dash-btn-primary" onclick="publishAgent()" id="publish-agent-btn">Publish ↗</button>
                         </div>
                     </div>
 
@@ -331,7 +330,7 @@
                                 </select>
                             </div>
                             <div style="display:flex; justify-content:flex-end;">
-                                <button class="dash-btn dash-btn-primary">Save changes</button>
+                                <button class="dash-btn dash-btn-primary" onclick="saveAgentConfig()">Save changes</button>
                             </div>
                         </div>
 
@@ -355,11 +354,11 @@
                                             style="font-size:10px; color:var(--dash-text-3); font-family:var(--font-mono);"
                                             id="config-voice-meta">Hindi · Female · Natural</div>
                                     </div>
-                                    <button type="button" class="config-voice-preview"
+                                    <button type="button" class="config-voice-preview" onclick="previewVoice(document.getElementById('new-agent-voice')?.value ?? 'anushka')" title="Preview voice"
                                         style="margin-left:auto; width:28px; height:28px; border-radius:50%; background:var(--dash-surface); border:1px solid var(--dash-border); cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center;">▶</button>
                                 </div>
                                 <button class="dash-btn dash-btn-outline"
-                                    style="width:100%; font-size:12px; justify-content:center;">Browse Voice
+                                    style="width:100%; font-size:12px; justify-content:center;" onclick="navigate('voices', document.getElementById('nav-voices'))">Browse Voice
                                     Library</button>
                             </div>
 
@@ -446,7 +445,6 @@
                             <div class="empty-title">No tests created</div>
                             <div class="empty-sub">Create automated test scenarios to validate agent behavior before
                                 going live.</div>
-                            <button class="dash-btn dash-btn-primary">+ New test</button>
                         </div>
                     </div>
                     <div id="config-tab-widget" style="display:none;">
@@ -488,9 +486,9 @@
                             <h1 class="page-title">Knowledge Base</h1>
                             <p class="page-sub">Documents your agents use as their source of truth</p>
                         </div>
-                        <button class="dash-btn dash-btn-primary">+ Add source</button>
+                        <button class="dash-btn dash-btn-primary" onclick="uploadDoc()">+ Add source</button>
                     </div>
-                    <div class="upload-zone" onclick="void(0)">
+                    <div class="upload-zone" onclick="uploadDoc()">
                         <div class="upload-zone-icon" data-icon="file"></div>
                         <div class="upload-zone-title">Drop files here or click to upload</div>
                         <div class="upload-zone-sub">PDF, DOCX, TXT, CSV · Max 50 MB per file</div>
@@ -633,8 +631,6 @@
                             <p class="page-sub">Complete log of all calls</p>
                         </div>
                         <div style="display:flex; gap:8px;">
-                            <button class="dash-btn dash-btn-outline" style="font-size:12px;">Filter ▾</button>
-                            <button class="dash-btn dash-btn-outline" style="font-size:12px;">Export</button>
                         </div>
                     </div>
                     <div class="recent-card" id="conversations-card">
@@ -695,14 +691,12 @@
                             <h1 class="page-title">Tests</h1>
                             <p class="page-sub">Automated scenarios to validate agent behavior</p>
                         </div>
-                        <button class="dash-btn dash-btn-primary">+ New test</button>
                     </div>
                     <div class="empty-state">
                         <div class="empty-icon" data-icon="tests"></div>
                         <div class="empty-title">No tests yet</div>
                         <div class="empty-sub">Create automated call simulations to catch regressions before new changes
-                            go live.</div>
-                        <button class="dash-btn dash-btn-primary" onclick="void(0)">Create your first test</button>
+                            go live. Test runs land with the testing release.</div>
                     </div>
                 </div>
 
@@ -713,7 +707,6 @@
                             <h1 class="page-title">Phone Numbers</h1>
                             <p class="page-sub">Numbers assigned to your agents</p>
                         </div>
-                        <button class="dash-btn dash-btn-primary">+ Add no</button>
                     </div>
                     <div id="phone-num-list"></div>
                 </div>
@@ -731,8 +724,8 @@
                         <div class="empty-icon" data-icon="whatsapp"></div>
                         <div class="empty-title">Connect your WhatsApp Business account</div>
                         <div class="empty-sub">Link your Meta WhatsApp Business API account to deploy Sahaiy agents
-                            directly in WhatsApp chats and voice calls.</div>
-                        <button class="dash-btn dash-btn-primary">Connect WhatsApp</button>
+                            directly in WhatsApp chats and voice calls. Connection flow lands with the WhatsApp
+                            release.</div>
                     </div>
                 </div>
 
@@ -743,7 +736,6 @@
                             <h1 class="page-title">Outbound Campaigns</h1>
                             <p class="page-sub">Bulk AI-powered outbound call campaigns</p>
                         </div>
-                        <button class="dash-btn dash-btn-primary">+ New campaign</button>
                     </div>
                     <!-- ADR-0001: fabricated campaign KPIs (5,210 dialed / 64.3% / 12.8%) and fake
                          campaign rows removed. Real campaigns arrive via the campaigns service
@@ -752,8 +744,7 @@
                         <div class="empty-icon" data-icon="outbound"></div>
                         <div class="empty-title">No campaigns yet</div>
                         <div class="empty-sub">Create an outbound campaign to reach many contacts with a
-                            published agent. Results appear here once dialing starts.</div>
-                        <button class="dash-btn dash-btn-primary">+ New campaign</button>
+                            published agent. Campaign creation lands with the outreach release.</div>
                     </div>
                 </div>
 
@@ -787,7 +778,7 @@
                                     Priya"&gt;&lt;/sahaiy-widget&gt;
                                 </div>
                             </div>
-                            <button class="dash-btn dash-btn-primary">Copy embed code</button>
+                            <button class="dash-btn dash-btn-primary" onclick="copyEmbedCode()">Copy embed code</button>
                         </div>
                         <div
                             style="background:var(--dash-surface-2); border:1px dashed var(--dash-border); border-radius:var(--radius-lg); padding:32px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:300px; position:relative;">
@@ -847,7 +838,7 @@
                                         <option>UTC</option>
                                     </select>
                                 </div>
-                                <button class="dash-btn dash-btn-primary">Save changes</button>
+                                <button class="dash-btn dash-btn-primary" onclick="saveWorkspaceSettings()">Save changes</button>
                             </div>
                         </div>
                     </div>
