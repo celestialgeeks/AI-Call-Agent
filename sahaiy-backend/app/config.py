@@ -59,6 +59,19 @@ AUTH_ENFORCED: bool = _parse_bool_env("AUTH_ENFORCED", False)
 RATE_LIMIT_STT_RPM: int = int(os.getenv("RATE_LIMIT_STT_RPM", "20"))
 RATE_LIMIT_WS_PER_MIN: int = int(os.getenv("RATE_LIMIT_WS_PER_MIN", "10"))
 
+# ── Auth (JWT HS256 — ruling B1, issues #4/#7) ───────────────────────────
+SUPABASE_JWT_SECRET: str = os.getenv("SUPABASE_JWT_SECRET", "")
+AUTH_ENFORCED: bool = _parse_bool_env("AUTH_ENFORCED", False)
+
+# ── Campaigns (outreach v1 — issue #7) ───────────────────────────────────
+CAMPAIGN_CSV_MAX_BYTES: int = int(os.getenv("CAMPAIGN_CSV_MAX_BYTES", str(5 * 1024 * 1024)))
+CAMPAIGN_WORKER_POLL_SEC: float = float(os.getenv("CAMPAIGN_WORKER_POLL_SEC", "2"))
+CAMPAIGN_MAX_CONCURRENT_CALLS: int = int(os.getenv("CAMPAIGN_MAX_CONCURRENT_CALLS", "3"))
+CAMPAIGN_WS_TEXT_INPUT_TIMEOUT_SEC: float = float(
+    os.getenv("CAMPAIGN_WS_TEXT_INPUT_TIMEOUT_SEC", "20")
+)
+CAMPAIGN_SIM_CONVERSATION_TURNS: int = int(os.getenv("CAMPAIGN_SIM_CONVERSATION_TURNS", "2"))
+
 # ── LiveKit ────────────────────────────────────────────────────────────────
 LIVEKIT_URL: str = os.getenv("LIVEKIT_URL", "")
 LIVEKIT_API_KEY: str = os.getenv("LIVEKIT_API_KEY", "")
@@ -74,6 +87,7 @@ FRONTEND_ORIGINS: list[str] = _parse_csv_env(
 		"http://127.0.0.1:5173",
 		"http://localhost:3000",
 		"http://127.0.0.1:3000",
+		"https://sahaiy.vercel.app",
 	],
 )
 ALLOW_VERCEL_PREVIEW_ORIGINS: bool = _parse_bool_env("ALLOW_VERCEL_PREVIEW_ORIGINS", True)

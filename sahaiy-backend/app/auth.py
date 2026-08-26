@@ -11,13 +11,19 @@ Feature flag: when AUTH_ENFORCED is False (default until @qa-engineer flips it
 after QA green), `get_current_user_id` returns None and routers keep their
 legacy client-declared user_id behaviour. When True, requests without a valid
 Bearer token receive 401 in the uniform error envelope.
+
+Dev fallback: when the flag is OFF and no SUPABASE_JWT_SECRET is configured,
+an `X-User-Id` header is accepted so local flows (and main's campaign
+endpoints, which expect a non-None str) stay testable without a Supabase
+secret. The fallback is hard-disabled whenever AUTH_ENFORCED=true OR a JWT
+secret exists.
 """
 
 import logging
 from typing import Optional
 
 import jwt as pyjwt
-from fastapi import Request
+from fastapi import Header, Request
 
 from app.config import AUTH_ENFORCED, SUPABASE_JWT_SECRET
 from app.errors import ApiError, new_request_id
@@ -59,32 +65,58 @@ def verify_supabase_jwt(token: str) -> dict:
 
 
 def extract_bearer_token(request: Request) -> Optional[str]:
-    """Return the raw JWT from `Authorization: Bearer <token>`, else None."""
+    """Return the raw JWT from `Authorization: Bearer *** else None."""
     header = request.headers.get("authorization") or ""
     if header.lower().startswith(_BEARER_PREFIX):
         return header[len(_BEARER_PREFIX):].strip() or None
     return None
 
 
-async def get_current_user_id(request: Request) -> Optional[str]:
+def _dev_fallback_user_id(x_user_id: Optional[str]) -> Optional[str]:
+    """
+    X-User-Id dev fallback — ONLY when auth enforcement is fully off
+    (AUTH_ENFORCED=false AND no SUPABASE_JWT_SECRET configured).
+    """
+    if AUTH_ENFORCED or SUPABASE_JWT_SECRET:
+        raise ApiError(
+            401, "missing_token",
+            "Authorization: Bearer <token> required "
+            "(X-User-Id fallback only works with auth unconfigured).",
+        )
+    if x_user_id:
+        return x_user_id.strip()
+    raise ApiError(
+        401, "missing_token",
+        "Provide Authorization: Bearer <token> (or X-User-Id in unenforced dev mode).",
+    )
+
+
+async def get_current_user_id(
+    request: Request,
+    x_user_id: Optional[str] = Header(default=None),
+) -> Optional[str]:
     """
     FastAPI dependency: resolve the caller's user_id.
 
-    AUTH_ENFORCED=False → None (legacy mode; routers use client-declared id).
+    AUTH_ENFORCED=False → None when no X-User-Id dev fallback applies; routers
+                          use their legacy client-declared id behaviour.
     AUTH_ENFORCED=True  → token-derived `sub`; raises 401 envelope on failure.
     """
-    if not AUTH_ENFORCED:
-        return None
-
     token = extract_bearer_token(request)
-    if not token:
-        raise ApiError(401, "missing_token", "Authorization: Bearer token required.")
+    if token:
+        claims = verify_supabase_jwt(token)
+        user_id = str(claims.get("sub") or "").strip()
+        if not user_id:
+            raise ApiError(401, "invalid_token", "Token has no subject claim.")
+        return user_id
 
-    claims = verify_supabase_jwt(token)
-    user_id = str(claims.get("sub") or "").strip()
-    if not user_id:
-        raise ApiError(401, "invalid_token", "Token has no subject claim.")
-    return user_id
+    if AUTH_ENFORCED:
+        raise ApiError(401, "missing_token", "Authorization: Bearer <token> required.")
+
+    # Fully-unconfigured dev mode: allow the X-User-Id fallback.
+    if not SUPABASE_JWT_SECRET and x_user_id:
+        return x_user_id.strip()
+    return None
 
 
 async def get_websocket_user_id(websocket) -> Optional[str]:
