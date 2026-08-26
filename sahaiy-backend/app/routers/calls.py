@@ -58,6 +58,13 @@ async def call_start(
     Create a new conversation record in Supabase when a call begins.
     Returns the conversation_id to track the call.
     """
+    # Contract §1.1: user_id is REQUIRED — from the verified JWT when
+    # AUTH_ENFORCED=true, else from the request body. Missing on both is a
+    # 422 (pinned by qa/contract_tests TestCallStart::test_user_id_required),
+    # not a silent 200 with an orphaned anonymous conversation.
+    if not current_user_id and not body.user_id:
+        raise ApiError(422, "user_id_required",
+                       "user_id is required (body or authenticated token).")
     try:
         supabase = get_supabase()
         # Fetch agent name for the record
