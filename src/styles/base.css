@@ -32,11 +32,23 @@
   --dash-text: #111111;
   --dash-text-2: #555555;
   --dash-text-3: #888888;
-  --dash-accent: #7C5CFC;
-  --dash-accent-green: #22C55E;
-  --dash-accent-red: #EF4444;
-  --dash-accent-orange: #F59E0B;
+  --dash-accent: #111111;            /* primary interactive = ink (spec v2 §2a) */
+  --dash-accent-hover: #333333;
+  --dash-accent-green: #22C55E;      /* status only */
+  --dash-accent-red: #EF4444;        /* status only */
+  --dash-accent-orange: #F59E0B;     /* status/warning only */
+  --border-strong: rgba(0, 0, 0, 0.08); /* Vercel-style ring border */
+  --ring: rgba(0, 0, 0, 0.05);          /* subtle ring for cards */
   --dash-sidebar-w: 220px;
+
+  /* Spacing scale (spec v1 §0 — the only token addition) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
 
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

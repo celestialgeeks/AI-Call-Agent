@@ -29,7 +29,7 @@
     display: flex;
     align-items: center;
     gap: 9px;
-    padding: 20px 16px 16px;
+    padding: var(--sp-5) var(--sp-4) var(--sp-4);
     border-bottom: 1px solid var(--dash-border);
     font-weight: 700;
     font-size: 15px;
@@ -39,15 +39,16 @@
 }
 
 .sidebar-logo-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    background: linear-gradient(135deg, var(--dash-accent), #00C4A1);
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
     flex-shrink: 0;
+}
+
+.sidebar-logo-icon svg {
+    display: block;
 }
 
 .sidebar-ws {
@@ -71,8 +72,9 @@
     width: 24px;
     height: 24px;
     border-radius: 6px;
-    background: linear-gradient(135deg, var(--dash-accent), #a78bfa);
-    color: white;
+    background: var(--dash-surface-2);
+    border: 1px solid var(--dash-border);
+    color: var(--dash-text);
     font-size: 11px;
     font-weight: 700;
     display: flex;
@@ -99,10 +101,10 @@
 
 .sidebar-nav {
     flex: 1;
-    padding: 8px 10px;
+    padding: var(--sp-2) 10px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--sp-1);
 }
 
 .sidebar-section-label {
@@ -112,21 +114,26 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--dash-text-3);
-    padding: 10px 8px 4px;
-    margin-top: 6px;
+    padding: 0 10px;
+    margin-top: var(--sp-4);
+    margin-bottom: var(--sp-1);
+}
+
+.sidebar-nav > .sidebar-item:first-child {
+    margin-top: 0;
 }
 
 .sidebar-item {
     display: flex;
     align-items: center;
     gap: 9px;
-    padding: 8px 10px;
+    padding: var(--sp-2) 10px;
     border-radius: var(--radius-sm);
     font-size: 13px;
     font-weight: 500;
     color: var(--dash-text-2);
     cursor: pointer;
-    transition: all 0.13s ease;
+    transition: all 0.15s ease;
     width: 100%;
     text-align: left;
     background: transparent;
@@ -146,11 +153,36 @@
     font-weight: 600;
 }
 
+/* Active left indicator bar (spec v1 §5) */
+.sidebar-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--dash-text);
+    top: 4px;
+    bottom: 4px;
+}
+
+.sidebar-item {
+    position: relative;
+}
+
 .sidebar-item .nav-icon {
-    font-size: 15px;
-    width: 20px;
-    text-align: center;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    color: inherit;
+}
+
+.sidebar-item .nav-icon svg {
+    width: 18px;
+    height: 18px;
+    display: block;
 }
 
 .sidebar-item .nav-badge {
@@ -171,7 +203,7 @@
     border-top: 1px solid var(--dash-border);
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--sp-2);
 }
 
 .sidebar-upgrade {
@@ -179,20 +211,28 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: linear-gradient(135deg, rgba(124, 92, 252, 0.1), rgba(0, 196, 161, 0.08));
-    border: 1px solid rgba(124, 92, 252, 0.2);
+    background: var(--dash-surface);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: border-color 0.15s ease;
     margin-bottom: 6px;
 }
 
 .sidebar-upgrade:hover {
-    background: linear-gradient(135deg, rgba(124, 92, 252, 0.15), rgba(0, 196, 161, 0.12));
+    border-color: #111111;
 }
 
 .upgrade-icon {
-    font-size: 14px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--dash-surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--dash-text-2);
 }
 
 .upgrade-text {
@@ -229,8 +269,9 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-green));
-    color: white;
+    background: var(--dash-surface-2);
+    border: 1px solid var(--dash-border);
+    color: var(--dash-text);
     font-size: 12px;
     font-weight: 700;
     display: flex;
@@ -297,16 +338,24 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--dash-surface-2);
-    border: 1px solid var(--dash-border);
+    background: var(--dash-bg);
+    border: 1px solid transparent;
     border-radius: var(--radius);
     padding: 7px 12px;
-    width: 220px;
-    transition: border-color 0.15s;
+    width: min(320px, 100%);
+    transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .topbar-search:focus-within {
-    border-color: var(--dash-accent);
+    border-color: var(--border-strong);
+    background: var(--dash-surface);
+}
+
+.topbar-search-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--dash-text-3);
+    flex-shrink: 0;
 }
 
 .topbar-search input {
@@ -323,16 +372,22 @@
     color: var(--dash-text-3);
 }
 
+.topbar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--dash-border);
+}
+
 .topbar-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--sp-2);
 }
 
 .topbar-icon-btn {
     width: 32px;
     height: 32px;
-    border: 1px solid var(--dash-border);
+    border: 1px solid transparent;
     border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
@@ -341,18 +396,19 @@
     cursor: pointer;
     color: var(--dash-text-2);
     font-size: 14px;
-    transition: all 0.13s;
+    transition: all 0.15s ease;
 }
 
 .topbar-icon-btn:hover {
     background: var(--dash-surface-2);
+    border-color: var(--dash-border);
 }
 
 /* ── Page Content ── */
 .page-content {
     flex: 1;
     overflow-y: auto;
-    padding: 28px;
+    padding: var(--sp-6) var(--sp-6) var(--sp-8);
 }
 
 .page {
@@ -367,20 +423,30 @@
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-6);
+}
+
+.stats-grid-5 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+@media (max-width: 1200px) {
+    .stats-grid-5 {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .stat-card {
     background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
     border-radius: var(--radius);
-    padding: 20px;
-    transition: box-shadow 0.2s;
+    padding: var(--sp-5);
+    box-shadow: rgba(0, 0, 0, 0.05) 0 0 0 1px;
+    transition: box-shadow 0.15s ease;
 }
 
 .stat-card:hover {
-    box-shadow: var(--shadow-sm);
+    box-shadow: rgba(0, 0, 0, 0.10) 0 0 0 1px;
 }
 
 .stat-card-top {
@@ -441,10 +507,38 @@
 /* ── Chart Card ── */
 .chart-card {
     background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
     border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 24px;
+    padding: var(--sp-6);
+    margin-bottom: var(--sp-6);
+    box-shadow: rgba(0, 0, 0, 0.05) 0 0 0 1px;
+}
+
+/* Empty-chart zero state (spec v1 §1) */
+.empty-chart {
+    height: 220px;
+    border: 1px dashed var(--dash-border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.empty-chart-icon {
+    color: var(--dash-text-3);
+    margin-bottom: 4px;
+}
+
+.empty-chart-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dash-text);
+}
+
+.empty-chart-sub {
+    font-size: 12px;
+    color: var(--dash-text-3);
 }
 
 .chart-card-header {
@@ -503,9 +597,10 @@ canvas#callChart {
 /* ── Recent Table ── */
 .recent-card {
     background: var(--dash-surface);
-    border: 1px solid var(--dash-border);
     border-radius: var(--radius);
     overflow: hidden;
+    box-shadow: rgba(0, 0, 0, 0.05) 0 0 0 1px;
+    margin-bottom: var(--sp-6);
 }
 
 .recent-card-header {
@@ -599,7 +694,7 @@ tr:hover td {
 
 .page-title {
     font-size: 22px;
-    font-weight: 800;
+    font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--dash-text);
 }
@@ -608,6 +703,7 @@ tr:hover td {
     font-size: 13px;
     color: var(--dash-text-3);
     margin-top: 2px;
+    letter-spacing: 0.01em;
 }
 
 .dash-btn {
@@ -615,22 +711,22 @@ tr:hover td {
     align-items: center;
     gap: 7px;
     padding: 9px 18px;
-    border-radius: var(--radius);
+    border-radius: 6px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.15s ease;
     border: none;
     font-family: var(--font-sans);
 }
 
 .dash-btn-primary {
-    background: var(--dash-text);
+    background: #111111;
     color: white;
 }
 
 .dash-btn-primary:hover {
-    background: #333;
+    background: var(--dash-accent-hover);
 }
 
 .dash-btn-outline {
@@ -641,16 +737,16 @@ tr:hover td {
 
 .dash-btn-outline:hover {
     background: var(--dash-surface-2);
+    border-color: #999999;
 }
 
 .dash-btn-accent {
-    background: var(--dash-accent);
+    background: #111111;
     color: white;
 }
 
 .dash-btn-accent:hover {
-    background: var(--accent-hover);
-    box-shadow: var(--shadow-accent);
+    background: var(--dash-accent-hover);
 }
 
 .search-bar {
@@ -738,8 +834,9 @@ tr:hover td {
 .agent-avatar {
     width: 36px;
     height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--dash-accent), #a78bfa);
+    border-radius: var(--radius);
+    background: var(--dash-surface-2);
+    border: 1px solid var(--dash-border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -847,12 +944,12 @@ tr:hover td {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--dash-accent), #a78bfa, #00C4A1);
+    background: var(--dash-text);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 28px;
-    box-shadow: 0 0 0 12px rgba(124, 92, 252, 0.08), 0 8px 24px rgba(124, 92, 252, 0.3);
+    box-shadow: 0 0 0 12px var(--ring), 0 8px 24px rgba(0, 0, 0, 0.15);
     animation: float 3s ease-in-out infinite;
     cursor: pointer;
 }
@@ -1363,8 +1460,8 @@ tr:hover td {
 
 /* Home page greeting */
 .home-greeting {
-    font-size: 24px;
-    font-weight: 800;
+    font-size: 22px;
+    font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--dash-text);
     margin-bottom: 6px;
@@ -1373,5 +1470,351 @@ tr:hover td {
 .home-sub {
     font-size: 13px;
     color: var(--dash-text-3);
-    margin-bottom: 28px;
+    margin-bottom: var(--sp-6);
+}
+
+/* ═══════════════════════════════════════════════════
+   SHARED COMPONENT CONTRACTS (spec v1 §7)
+   ═══════════════════════════════════════════════════ */
+
+/* ── Focus visibility (keyboard-only nav) ── */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+    outline: 2px solid #111111;
+    outline-offset: 2px;
+}
+
+/* ── Skeleton shimmer + modifiers ── */
+.skeleton {
+    background: linear-gradient(90deg, var(--dash-surface-2) 25%, #ffffff 50%, var(--dash-surface-2) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.2s ease-in-out infinite;
+    border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-line {
+    display: inline-block;
+    height: 12px;
+    width: 100%;
+}
+
+.skeleton-card {
+    min-height: 92px;
+    border-radius: var(--radius);
+}
+
+.skeleton-row {
+    height: 48px;
+    border-radius: var(--radius-sm);
+}
+
+/* ── Error banner (inline, with retry) ── */
+.error-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4) var(--sp-5);
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--dash-text-2);
+}
+
+.error-banner > span:first-child {
+    color: var(--dash-accent-red);
+}
+
+.error-retry {
+    margin-left: auto;
+    padding: 5px 12px;
+    font-size: 12px;
+}
+
+/* ── Mono numerals utility ── */
+.mono-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Numeric table cells: mono + right-aligned (spec v1 §6.6) */
+.td-num {
+    text-align: right;
+}
+
+td.mono-num {
+    text-align: right;
+}
+
+.stat-value {
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+.stat-unknown {
+    color: var(--dash-text-3);
+}
+
+/* ═══════════════════════════════════════════════════
+   EMPTY STATE (canonical hero pattern, spec v1 §3)
+   ═══════════════════════════════════════════════════ */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px var(--sp-8);
+    text-align: center;
+}
+
+.empty-icon-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--dash-surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: var(--sp-4);
+}
+
+/* ═══════════════════════════════════════════════════
+   VOICES LIBRARY (spec v1 §2)
+   ═══════════════════════════════════════════════════ */
+.chip-row {
+    display: flex;
+    gap: var(--sp-1);
+}
+
+.chip {
+    padding: 7px 14px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--dash-border);
+    background: var(--dash-surface);
+    color: var(--dash-text-2);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: var(--font-sans);
+}
+
+.chip:hover {
+    background: var(--dash-surface-2);
+    color: var(--dash-text);
+}
+
+.chip.active {
+    background: #111111;
+    border-color: #111111;
+    color: #ffffff;
+}
+
+.voice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--sp-4);
+}
+
+.voice-card {
+    height: 92px;
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--radius);
+    padding: var(--sp-4) var(--sp-4);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    cursor: default;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.voice-card:hover {
+    border-color: var(--dash-accent);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.voice-card.playing {
+    border-color: var(--dash-accent);
+}
+
+.voice-avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.voice-avatar-letter {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+/* 3-bar waveform shown while preview plays */
+.voice-waveform {
+    display: none;
+    position: absolute;
+    inset: 0;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    padding-bottom: 9px;
+}
+
+.voice-card.playing .voice-avatar-letter {
+    display: none;
+}
+
+.voice-card.playing .voice-waveform {
+    display: flex;
+}
+
+.voice-waveform i {
+    display: block;
+    width: 4px;
+    border-radius: 2px;
+    background: #ffffff;
+    animation: waveform 1s ease-in-out infinite;
+}
+
+.voice-waveform i:nth-child(1) { height: 8px; animation-delay: 0s; }
+.voice-waveform i:nth-child(2) { height: 16px; animation-delay: 0.15s; }
+.voice-waveform i:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+
+.voice-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.voice-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dash-text);
+}
+
+.voice-card-slug {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--dash-text-3);
+    margin-top: 1px;
+}
+
+.voice-card-lang {
+    font-size: 10px;
+    color: var(--dash-text-3);
+    margin-top: 2px;
+}
+
+.voice-play-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--dash-text-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    padding: 0;
+}
+
+.voice-play-btn:hover {
+    border-color: var(--dash-accent);
+    background: var(--dash-surface-2);
+}
+
+/* ═══════════════════════════════════════════════════
+   CONVERSATIONS TABLE (spec v1 §3)
+   ═══════════════════════════════════════════════════ */
+.conv-table td {
+    padding: 12px 20px; /* 48px compact rows */
+}
+
+.conv-transcript {
+    font-size: 12px;
+    color: var(--dash-text-2);
+    max-width: 34ch;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.text-dim {
+    color: var(--dash-text-3);
+}
+
+.badge-pulse::before {
+    content: '●';
+    margin-right: 4px;
+    animation: blink 1.4s ease-in-out infinite;
+}
+
+.conv-footer {
+    display: none;
+    padding: 10px 20px;
+    border-top: 1px solid var(--dash-border);
+    font-size: 10px;
+    color: var(--dash-text-3);
+}
+
+.conv-footer.visible {
+    display: block;
+}
+
+.table-empty-cell {
+    text-align: center;
+    padding: 48px 20px !important;
+    color: var(--dash-text-3);
+    font-size: 13px;
+}
+
+/* ═══════════════════════════════════════════════════
+   ESTIMATED COST CARD (spec v1 §4B)
+   ═══════════════════════════════════════════════════ */
+.estimate-figures {
+    display: flex;
+    gap: 64px;
+    padding: var(--sp-4) var(--sp-5) var(--sp-2);
+}
+
+.estimate-figure-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dash-text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    margin-bottom: 6px;
+}
+
+.estimate-figure-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--dash-text);
+}
+
+.estimate-footnote {
+    font-size: 11px;
+    color: var(--dash-text-3);
+    padding: 0 var(--sp-5) var(--sp-4);
 }
