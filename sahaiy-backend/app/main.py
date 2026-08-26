@@ -25,10 +25,11 @@ from app.errors import (
     ApiError,
     api_error_handler,
     http_exception_handler,
+    new_request_id,
     unhandled_exception_handler,
     validation_exception_handler,
 )
-from app.routers import stt, audio_ws, calls, knowledge, health, phone_numbers, livekit, whatsapp
+from app.routers import stt, audio_ws, calls, knowledge, health, phone_numbers, livekit, whatsapp, campaigns
 
 logging.basicConfig(
     level=LOG_LEVEL.upper(),
@@ -46,8 +47,13 @@ async def lifespan(app: FastAPI):
         timeout=30.0,
         limits=httpx.Limits(max_connections=50, max_keepalive_connections=20),
     )
+    # Outreach campaign worker (Postgres SKIP LOCKED queue — issue #7, ruling B2).
+    from app.services import campaign_worker
+
+    campaign_worker.start_worker()
     yield
     logger.info("Sahaiy backend shutting down …")
+    await campaign_worker.stop_worker()
     await app.state.http_client.aclose()
 
 
@@ -86,6 +92,7 @@ app.include_router(knowledge.router)
 app.include_router(phone_numbers.router)
 app.include_router(livekit.router)
 app.include_router(whatsapp.router)
+app.include_router(campaigns.router)
 
 
 @app.get("/")
