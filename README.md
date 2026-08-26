@@ -1,5 +1,14 @@
 # Sahaiy — AI Call Agent Platform
 
+<p align="center">
+  <a href="https://sahaiy.vercel.app/"><img src="https://img.shields.io/badge/LIVE-sahaiy.vercel.app-3FCF8E?style=for-the-badge" alt="Live"/></a>
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite"/>
+  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JS"/>
+</p>
+
+> **Try it live:** [sahaiy.vercel.app](https://sahaiy.vercel.app/)
+
 Enterprise-grade AI call agent platform built with **Vite + Vanilla JS + Supabase**.
 
 ## Tech Stack
