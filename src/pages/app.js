@@ -19,7 +19,7 @@ import { navigate, switchConfigTab, switchPeriodTab } from '@/components/Sidebar
 import { openCreateModal, closeCreateModal, selectTemplate, readCreateAgentForm } from '@/components/Modal.js';
 import { openPlayground, closePlayground, togglePlaygroundCall, sendPlaygroundMessage } from '@/components/Playground.js';
 import { drawLineChart } from '@/components/Chart.js';
-import { SARVAM_VOICES, renderVoiceGrid, initVoiceFilters, previewVoice } from '@/components/Voices.js';
+import { renderVoiceGrid, initVoiceFilters, previewVoice } from '@/components/Voices.js';
 import { loadAnalyticsPage, switchAnalyticsPeriod } from '@/components/Analytics.js';
 import { estimateCallCost, formatINR } from '@/config/pricing.js';
 import { icon } from '@/utils/icons.js';
@@ -425,7 +425,6 @@ function _renderPhoneNumbers() {
 
   list.innerHTML = _phones.map((phone) => {
     const capabilities = Array.isArray(phone.capabilities) ? phone.capabilities : [];
-    const isOutboundOnly = capabilities.length === 1 && String(capabilities[0]).toLowerCase() === 'outbound';
     const phoneIcon = icon('phone-numbers');
     const agentName = phone.agent_name ?? phone.agents?.name ?? 'Unassigned';
     const status = String(phone.status ?? 'inactive').toLowerCase();
@@ -473,18 +472,11 @@ function _renderKnowledgeDocs() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  Voices — moved to src/components/Voices.js (Sarvam catalog,
-//  per-voice TTS preview, gender/search filters). SARVAM_VOICES is
-//  imported there; the create-agent voice picker consumes the same list.
-// ═══════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════
 //  Live Ticker — REMOVED (ADR-0001).
 //  The old ticker fabricated incoming calls (random callers, durations,
 //  statuses) and wrote them into Supabase every 15–35s. Real conversations
 //  arrive via the realtime subscription below; nothing else may invent them.
 // ═══════════════════════════════════════════════════════════════
-function _startLiveTicker() { /* intentionally empty — see ADR-0001 note above */ }
 
 // ═══════════════════════════════════════════════════════════════
 //  Realtime
@@ -690,7 +682,7 @@ Object.assign(window, {
   },
 
   copyEmbedCode: () => {
-    const snippet = '<script src="https://cdn.sahaiy.ai/widget.js"><\/script>\n<sahaiy-widget agent-id="' + (window.__CURRENT_AGENT_ID__ ?? 'ag_01jkxxx') + '" label="Talk to us"></sahaiy-widget>';
+    const snippet = '<script src="https://cdn.sahaiy.ai/widget.js"></' + 'script>\n<sahaiy-widget agent-id="' + (window.__CURRENT_AGENT_ID__ ?? 'ag_01jkxxx') + '" label="Talk to us"></sahaiy-widget>';
     navigator.clipboard.writeText(snippet)
       .then(() => showToast('Embed code copied to clipboard', 'success'))
       .catch(() => showToast('Could not access clipboard', 'error'));
