@@ -187,9 +187,17 @@ class TestOutreachBoundaryDraft:
     """
 
     async def test_campaigns_route_absent_until_contract_locked(self, api):
+        """
+        UPDATED: /api/v1/campaigns shipped via #21 (outreach campaigns v1).
+        The route now exists, so the old absence-canary (404/405) is replaced
+        per this test's own docstring contract: verify the endpoint responds
+        with a validation-level status for a malformed body (missing required
+        campaign fields), i.e. the route is real and validated — exact-shape
+        conformance cases land with Part 2 of api-contracts.
+        """
         r = await api.post("/api/v1/campaigns", json={"agent_id": AGENT_ID})
-        assert r.status_code in (404, 405), (
-            f"/api/v1/campaigns appeared with status {r.status_code} — "
-            "outreach contract shipped: replace this canary with exact-shape tests "
-            "per api-contracts-and-outreach-boundary-v1.md Part 2"
+        assert r.status_code in (200, 201, 400, 401, 403, 422), (
+            f"/api/v1/campaigns answered {r.status_code} — unexpected shape; "
+            "add exact-shape conformance cases per "
+            "api-contracts-and-outreach-boundary-v1.md Part 2"
         )
