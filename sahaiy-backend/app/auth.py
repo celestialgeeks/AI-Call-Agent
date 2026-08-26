@@ -81,4 +81,29 @@ async def get_current_user_id(
     # Dev fallback only.
     if x_user_id:
         return x_user_id.strip()
-    raise _unauthorized("Provide Authorization: Bearer <token> (or X-User-Id in unenforced dev mode)")
+    raise _unauthorized("Provide Authorization: Bearer token (or X-User-Id in unenforced dev mode)")
+
+
+async def get_websocket_user_id(websocket) -> Optional[str]:
+    """
+    WebSocket counterpart of get_current_user_id.
+
+    AUTH_ENFORCED=False → None (legacy query-param user_id still accepted).
+    AUTH_ENFORCED=True  → identity MUST come from the authenticated connection:
+                          Bearer token on the upgrade request. The WS handshake
+                          query-param `user_id` is ignored once the flag is on.
+
+    Raises PermissionError when enforcement is on and no valid identity can
+    be derived — callers should reject the connection before accept().
+    """
+    if not AUTH_ENFORCED:
+        return None
+
+    header = websocket.headers.get("authorization") or ""
+    scheme, _, token = header.partition(" ")
+    if scheme.lower() != "bearer" or not token.strip():
+        raise PermissionError("missing bearer token on WebSocket upgrade")
+    try:
+        return _verify_token(token.strip())
+    except HTTPException as exc:
+        raise PermissionError(str(exc.detail)) from exc

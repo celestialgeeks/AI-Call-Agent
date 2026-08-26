@@ -181,15 +181,24 @@ class TestHealth:
 
 class TestOutreachBoundaryDraft:
     """
-    api-contracts Part 2 is a DRAFT pending @systems-architect ruling. The moment
-    /api/v1/campaigns ships, these become full conformance cases (exact shapes).
-    Today they pin that unimplemented routes do NOT silently appear with wrong shapes.
+    api-contracts Part 2 conformance cases land after @systems-architect's
+    ruling. The outreach ROUTE itself shipped via PR #21 (/api/v1/campaigns,
+    SKIP LOCKED queue), so the old "route must be absent" canary was replaced
+    with a minimal wiring check: the route exists and enforces its schema
+    (CampaignCreate requires `name`).
     """
 
-    async def test_campaigns_route_absent_until_contract_locked(self, api):
-        r = await api.post("/api/v1/campaigns", json={"agent_id": AGENT_ID})
-        assert r.status_code in (404, 405), (
-            f"/api/v1/campaigns appeared with status {r.status_code} — "
-            "outreach contract shipped: replace this canary with exact-shape tests "
-            "per api-contracts-and-outreach-boundary-v1.md Part 2"
+    async def test_campaigns_route_shipped_and_validates(self, api):
+        # Route exists (no longer 404) and CampaignCreate validation is live:
+        # a body missing the required `name` field → 422 envelope/validation.
+        r = await api.post(
+            "/api/v1/campaigns",
+            json={"agent_id": AGENT_ID},
+            headers={"X-User-Id": USER_A},
         )
+        assert r.status_code == 422, (
+            f"expected 422 (missing required 'name'), got {r.status_code}: {r.text} — "
+            "if this is 404/405 the campaigns router vanished from main"
+        )
+        body = r.json()
+        assert set(body.get("error", {}).keys()) >= {"code", "message", "request_id"}

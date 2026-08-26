@@ -32,6 +32,7 @@ import httpx
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.config import STT_URL, STT_TIMEOUT_SEC
+from app.ratelimit import check_ws_rate
 from app.services import agent_service, rag
 from app.services.llm import build_prompt, stream_llm
 from app.services.tts import speak_to_bytes
@@ -174,7 +175,15 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     """
     Full voice pipeline WebSocket endpoint.
     Accepts audio chunks, returns transcripts and TTS audio.
+
+    Rate limited (issue #4 item 4): RATE_LIMIT_WS_PER_MIN new connections per
+    identity; rejected connections get code 429 before accept.
     """
+    # ── Rate-limit gate (issue #4) — reject before accept ──────────────────
+    if not await check_ws_rate(user_id or None):
+        await ws.close(code=429)
+        return
+
     await ws.accept()
     logger.info("[WS] Connected — agent=%s user=%s", agent_id, user_id)
 

@@ -58,6 +58,11 @@ CAMPAIGN_WS_TEXT_INPUT_TIMEOUT_SEC: float = float(
 )
 CAMPAIGN_SIM_CONVERSATION_TURNS: int = int(os.getenv("CAMPAIGN_SIM_CONVERSATION_TURNS", "2"))
 
+# ── Rate limits (issue #4 item 4) ──────────────────────────────────────────
+# Requests/minute on expensive endpoints, per caller identity. 0 disables.
+RATE_LIMIT_STT_RPM: int = int(os.getenv("RATE_LIMIT_STT_RPM", "20"))
+RATE_LIMIT_WS_PER_MIN: int = int(os.getenv("RATE_LIMIT_WS_PER_MIN", "10"))
+
 # ── LiveKit ────────────────────────────────────────────────────────────────
 LIVEKIT_URL: str = os.getenv("LIVEKIT_URL", "")
 LIVEKIT_API_KEY: str = os.getenv("LIVEKIT_API_KEY", "")
