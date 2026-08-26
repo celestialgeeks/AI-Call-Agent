@@ -60,6 +60,7 @@ FRONTEND_ORIGINS: list[str] = _parse_csv_env(
 		"http://127.0.0.1:5173",
 		"http://localhost:3000",
 		"http://127.0.0.1:3000",
+		"https://sahaiy.vercel.app",
 	],
 )
 ALLOW_VERCEL_PREVIEW_ORIGINS: bool = _parse_bool_env("ALLOW_VERCEL_PREVIEW_ORIGINS", True)
