@@ -42,7 +42,7 @@
     width: 28px;
     height: 28px;
     border-radius: 7px;
-    background: linear-gradient(135deg, var(--dash-accent), #00C4A1);
+    background: var(--dash-accent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -71,7 +71,7 @@
     width: 24px;
     height: 24px;
     border-radius: 6px;
-    background: linear-gradient(135deg, var(--dash-accent), #a78bfa);
+    background: var(--dash-accent);
     color: white;
     font-size: 11px;
     font-weight: 700;
@@ -179,8 +179,8 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: linear-gradient(135deg, rgba(124, 92, 252, 0.1), rgba(0, 196, 161, 0.08));
-    border: 1px solid rgba(124, 92, 252, 0.2);
+    background: var(--dash-surface-2);
+    border: 1px solid var(--dash-border);
     border-radius: var(--radius);
     cursor: pointer;
     transition: all 0.15s;
@@ -188,7 +188,7 @@
 }
 
 .sidebar-upgrade:hover {
-    background: linear-gradient(135deg, rgba(124, 92, 252, 0.15), rgba(0, 196, 161, 0.12));
+    background: var(--dash-surface-3);
 }
 
 .upgrade-icon {
@@ -229,7 +229,7 @@
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-green));
+    background: var(--dash-accent);
     color: white;
     font-size: 12px;
     font-weight: 700;
@@ -739,7 +739,7 @@ tr:hover td {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--dash-accent), #a78bfa);
+    background: var(--dash-accent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -847,7 +847,7 @@ tr:hover td {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--dash-accent), #a78bfa, #00C4A1);
+    background: var(--dash-accent);
     display: flex;
     align-items: center;
     justify-content: center;

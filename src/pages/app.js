@@ -261,7 +261,7 @@ function _renderAgents(filter = '') {
     const [c1, c2] = gradients[i % gradients.length];
     return `<div class="agent-row" onclick="editAgent('${a.id}','${escHtml(a.name)}')">
       <div class="agent-name-cell">
-        <div class="agent-avatar" style="background:linear-gradient(135deg,${c1},${c2})">${a.icon ?? '🤖'}</div>
+        <div class="agent-avatar" style="background:var(--dash-accent)">${a.icon ?? '🤖'}</div>
         <div>
           <div class="agent-name">${escHtml(a.name)}</div>
           <div class="agent-id">ag_${a.id.slice(0, 8)}</div>
@@ -381,12 +381,12 @@ function _renderKnowledgeDocs() {
 //  Voices (static data — no DB row needed)
 // ═══════════════════════════════════════════════════════════════
 const VOICES = [
-  { name: 'Priya', lang: 'Hindi/English', gender: 'Female', style: 'Natural', emoji: '👩', gradient: 'linear-gradient(135deg,#ff6b6b,#ffa06b)' },
-  { name: 'Rahul', lang: 'Hindi', gender: 'Male', style: 'Professional', emoji: '👨', gradient: 'linear-gradient(135deg,#667eea,#764ba2)' },
-  { name: 'Anita', lang: 'English-IN', gender: 'Female', style: 'Warm', emoji: '👩‍💼', gradient: 'linear-gradient(135deg,#f093fb,#f5576c)' },
-  { name: 'Arjun', lang: 'English-IN', gender: 'Male', style: 'Confident', emoji: '👨‍💼', gradient: 'linear-gradient(135deg,#4facfe,#00f2fe)' },
-  { name: 'Kavya', lang: 'Tamil/English', gender: 'Female', style: 'Friendly', emoji: '💁‍♀️', gradient: 'linear-gradient(135deg,#43e97b,#38f9d7)' },
-  { name: 'Amit', lang: 'Bengali/Hindi', gender: 'Male', style: 'Calm', emoji: '🧑‍💻', gradient: 'linear-gradient(135deg,#fa709a,#fee140)' },
+  { name: 'Priya', lang: 'Hindi/English', gender: 'Female', style: 'Natural', emoji: '👩', gradient: 'var(--dash-accent)' },
+  { name: 'Rahul', lang: 'Hindi', gender: 'Male', style: 'Professional', emoji: '👨', gradient: 'var(--dash-accent)' },
+  { name: 'Anita', lang: 'English-IN', gender: 'Female', style: 'Warm', emoji: '👩‍💼', gradient: 'var(--dash-accent)' },
+  { name: 'Arjun', lang: 'English-IN', gender: 'Male', style: 'Confident', emoji: '👨‍💼', gradient: 'var(--dash-accent)' },
+  { name: 'Kavya', lang: 'Tamil/English', gender: 'Female', style: 'Friendly', emoji: '💁‍♀️', gradient: 'var(--dash-accent)' },
+  { name: 'Amit', lang: 'Bengali/Hindi', gender: 'Male', style: 'Calm', emoji: '🧑‍💻', gradient: 'var(--dash-accent)' },
 ];
 
 function _renderVoices() {
