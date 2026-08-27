@@ -215,15 +215,29 @@ function _playNext() {
     const blob = _audioQueue.shift();
     const url  = URL.createObjectURL(blob);
     const audio = new Audio(url);
+    // Required for reliable autoplay of streamed TTS chunks.
+    audio.autoplay = true;
     audio.onended = () => {
         URL.revokeObjectURL(url);
         _playNext();
     };
     audio.onerror = () => {
+        console.warn('[Playground] audio playback error — skipping chunk');
         URL.revokeObjectURL(url);
         _playNext();
     };
-    audio.play().catch(() => _playNext());
+    const p = audio.play();
+    if (p && typeof p.catch === 'function') {
+        p.catch((err) => {
+            console.warn('[Playground] audio.play() rejected:', err);
+            // Browsers may block autoplay until a user gesture; surface a hint once.
+            if (_audioQueue.length === 0) {
+                _appendChatBubble('🔊 Tap anywhere to enable voice playback.', 'status');
+            }
+            // Still advance so we don't stall the queue.
+            _playNext();
+        });
+    }
 }
 
 // ─── Orb State ────────────────────────────────────────────────────────

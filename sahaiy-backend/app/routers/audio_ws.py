@@ -34,6 +34,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.config import STT_URL, STT_TIMEOUT_SEC
 from app.services import agent_service, rag
 from app.services.llm import build_prompt, stream_llm
+from app.services.stt import transcribe_audio as _transcribe_audio_service
 from app.services.tts import speak_to_bytes
 from app.services.vad import is_speech
 
@@ -137,17 +138,15 @@ async def _transcribe(
     content_type: str = "audio/wav",
     language_hint: Optional[str] = None,
 ) -> str:
-    """Send audio bytes to whisper.cpp and return transcribed text."""
+    """Transcribe audio via the configured STT backend (Sarvam ASR on cloud)."""
     try:
-        resp = await http_client.post(
-            STT_URL,
-            files={"file": (file_name, audio_bytes, content_type)},
-            data={"language": language_hint} if language_hint else None,
-            timeout=float(STT_TIMEOUT_SEC),
+        return await _transcribe_audio_service(
+            audio_bytes,
+            client=http_client,
+            file_name=file_name,
+            content_type=content_type,
+            language_hint=language_hint,
         )
-        resp.raise_for_status()
-        raw_text = resp.json().get("text", "")
-        return _normalize_transcript(raw_text)
     except Exception as exc:
         logger.error("[WS/STT] %s", exc)
         return ""
@@ -210,7 +209,12 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
     greeting_sent = False
 
     async def _send_greeting_once() -> None:
-        """Send optional first_message once per connection."""
+        """Send optional first_message once per connection.
+
+        Idempotent: greeting_sent is set True on the FIRST attempt so a TTS
+        failure cannot re-trigger the greeting on every audio chunk (which
+        previously caused an infinite welcome-message loop with no audio).
+        """
         nonlocal greeting_sent
         if greeting_sent:
             return
@@ -218,6 +222,8 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
         if not first_msg:
             greeting_sent = True
             return
+        # Mark as sent up-front so retries can't loop the greeting.
+        greeting_sent = True
         try:
             logger.info("[WS] Sending first_message: '%s'", first_msg)
             await _send_json(ws, {"type": "fragment", "text": first_msg})
@@ -228,9 +234,9 @@ async def audio_ws(ws: WebSocket, agent_id: str = "", user_id: str = ""):
                 client=http_client,
             )
             await _send_audio(ws, wav_bytes)
-            greeting_sent = True
         except Exception as exc:
-            logger.error("[WS/Greeting] %s", exc)
+            logger.error("[WS/Greeting] TTS failed: %s", exc)
+            # Greeting already marked sent — do not re-attempt on next chunk.
 
     async def _run_pipeline(user_text: str) -> None:
         """Run STT -> RAG -> LLM streaming -> TTS for one utterance."""

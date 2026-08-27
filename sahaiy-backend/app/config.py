@@ -37,6 +37,9 @@ STT_TIMEOUT_SEC: int = int(os.getenv("STT_TIMEOUT_SEC", "5"))
 # ── TTS (Sarvam AI) ────────────────────────────────────────────────────────
 SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "")
 SARVAM_TTS_URL: str = "https://api.sarvam.ai/text-to-speech"
+SARVAM_STT_URL: str = os.getenv(
+    "SARVAM_STT_URL", "https://api.sarvam.ai/speech-to-text"
+)
 SARVAM_TTS_MODEL: str = os.getenv("SARVAM_TTS_MODEL", "bulbul:v2")
 SARVAM_TTS_LANG: str = os.getenv("SARVAM_TTS_LANG", "en-IN")
 SARVAM_TTS_SPEAKER: str = os.getenv("SARVAM_TTS_SPEAKER", "anushka")
