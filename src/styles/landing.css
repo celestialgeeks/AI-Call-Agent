@@ -40,7 +40,7 @@
 .nav-logo-icon {
     width: 32px;
     height: 32px;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-teal) 100%);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -129,7 +129,7 @@
     right: -10%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(0, 0, 0, 0.05) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(124, 92, 252, 0.12) 0%, transparent 65%);
     pointer-events: none;
     border-radius: 50%;
 }
@@ -140,7 +140,7 @@
     left: -5%;
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, rgba(0, 0, 0, 0.04) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(0, 196, 161, 0.08) 0%, transparent 65%);
     pointer-events: none;
     border-radius: 50%;
 }
@@ -173,7 +173,7 @@
 .hero-badge-dot {
     width: 22px;
     height: 22px;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-teal));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -201,7 +201,7 @@
 }
 
 .hero-h1 .accent-word {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-teal) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -384,7 +384,7 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 40%, var(--accent-teal) 100%);
     box-shadow:
         0 0 0 8px rgba(124, 92, 252, 0.1),
         0 0 32px rgba(124, 92, 252, 0.4),
@@ -557,7 +557,7 @@
 
 .sparkline-bar {
     width: 6px;
-    background: var(--accent);
+    background: linear-gradient(to top, var(--accent), rgba(124, 92, 252, .4));
     border-radius: 2px;
 }
 
@@ -707,7 +707,7 @@
     width: 16px;
     height: 16px;
     min-width: 16px;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), var(--accent-teal));
     border-radius: 50%;
     margin-top: 2px;
     position: relative;
@@ -838,7 +838,7 @@
 
 .mini-bar {
     flex: 1;
-    background: var(--accent);
+    background: linear-gradient(to top, var(--accent), rgba(124, 92, 252, .3));
     border-radius: 3px 3px 0 0;
     min-height: 8px;
     opacity: 0.8;
@@ -952,7 +952,7 @@
     transform: translateX(-50%);
     width: 600px;
     height: 400px;
-    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.06) 0%, transparent 60%);
+    background: radial-gradient(ellipse, rgba(124, 92, 252, 0.2) 0%, transparent 60%);
     pointer-events: none;
 }
 
@@ -1046,7 +1046,7 @@
 
 .pricing-card.featured {
     border-color: var(--accent);
-    background: linear-gradient(160deg, rgba(0, 0, 0, 0.03) 0%, white 100%);
+    background: linear-gradient(160deg, rgba(124, 92, 252, 0.04) 0%, white 100%);
 }
 
 .pricing-featured-tag {
