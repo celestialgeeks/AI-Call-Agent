@@ -18,6 +18,7 @@ let _audioSourceNode = null;
 let _audioProcessorNode = null;
 let _audioQueue   = [];      // Sequential audio playback queue
 let _isPlaying    = false;   // Is audio currently playing?
+let _playHintShown = false;  // One-time autoplay-block hint
 let _agentName    = 'Agent'; // Display name shown in header
 
 const resolveWsBase = () => {
@@ -220,10 +221,23 @@ function _playNext() {
         _playNext();
     };
     audio.onerror = () => {
+        console.warn('[Playground] audio playback error — skipping chunk');
         URL.revokeObjectURL(url);
         _playNext();
     };
-    audio.play().catch(() => _playNext());
+    audio.autoplay = true; // required for reliable autoplay of streamed TTS chunks
+    const _playP = audio.play();
+    if (_playP && typeof _playP.catch === 'function') {
+        _playP.catch((err) => {
+            console.warn('[Playground] audio.play() rejected:', err);
+            // Browsers may block autoplay until a user gesture; surface a hint once.
+            if (!_playHintShown) {
+                _playHintShown = true;
+                _appendChatBubble('🔊 Tap anywhere to enable voice playback.', 'status');
+            }
+            _playNext();
+        });
+    }
 }
 
 // ─── Orb State ────────────────────────────────────────────────────────
