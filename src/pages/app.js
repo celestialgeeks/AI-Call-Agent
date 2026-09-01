@@ -522,6 +522,7 @@ Object.assign(window, {
   },
 
   // Agent panel
+  openCreateModal,
   openCreateAgent: openCreateModal,
   closeCreateModal,
   selectTemplate,
